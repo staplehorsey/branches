@@ -134,6 +134,9 @@ fn manifest(
         portal_policy: policy,
         architect: "reference-heuristic@1".into(),
         spawn: "0,0".into(),
+        hub: true,
+        parent: None,
+        signature: None,
     }
 }
 
@@ -311,7 +314,7 @@ pub fn default_room(world: &WorldManifest, others: &[WorldManifest], x: i32, z: 
     let sealed = policy.mode == PolicyMode::Closed || (policy.mode == PolicyMode::Allowlist && !policy.allow_local);
     let my_spawn = parse_addr(&world.spawn);
     let mut portals = Vec::new();
-    for o in others {
+    for o in others.iter().filter(|o| world.hub && o.hub) {
         let their_spawn = parse_addr(&o.spawn);
         let (target, slot) = if my_spawn == Some((x, z)) {
             let Some((tx, tz)) = their_spawn else { continue };
@@ -359,6 +362,10 @@ pub fn default_room(world: &WorldManifest, others: &[WorldManifest], x: i32, z: 
         investors: HashMap::new(),
         building: None,
         last_visit: HashMap::new(),
+        things: Vec::new(),
+        looks: BTreeMap::new(),
+        touches: BTreeMap::new(),
+        replunged: false,
     }
 }
 

@@ -5,6 +5,7 @@
 // of truth.
 import { WORLDS, THEMES, TAGS } from './offline-data.js';
 import { hash32, Rand } from './rng.js';
+import { defaultRoom as genRoom } from './procgen.js';
 
 export const LOCAL_ORIGIN = 'local://branches';
 const KEY = 'branches.local-host.v1';
@@ -16,11 +17,6 @@ const addr = (x, z) => `${x},${z}`;
 const parseAddr = (s) => {
   const m = /^(-?\d+),(-?\d+)$/.exec(s || '');
   return m ? [Number(m[1]), Number(m[2])] : null;
-};
-const strHash = (s) => {
-  let h = 0x811c9dc5;
-  for (let i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 0x01000193);
-  return h >>> 0;
 };
 
 const KEYWORDS = {
@@ -58,38 +54,8 @@ const NOUNS = {
 const theme = (id) => THEMES.find((t) => t.id === id);
 const world = (id) => WORLDS.find((w) => w.id === id);
 
-function defaultRoom(w, x, z) {
-  const seed = hash32(w.seed, x, z, 1);
-  const th = THEMES[hash32(w.seed, x, z, 2) % THEMES.length];
-  const p = w.portal_policy;
-  const sealed = p.mode === 'closed' || (p.mode === 'allowlist' && !p.allow_local);
-  const mySpawn = parseAddr(w.spawn);
-  const portals = [];
-  for (const o of WORLDS) {
-    if (o.id === w.id) continue;
-    const theirs = parseAddr(o.spawn);
-    let target, slot;
-    if (mySpawn && mySpawn[0] === x && mySpawn[1] === z) {
-      target = theirs;
-      slot = 0;
-    } else {
-      if (theirs && theirs[0] === x && theirs[1] === z) continue;
-      const [a, b] = [w.id, o.id].sort();
-      const h = hash32(strHash(a), strHash(b), x, z, 0xb0b);
-      if (h % 9 !== 0) continue;
-      target = [x, z];
-      slot = (h >>> 8) % 3;
-    }
-    portals.push({ id: `pair-${o.id}`, slot, target: `/w/${o.id}/${target[0]},${target[1]}`, label: o.name, by: 'generator', at: 0, sealed });
-  }
-  return {
-    x, z, seed, theme: th.id,
-    chambers: [{ name: 'Entry Hall', tag: th.tags[0], seed, by: 'generator', at: 0 }],
-    features: [], portals, log: [], claim: null, attention: 0,
-    weights: Object.fromEntries(th.tags.map((t) => [t, 1])),
-    investors: {}, building: null, last_visit: {},
-  };
-}
+// Untouched rooms come from the shared generator, identical to the app's.
+const defaultRoom = (w, x, z) => genRoom(w, WORLDS.filter((o) => o.id !== w.id), x, z);
 
 class LocalHost {
   constructor() {

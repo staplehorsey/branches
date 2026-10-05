@@ -64,6 +64,15 @@ pub struct WorldManifest {
     pub architect: String,
     /// Address a fresh arrival spawns at, `x,z`.
     pub spawn: String,
+    /// Hub worlds are joined spawn-to-spawn and by doors in untouched
+    /// houses. Grown worlds are not: they hang off the door that made them.
+    #[serde(default = "yes")]
+    pub hub: bool,
+    /// The world this one grew out of, and the shape of the paths that grew it.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub parent: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub signature: Option<Value>,
 }
 
 /// A door in a room that leads somewhere else in the graph.
@@ -163,6 +172,53 @@ pub struct Room {
     pub building: Option<Build>,
     #[serde(default)]
     pub last_visit: HashMap<String, u64>,
+    /// Characters, notes and games living in this room.
+    #[serde(default)]
+    pub things: Vec<Thing>,
+    /// Seconds spent looking at each feature or thing, by id.
+    #[serde(default)]
+    pub looks: BTreeMap<String, f32>,
+    /// Times each feature or thing was used (talked to, read, played).
+    #[serde(default)]
+    pub touches: BTreeMap<String, u32>,
+    /// Brought forward from an older version when someone built on it there.
+    #[serde(default)]
+    pub replunged: bool,
+}
+
+/// Something with a story in a room: a character, a note, a little game.
+/// `data` is free-form so architects can invent new kinds; the client
+/// renders the kinds it knows and shows the rest as a curious object.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct Thing {
+    pub id: String,
+    pub kind: String,
+    pub chamber: u32,
+    pub seed: u32,
+    #[serde(default)]
+    pub data: Value,
+    pub by: String,
+    pub at: u64,
+}
+
+/// How much a cell has been explored.
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct Heat {
+    /// Seconds spent inside the house.
+    #[serde(default)]
+    pub inside: f32,
+    /// Seconds spent outside it, on its lawn and street.
+    #[serde(default)]
+    pub outside: f32,
+    #[serde(default)]
+    pub visits: u32,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct Version {
+    pub tag: String,
+    pub at: u64,
+    pub summary: String,
 }
 
 impl Room {
@@ -191,6 +247,7 @@ pub struct Player {
     /// Learned global taste profile: what this player lingers in and admires.
     pub prefs: BTreeMap<Tag, f32>,
     pub inbox: Vec<Notification>,
+    #[serde(default)]
     pub created: u64,
 }
 
@@ -200,6 +257,28 @@ pub struct World {
     /// Keyed by `x,z`.
     pub rooms: BTreeMap<String, Room>,
     pub log: Vec<LogEntry>,
+    /// Exploration per cell, keyed by `x,z`.
+    #[serde(default)]
+    pub heat: BTreeMap<String, Heat>,
+    /// Tagged versions, newest first.
+    #[serde(default)]
+    pub versions: Vec<Version>,
+    /// Recent path signatures of people wandering here.
+    #[serde(default)]
+    pub paths: Vec<Value>,
+    #[serde(default)]
+    pub builds_since_tag: u32,
+    #[serde(default)]
+    pub fresh_cells: u32,
+    /// Average seconds per house visit (exponentially weighted).
+    #[serde(default)]
+    pub pace: f32,
+}
+
+impl World {
+    pub fn new(manifest: WorldManifest) -> Self {
+        World { manifest, rooms: BTreeMap::new(), log: vec![], heat: BTreeMap::new(), versions: vec![], paths: vec![], builds_since_tag: 0, fresh_cells: 0, pace: 0.0 }
+    }
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]

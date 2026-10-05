@@ -11,6 +11,7 @@ use axum::response::{IntoResponse, Response};
 use axum::{Json, Router, routing::get, routing::post};
 use serde::Deserialize;
 use serde_json::{Value, json};
+use std::collections::BTreeMap;
 use std::sync::Arc;
 
 type AppState = State<Arc<App>>;
@@ -37,6 +38,10 @@ pub fn router() -> Router<Arc<App>> {
         .route("/api/worlds", get(worlds))
         .route("/api/worlds/{w}", get(world))
         .route("/api/worlds/{w}/chunk", get(chunk))
+        .route("/api/worlds/{w}/map", get(map))
+        .route("/api/app/settings", get(get_settings).post(put_settings))
+        .route("/api/app/import", post(import))
+        .route("/api/app/quit", post(quit))
         .route("/api/worlds/{w}/log", get(world_log).post(post_world_log))
         .route("/api/worlds/{w}/rooms/{x}/{z}", get(room).patch(patch_room))
         .route("/api/worlds/{w}/rooms/{x}/{z}/log", post(post_room_log))
@@ -92,6 +97,7 @@ async fn host_manifest(State(app): AppState) -> Json<Value> {
     Json(json!({
         "protocol": "branches/0.1",
         "software": "branches-server",
+        "app": app.cfg.app,
         "version": env!("CARGO_PKG_VERSION"),
         "generators": ["liminal-houses@1"],
         "worlds": uni.worlds.values().map(|w| json!({ "id": w.manifest.id, "name": w.manifest.name, "path": format!("/w/{}/{}", w.manifest.id, w.manifest.spawn) })).collect::<Vec<_>>(),
@@ -124,10 +130,20 @@ async fn worlds(State(app): AppState) -> Json<Value> {
     })).collect::<Vec<_>>()))
 }
 
+/// The world, plus every tagged version with the biome it had then, so a
+/// client can draw older bands of the map the way they used to look.
 async fn world(State(app): AppState, Path(w): Path<String>) -> Res {
     let uni = app.uni.lock().unwrap();
     let world = uni.worlds.get(&w).ok_or_else(|| err(StatusCode::NOT_FOUND, "no such world"))?;
-    Ok(Json(json!({ "manifest": world.manifest })))
+    let versions: Vec<Value> = world
+        .versions
+        .iter()
+        .map(|v| {
+            let biome = app.store.world_at(&v.tag, &w).map(|m| m.generator.params).unwrap_or(Value::Null);
+            json!({ "tag": v.tag, "at": v.at, "summary": v.summary, "biome": biome })
+        })
+        .collect();
+    Ok(Json(json!({ "manifest": world.manifest, "versions": versions, "ring": crate::state::RING })))
 }
 
 /// The world graph as this host knows it: worlds are nodes, portals edges.
@@ -164,11 +180,17 @@ async fn chunk(State(app): AppState, Path(w): Path<String>, Query(q): Query<Chun
     if (x1 - x0 + 1) as i64 * (z1 - z0 + 1) as i64 > 625 {
         return Err(err(StatusCode::BAD_REQUEST, "chunk too large (max 625 cells)"));
     }
+    let world = &uni.worlds[&w];
     let mut cells = Vec::new();
     for x in x0..=x1 {
         for z in z0..=z1 {
-            if let Some(r) = uni.room(&w, x, z) {
-                cells.push(room_summary(&r));
+            if let Some((r, _)) = app.displayed(&uni, &w, x, z) {
+                let mut s = room_summary(&r);
+                s["band"] = json!(app.band(world, x, z).0);
+                if let Some(cur) = world.rooms.get(&addr(x, z)) {
+                    s["building"] = json!(cur.building.is_some());
+                }
+                cells.push(s);
             }
         }
     }
@@ -177,8 +199,22 @@ async fn chunk(State(app): AppState, Path(w): Path<String>, Query(q): Query<Chun
 
 async fn room(State(app): AppState, Path((w, x, z)): Path<(String, i32, i32)>) -> Res {
     let uni = app.uni.lock().unwrap();
-    let r = uni.room(&w, x, z).ok_or_else(|| err(StatusCode::NOT_FOUND, "no such world"))?;
-    Ok(Json(room_view(&app, &uni, &w, &r)))
+    room_view(&app, &uni, &w, x, z).map(Json).ok_or_else(|| err(StatusCode::NOT_FOUND, "no such world"))
+}
+
+/// What has been explored: heat per cell, grown houses and doors, for the
+/// map people carry and the heat map architects read.
+async fn map(State(app): AppState, Path(w): Path<String>) -> Res {
+    let uni = app.uni.lock().unwrap();
+    let world = uni.worlds.get(&w).ok_or_else(|| err(StatusCode::NOT_FOUND, "no such world"))?;
+    let heat: Vec<Value> = world.heat.iter().filter_map(|(k, h)| parse_addr(k).map(|(x, z)| json!([x, z, h.inside.round(), h.outside.round(), h.visits]))).collect();
+    let rooms: Vec<Value> = world
+        .rooms
+        .values()
+        .filter(|r| r.growth() > 0 || !r.things.is_empty() || r.portals.iter().any(|p| p.by != "generator"))
+        .map(|r| json!({ "x": r.x, "z": r.z, "growth": r.growth(), "things": r.things.len(), "doors": r.portals.iter().map(|p| p.label.clone()).collect::<Vec<_>>(), "building": r.building.is_some() }))
+        .collect();
+    Ok(Json(json!({ "spawn": world.manifest.spawn, "heat": heat, "rooms": rooms, "versions": world.versions.len(), "ring": crate::state::RING })))
 }
 
 #[derive(Deserialize)]
@@ -539,4 +575,79 @@ mod tests {
         r.claim.as_mut().unwrap().outbound = OutboundRule { max: Some(0), ..Default::default() };
         assert!(check_portal(&p, &r, "/w/the-lush/1,1").is_err());
     }
+}
+
+// ------------------------------------------------------------ the desktop app
+
+async fn get_settings(State(app): AppState) -> Json<Value> {
+    Json(json!({ "app": app.cfg.app, "settings": *app.settings.lock().unwrap(), "data_dir": app.store.root }))
+}
+
+/// Settings choose a command the app will run, so only the app's own page
+/// may change them: never another website open in the same browser.
+fn same_origin(app: &App, headers: &HeaderMap) -> bool {
+    match headers.get("origin").and_then(|v| v.to_str().ok()) {
+        None => true,
+        Some(o) => o == format!("http://localhost:{}", app.cfg.port) || o == format!("http://127.0.0.1:{}", app.cfg.port),
+    }
+}
+
+async fn put_settings(State(app): AppState, headers: HeaderMap, Json(s): Json<crate::state::Settings>) -> Res {
+    if !same_origin(&app, &headers) {
+        return Err(err(StatusCode::FORBIDDEN, "settings can only be changed from the app's own page"));
+    }
+    if !app.cfg.app {
+        return Err(err(StatusCode::FORBIDDEN, "settings can only be changed in the desktop app"));
+    }
+    if !["heuristic", "command"].contains(&s.architect.as_str()) {
+        return Err(err(StatusCode::BAD_REQUEST, "architect must be heuristic or command"));
+    }
+    app.save_settings(s);
+    Ok(Json(json!({ "ok": true })))
+}
+
+async fn quit(State(app): AppState, headers: HeaderMap) -> Res {
+    if !same_origin(&app, &headers) {
+        return Err(err(StatusCode::FORBIDDEN, "the app can only be quit from its own page"));
+    }
+    if !app.cfg.app {
+        return Err(err(StatusCode::FORBIDDEN, "only the desktop app can be quit from the page"));
+    }
+    app.quit.notify_one();
+    Ok(Json(json!({ "ok": true })))
+}
+
+#[derive(Deserialize)]
+struct ImportBody {
+    #[serde(default)]
+    rooms: BTreeMap<String, BTreeMap<String, Value>>,
+    #[serde(default)]
+    player: Option<Value>,
+}
+
+/// Bring worlds grown in a browser (with no app running) into the app.
+/// Houses the app already knows are kept; new ones are added.
+async fn import(State(app): AppState, Json(b): Json<ImportBody>) -> Res {
+    let mut uni = app.uni.lock().unwrap();
+    let mut added = 0;
+    for (wid, rooms) in b.rooms {
+        let Some(world) = uni.worlds.get_mut(&wid) else { continue };
+        for (key, v) in rooms {
+            let Ok(room) = serde_json::from_value::<Room>(v) else { continue };
+            if addr(room.x, room.z) != key || world.rooms.contains_key(&key) {
+                continue;
+            }
+            world.rooms.insert(key, room);
+            added += 1;
+        }
+    }
+    if let Some(p) = b.player.and_then(|v| serde_json::from_value::<Player>(v).ok()) {
+        uni.players.entry(p.id.clone()).or_insert(p);
+    }
+    drop(uni);
+    if added > 0 {
+        app.note_commit(format!("Imported {added} houses grown in a browser"));
+        app.touch();
+    }
+    Ok(Json(json!({ "ok": true, "rooms": added })))
 }

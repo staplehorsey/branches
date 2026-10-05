@@ -24,6 +24,12 @@ enum In {
     Move { p: [f32; 3], ry: f32, room: Option<String>, ch: Option<u32> },
     Chat { text: String },
     Admire { room: String, ch: u32 },
+    /// Seconds spent looking at features and things, by id.
+    Look { room: String, items: std::collections::BTreeMap<String, f32> },
+    /// Used something: talked, read, played. `done` marks a finished game.
+    Touch { room: String, id: String, #[serde(default)] done: Option<String> },
+    /// The shape of the path someone has been walking.
+    Path { sig: serde_json::Value },
 }
 
 pub async fn upgrade(ws: WebSocketUpgrade, State(app): State<Arc<App>>, Path(world): Path<String>) -> Response {
@@ -86,7 +92,7 @@ async fn session(socket: WebSocket, app: Arc<App>, world: String) {
         let mut pres = app.presence.lock().unwrap();
         let here = pres.entry(world.clone()).or_default();
         let peers = here.values().filter(|p| p.id != player).map(peer_json).collect();
-        here.insert(player.clone(), Presence { id: player.clone(), name: name.clone(), color: color.clone(), p: [0.0; 3], ry: 0.0, room: None, ch: None, last_move: Instant::now(), conn });
+        here.insert(player.clone(), Presence { id: player.clone(), name: name.clone(), color: color.clone(), p: [0.0; 3], ry: 0.0, room: None, ch: None, last_move: Instant::now(), room_since: Instant::now(), conn });
         peers
     };
     let (dtx, mut drx) = mpsc::unbounded_channel::<Msg>();
@@ -139,6 +145,51 @@ async fn session(socket: WebSocket, app: Arc<App>, world: String) {
                     app.send_direct(&player, &json!({ "t": "admired", "addr": room, "tags": tags }));
                 }
             }
+            In::Look { room, items } => {
+                let Some((x, z)) = parse_addr(&room) else { continue };
+                let mut uni = app.uni.lock().unwrap();
+                if let Some(r) = uni.room_mut(&world, x, z) {
+                    for (id, secs) in items.into_iter().take(40) {
+                        if secs.is_finite() && secs > 0.0 && id.len() < 40 {
+                            *r.looks.entry(id).or_default() += secs.min(30.0);
+                        }
+                    }
+                }
+                app.touch();
+            }
+            In::Touch { room, id, done } => {
+                let Some((x, z)) = parse_addr(&room) else { continue };
+                if id.len() > 40 {
+                    continue;
+                }
+                let mut uni = app.uni.lock().unwrap();
+                if let Some(r) = uni.room_mut(&world, x, z) {
+                    *r.touches.entry(id).or_default() += 1;
+                    r.attention += 2.0;
+                    if let Some(what) = done {
+                        let text: String = what.chars().take(120).collect();
+                        let entry = LogEntry { id: new_id(), kind: "note".into(), who: name.clone(), player: Some(player.clone()), text, at: now_ms() };
+                        push_log(&mut r.log, entry.clone());
+                        r.attention += 10.0;
+                        drop(uni);
+                        app.broadcast(&world, &json!({ "t": "log", "addr": room, "entry": entry }));
+                    }
+                }
+                app.touch();
+            }
+            In::Path { sig } => {
+                if sig.to_string().len() < 600 {
+                    let mut uni = app.uni.lock().unwrap();
+                    if let Some(w) = uni.worlds.get_mut(&world) {
+                        w.paths.push(sig);
+                        let n = w.paths.len();
+                        if n > 40 {
+                            w.paths.drain(0..n - 40);
+                        }
+                    }
+                    app.touch();
+                }
+            }
             In::Hello { .. } => {}
         }
     }
@@ -150,21 +201,62 @@ fn on_move(app: &App, world: &str, player: &str, p: [f32; 3], ry: f32, room: Opt
     if !p.iter().all(|v| v.is_finite()) || !ry.is_finite() {
         return;
     }
-    let (dt, entered) = {
+    let (dt, entered, left) = {
         let mut pres = app.presence.lock().unwrap();
         let Some(me) = pres.get_mut(world).and_then(|w| w.get_mut(player)) else { return };
         let dt = me.last_move.elapsed().as_secs_f64().min(1.0);
         let entered = room.is_some() && room != me.room;
+        // How long the last house held them: the world's exploration pace.
+        let left = (room != me.room && me.room.is_some()).then(|| me.room_since.elapsed().as_secs_f32());
+        if room != me.room {
+            me.room_since = Instant::now();
+        }
         me.p = p;
         me.ry = ry;
         me.room = room.clone();
         me.ch = ch;
         me.last_move = Instant::now();
-        (dt, entered)
+        (dt, entered, left)
     };
-    let Some((x, z)) = room.as_deref().and_then(parse_addr) else { return };
     let mut uni = app.uni.lock().unwrap();
+    if let (Some(secs), Some(w)) = (left, uni.worlds.get_mut(world)) {
+        if secs > 2.0 {
+            w.pace = if w.pace <= 0.0 { secs } else { w.pace * 0.8 + secs.min(600.0) * 0.2 };
+        }
+    }
+    let Some((x, z)) = room.as_deref().and_then(parse_addr) else {
+        // Outdoors: the street counts as explored too, and fresh ground
+        // feeds the birth of new worlds.
+        let cell = ((p[0] / 24.0).round() as i32, (p[2] / 24.0).round() as i32);
+        let fresh = {
+            let Some(w) = uni.worlds.get_mut(world) else { return };
+            let fresh = !w.heat.contains_key(&addr(cell.0, cell.1));
+            let h = w.heat.entry(addr(cell.0, cell.1)).or_default();
+            h.outside += dt as f32;
+            if fresh {
+                w.fresh_cells += 1;
+            }
+            fresh
+        };
+        if fresh {
+            if let Some(born) = crate::genesis::maybe_birth(app, &mut uni, world, cell, player) {
+                drop(uni);
+                app.send_direct(player, &born);
+                app.touch();
+                return;
+            }
+        }
+        app.touch();
+        return;
+    };
     architect::record_dwell(&mut uni, world, x, z, ch.unwrap_or(0), player, dt);
+    if let Some(w) = uni.worlds.get_mut(world) {
+        let h = w.heat.entry(addr(x, z)).or_default();
+        h.inside += dt as f32;
+        if entered {
+            h.visits += 1;
+        }
+    }
     if entered {
         let name = uni.players.get(player).map(|p| p.name.clone()).unwrap_or_default();
         let r = uni.room_mut(world, x, z).unwrap();
