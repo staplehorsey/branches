@@ -1,0 +1,72 @@
+# Builds Branches.app (universal: Apple Silicon and Intel) and publishes it
+# as the rolling "mac-latest" release, so there is always one download link:
+# https://github.com/<owner>/<repo>/releases/download/mac-latest/Branches-mac.zip
+name: Mac app
+on:
+  push:
+    branches: [main, claude/vibrant-galileo-l8gmdx]
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: mac-app
+  cancel-in-progress: true
+jobs:
+  build:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build server for both architectures
+        working-directory: server
+        run: |
+          rustup target add aarch64-apple-darwin x86_64-apple-darwin
+          cargo build --release --target aarch64-apple-darwin
+          cargo build --release --target x86_64-apple-darwin
+          lipo -create -output branches-server \
+            target/aarch64-apple-darwin/release/branches-server \
+            target/x86_64-apple-darwin/release/branches-server
+      - name: Test
+        working-directory: server
+        run: cargo test --release --target aarch64-apple-darwin
+      - name: Assemble Branches.app
+        run: |
+          APP=build/Branches.app
+          mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
+          cp macos/Info.plist "$APP/Contents/Info.plist"
+          cp macos/launcher.sh "$APP/Contents/MacOS/Branches"
+          chmod +x "$APP/Contents/MacOS/Branches"
+          cp server/branches-server "$APP/Contents/MacOS/branches-server"
+          cp -R client "$APP/Contents/Resources/client"
+          mkdir -p build/png build/AppIcon.iconset
+          python3 macos/icon.py build/png
+          for s in 16 32 128 256 512; do
+            cp build/png/icon_${s}x${s}.png build/AppIcon.iconset/icon_${s}x${s}.png
+            d=$((s * 2)); cp build/png/icon_${d}x${d}.png build/AppIcon.iconset/icon_${s}x${s}@2x.png 2>/dev/null || true
+          done
+          cp build/png/icon_64x64.png build/AppIcon.iconset/icon_32x32@2x.png
+          iconutil -c icns build/AppIcon.iconset -o "$APP/Contents/Resources/AppIcon.icns"
+          codesign --force --deep --sign - "$APP"
+          codesign --verify --deep "$APP"
+          (cd build && ditto -c -k --keepParent Branches.app Branches-mac.zip)
+      - name: Smoke test the bundle
+        run: |
+          BRANCHES_NO_OPEN=1 DATA_DIR="$RUNNER_TEMP/worlds" build/Branches.app/Contents/MacOS/branches-server --app &
+          for i in $(seq 1 20); do curl -sf http://localhost:7878/.well-known/branches.json && break; sleep 1; done
+          curl -sf http://localhost:7878/ | grep -q '<title>Branches</title>'
+          curl -sf http://localhost:7878/api/worlds/the-lush/rooms/0/0 | grep -q 'Entry Hall'
+          curl -sf -X POST http://localhost:7878/api/app/quit -H 'content-type: application/json' -d '{}'
+          sleep 2
+          git -C "$RUNNER_TEMP/worlds" log --oneline | head -3
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Branches-mac
+          path: build/Branches-mac.zip
+      - name: Publish rolling release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete mac-latest --yes --cleanup-tag || true
+          gh release create mac-latest build/Branches-mac.zip \
+            --prerelease --target "$GITHUB_SHA" \
+            --title "Branches for Mac (latest)" \
+            --notes "Built from ${GITHUB_SHA::7}. Unzip, drag Branches to Applications, then right-click it and choose Open the first time (the app is not notarized)."
