@@ -1,0 +1,51 @@
+{
+  "x": 23,
+  "z": 1,
+  "seed": 580045268,
+  "theme": "sunset-terrarium",
+  "chambers": [
+    {
+      "name": "Entry Hall",
+      "tag": "plants",
+      "seed": 580045268,
+      "by": "generator",
+      "at": 0
+    }
+  ],
+  "features": [],
+  "portals": [
+    {
+      "id": "born-hushed-meridian-3f02",
+      "slot": 0,
+      "target": "/w/hushed-meridian-3f02/0,0",
+      "label": "The Hushed Meridian",
+      "by": "genesis",
+      "at": 1791235171166,
+      "sealed": false
+    }
+  ],
+  "log": [
+    {
+      "id": "14ba41f7ff8d",
+      "kind": "portal",
+      "who": "drift-57",
+      "player": "94b402ce6e6a1d1b",
+      "text": "walked a world into being: The Hushed Meridian",
+      "at": 1791235171166
+    }
+  ],
+  "claim": null,
+  "attention": 0.0,
+  "weights": {
+    "light": 1.0653908,
+    "plants": 1.1702853,
+    "stone": 1.0148939
+  },
+  "investors": {},
+  "building": null,
+  "last_visit": {},
+  "things": [],
+  "looks": {},
+  "touches": {},
+  "replunged": false
+}

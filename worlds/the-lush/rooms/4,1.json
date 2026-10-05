@@ -48,14 +48,14 @@
     }
   ],
   "claim": null,
-  "attention": 10.49101683999999,
+  "attention": 24.091151544999992,
   "weights": {
-    "books": 1.3463027,
-    "cozy": 1.4109542,
-    "plants": 1.2816433
+    "books": 1.4623034,
+    "cozy": 1.4319531,
+    "plants": 1.3026421
   },
   "investors": {
-    "94b402ce6e6a1d1b": 28.491016839999993
+    "94b402ce6e6a1d1b": 40.091151545
   },
   "building": null,
   "last_visit": {
@@ -89,8 +89,11 @@
   ],
   "looks": {
     "de1bd5062490": 1.8,
-    "theme:plants": 6.8
+    "e25b92149cbb": 6.4,
+    "theme:plants": 9.200001
   },
-  "touches": {},
+  "touches": {
+    "e25b92149cbb": 1
+  },
   "replunged": false
 }

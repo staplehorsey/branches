@@ -10,6 +10,11 @@
     "name": "Fog Pines"
   },
   {
+    "hub": false,
+    "id": "hushed-meridian-3f02",
+    "name": "The Hushed Meridian"
+  },
+  {
     "hub": true,
     "id": "moonlit-meadow",
     "name": "Moonlit Meadow"

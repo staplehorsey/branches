@@ -1,0 +1,42 @@
+{
+  "x": 0,
+  "z": 0,
+  "seed": 2152687285,
+  "theme": "sunset-terrarium",
+  "chambers": [
+    {
+      "name": "Entry Hall",
+      "tag": "plants",
+      "seed": 2152687285,
+      "by": "generator",
+      "at": 0
+    }
+  ],
+  "features": [],
+  "portals": [
+    {
+      "id": "born-hushed-meridian-3f02-back",
+      "slot": 0,
+      "target": "/w/the-lush/23,1",
+      "label": "The Lush",
+      "by": "genesis",
+      "at": 1791235171166,
+      "sealed": false
+    }
+  ],
+  "log": [],
+  "claim": null,
+  "attention": 0.0,
+  "weights": {
+    "light": 1.1786494,
+    "plants": 1.0226011,
+    "stone": 1.0688326
+  },
+  "investors": {},
+  "building": null,
+  "last_visit": {},
+  "things": [],
+  "looks": {},
+  "touches": {},
+  "replunged": false
+}

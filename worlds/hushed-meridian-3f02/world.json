@@ -1,0 +1,95 @@
+{
+  "id": "hushed-meridian-3f02",
+  "name": "The Hushed Meridian",
+  "tagline": "Born from paths walked in The Lush: straight lines, taking their time, returning to the same streets.",
+  "seed": 3465096252,
+  "generator": {
+    "kind": "liminal-houses@1",
+    "params": {
+      "flowers": [
+        "#ffa5c1",
+        "#ffd984",
+        "#f7f7f7",
+        "#c4a2ff",
+        "#ffac81"
+      ],
+      "fog": {
+        "color": "#e9f3e7",
+        "far": 135.67644953727722,
+        "near": 27.135289907455444
+      },
+      "foliage": [
+        "#43ac56",
+        "#6ec669",
+        "#348e4d",
+        "#86d06d"
+      ],
+      "grass": {
+        "base": "#348b37",
+        "density": 0.9956285953521729,
+        "height": 0.5797052562236786,
+        "tip": "#c2e87e"
+      },
+      "ground": "#529a42",
+      "hedge": "#348b44",
+      "hemi": {
+        "ground": "#598a42",
+        "intensity": 1.1,
+        "sky": "#e5f3ff"
+      },
+      "house": {
+        "door": "#f7ccd2",
+        "roof": "#93bcac",
+        "trim": "#f7f7f7",
+        "wall": "#f3f7f2",
+        "window": "#fff5d8"
+      },
+      "lamp": "#fff5d6",
+      "motes": "#fffdf0",
+      "night": false,
+      "path": "#f5efe2",
+      "places": {
+        "arch": 0.12221262603998184,
+        "cave": 0.1176382452249527,
+        "house": 0.7043685913085938,
+        "tower": 0.05753744766116142
+      },
+      "ponds": 0.25908586382865906,
+      "sky": {
+        "bottom": "#edf5eb",
+        "horizon": "#f9f7ec",
+        "top": "#82c3ef"
+      },
+      "sun": {
+        "azimuth": 0.6,
+        "color": "#fff8e8",
+        "elevation": 0.9912688136100769,
+        "intensity": 2.4
+      },
+      "terrain": {
+        "amp": 1.8663342952728272,
+        "scale": 74.6266860961914
+      },
+      "trees": "round",
+      "trunk": "#89644a",
+      "water": "#89d9d2"
+    }
+  },
+  "portal_policy": {
+    "mode": "open",
+    "max_per_room": 3,
+    "allow_hosts": [],
+    "allow_local": true
+  },
+  "architect": "reference-heuristic@2",
+  "spawn": "0,0",
+  "hub": false,
+  "parent": "the-lush",
+  "signature": {
+    "heading": 0.15802660584449768,
+    "revisit": 0.7011428475379944,
+    "speed": 4.480999946594238,
+    "straight": 0.7157142758369446,
+    "turn": 0.16128569841384888
+  }
+}

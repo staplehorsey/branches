@@ -1,0 +1,48 @@
+{
+  "x": 21,
+  "z": 1,
+  "seed": 1589384282,
+  "theme": "velvet-theatre",
+  "chambers": [
+    {
+      "name": "Entry Hall",
+      "tag": "music",
+      "seed": 1589384282,
+      "by": "generator",
+      "at": 0
+    }
+  ],
+  "features": [],
+  "portals": [],
+  "log": [
+    {
+      "id": "b11b1b7618f4",
+      "kind": "visit",
+      "who": "drift-57",
+      "player": "94b402ce6e6a1d1b",
+      "text": "stopped by",
+      "at": 1791235155476
+    }
+  ],
+  "claim": null,
+  "attention": 2.9613053760000008,
+  "weights": {
+    "art": 1.2129996,
+    "cozy": 1.1269984,
+    "music": 1.0746999
+  },
+  "investors": {
+    "94b402ce6e6a1d1b": 2.9613053760000008
+  },
+  "building": null,
+  "last_visit": {
+    "94b402ce6e6a1d1b": 1791235155476
+  },
+  "things": [],
+  "looks": {
+    "theme:art": 0.8,
+    "theme:music": 0.9
+  },
+  "touches": {},
+  "replunged": false
+}
