@@ -37,14 +37,14 @@ cargo run --release
 | `ARCHITECT_PACE` | `40` | seconds of attention the first growth costs (try `8` to watch it build) |
 | `ADMIN_KEY` | none | bearer key with owner rights everywhere on this host |
 
-Open two browser windows to see each other.
+Open two browser windows to see each other. Every address is a URL:
+`/w/the-lush/3,-2`.
 
 **No server?** Open `client/index.html` from any static file host (or add
 `?offline` to the URL) and the worlds run inside the page, single-player,
 saved in your browser. `scripts/build-page.sh <dir>` packages that as a
 self-contained page. `scripts/export-offline.sh` refreshes the page's copy
-of the world list from a running host. Every address is a URL:
-`/w/the-lush/3,-2`.
+of the world list from a running host.
 
 ## Controls
 
