@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Branches</title>
+    <link rel="stylesheet" href="/style.css" />
+    <script type="importmap">
+      { "imports": { "three": "/vendor/three.module.js" } }
+    </script>
+  </head>
+  <body>
+    <canvas id="view"></canvas>
+    <div id="fade"></div>
+
+    <div id="hud" hidden>
+      <div id="where">
+        <div id="world-name"></div>
+        <div id="address"></div>
+        <div id="room-line"></div>
+        <div id="growth"><div id="growth-bar"></div></div>
+      </div>
+      <div id="status">
+        <span id="online" title="here now">● 1</span>
+        <button id="bell" title="notifications (N)">✦ <span id="unread">0</span></button>
+        <button id="map-btn" title="worlds (L)">worlds</button>
+      </div>
+      <div id="banner"></div>
+      <div id="hint"></div>
+      <div id="crosshair"></div>
+      <div id="chat">
+        <div id="chat-log"></div>
+        <input id="chat-input" maxlength="280" placeholder="say something… (enter)" />
+      </div>
+      <div id="toasts"></div>
+      <div id="stick"><div id="stick-knob"></div></div>
+    </div>
+
+    <div id="intro">
+      <div class="card">
+        <div class="eyebrow">branches</div>
+        <h1 id="intro-world">…</h1>
+        <p id="intro-tagline"></p>
+        <div class="row">
+          <input id="name" maxlength="24" placeholder="your name" />
+          <input id="color" type="color" value="#ff9ec7" />
+        </div>
+        <button id="enter">enter</button>
+        <p class="keys">
+          <b>WASD</b> walk · <b>shift</b> drift faster · <b>space</b> hop · <b>mouse</b> look<br />
+          <b>E</b> visitor log · <b>F</b> more of this · <b>V</b> camera · <b>enter</b> chat · <b>L</b> worlds · <b>H</b> home
+        </p>
+        <p class="fine">Every house looks the same from the street. The longer people linger inside, the more the architect builds.</p>
+      </div>
+    </div>
+
+    <div id="panel" hidden>
+      <div class="sheet">
+        <button class="close" id="panel-close">×</button>
+        <div id="panel-body"></div>
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
