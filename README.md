@@ -54,6 +54,20 @@ inside, or the mailbox outside) · **F** more of this · **enter** chat ·
 **L** worlds · **N** notifications · **H** wake up at home. If pointer lock isn't available, drag to look. On touch screens, use the
 stick to walk and drag to look.
 
+## VR (Quest 3 and other WebXR headsets)
+
+Open the page in the headset's browser over HTTPS and press **enter in VR**
+(or **Enter VR** at the top right). Left stick walks (click it to go
+faster), right stick turns in 30° steps, and walking around your real room
+moves you too. **A** reads the visitor log at a lectern, **B** is *more of
+this*, and **Y** leaves VR (the headset's own menu button also works). A
+card on your left wrist shows where you are.
+
+Headsets need the page to be top-level, not inside another site's frame.
+`.github/workflows/pages.yml` publishes a standalone build to GitHub Pages
+(enable Pages with **Source: GitHub Actions** once); any static HTTPS host
+works too: `scripts/build-page.sh <dir> --standalone`.
+
 ## Let an agent build
 
 Claim an address from its visitor log, then copy your token from the

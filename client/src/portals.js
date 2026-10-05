@@ -94,73 +94,111 @@ export class PortalRenderer {
     this.frustum = new THREE.Frustum();
     this.projScreen = new THREE.Matrix4();
     this.plane = new THREE.Plane();
+    this.eyes = [];
     this.slots = [];
     for (let i = 0; i < MAX_LIVE; i++) {
-      const rt = new THREE.WebGLRenderTarget(4, 4, { type: THREE.HalfFloatType, samples: 2 });
+      // One render target per eye (a flat screen uses only the first).
+      const rts = [0, 1].map(() => new THREE.WebGLRenderTarget(4, 4, { type: THREE.HalfFloatType, samples: 2 }));
       const mat = new THREE.ShaderMaterial({
-        uniforms: { map: { value: rt.texture }, res: { value: new THREE.Vector2(1, 1) } },
+        uniforms: { map: { value: rts[0].texture }, vp: { value: new THREE.Vector4(0, 0, 1, 1) } },
         side: THREE.DoubleSide,
         vertexShader: 'void main(){ gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
-        fragmentShader: `uniform sampler2D map; uniform vec2 res;
+        fragmentShader: `uniform sampler2D map; uniform vec4 vp;
           void main(){
-            gl_FragColor = texture2D(map, gl_FragCoord.xy / res);
+            gl_FragColor = texture2D(map, (gl_FragCoord.xy - vp.xy) / vp.zw);
             #include <tonemapping_fragment>
             #include <colorspace_fragment>
           }`,
       });
-      this.slots.push({ rt, mat });
+      // Pick this eye's view as each eye is drawn.
+      const bind = (r, s, cam) => {
+        const eye = this.eyes.length > 1 && cam === this.eyes[1] ? 1 : 0;
+        mat.uniforms.map.value = rts[eye].texture;
+        if (this.eyes.length) mat.uniforms.vp.value.copy(this.eyes[eye].viewport);
+        else mat.uniforms.vp.value.set(0, 0, this.size.x, this.size.y);
+      };
+      this.slots.push({ rts, mat, bind });
     }
   }
 
   resize() {
     this.renderer.getDrawingBufferSize(this.size);
-    for (const s of this.slots) {
-      s.rt.setSize(this.size.x, this.size.y);
-      s.mat.uniforms.res.value.copy(this.size);
-    }
+    if (this.renderer.xr.isPresenting) return;
+    for (const s of this.slots) s.rts[0].setSize(this.size.x, this.size.y);
   }
 
   // `prepare(space, eye)` configures the scene for a space (visibility,
   // fog, lights). `spaceOf(point)` says which space a point is in.
   render(scene, camera, portals, prepare, spaceOf) {
     const r = this.renderer;
-    camera.updateMatrixWorld();
-    this.projScreen.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
+    const xr = r.xr;
+    const vr = xr.enabled && xr.isPresenting;
+    let view = camera;
+    if (vr) {
+      camera.parent?.updateMatrixWorld(true);
+      xr.updateCamera(camera);
+      view = xr.getCamera();
+      this.eyes = view.cameras;
+    } else {
+      camera.updateMatrixWorld();
+      this.eyes = [];
+    }
+    this.projScreen.multiplyMatrices(view.projectionMatrix, view.matrixWorldInverse);
     this.frustum.setFromProjectionMatrix(this.projScreen);
-    const camSpace = spaceOf(camera.position);
+    const eyePos = new THREE.Vector3().setFromMatrixPosition(view.matrixWorld);
+    const camSpace = spaceOf(eyePos);
 
     const live = portals
-      .filter((p) => p.open && p.space === camSpace && p.side(camera.position) > -0.05 && p.pos.distanceTo(camera.position) < 45 && this.frustum.intersectsObject(p.mesh))
-      .sort((a, b) => a.pos.distanceToSquared(camera.position) - b.pos.distanceToSquared(camera.position))
-      .slice(0, MAX_LIVE);
+      .filter((p) => p.open && p.space === camSpace && p.side(eyePos) > -0.05 && p.pos.distanceTo(eyePos) < 45 && this.frustum.intersectsObject(p.mesh))
+      .sort((a, b) => a.pos.distanceToSquared(eyePos) - b.pos.distanceToSquared(eyePos))
+      .slice(0, vr ? 1 : MAX_LIVE);
 
-    for (const p of portals) p.mesh.material = p.fallback;
+    for (const p of portals) {
+      p.mesh.material = p.fallback;
+      p.mesh.onBeforeRender = noop;
+    }
 
+    const target = r.getRenderTarget();
+    if (vr) xr.enabled = false;
     live.forEach((p, i) => {
       const slot = this.slots[i];
-      const v = this.vcam;
       const dest = p.partner;
-      v.copy(camera);
-      v.matrixWorld.multiplyMatrices(p.M, camera.matrixWorld);
-      v.matrixWorld.decompose(v.position, v.quaternion, v.scale);
-      v.updateMatrixWorld(true);
-      prepare(dest.space, v.position);
+      const cams = vr ? this.eyes : [camera];
       p.mesh.visible = false;
       dest.mesh.visible = false;
       this.plane.setFromNormalAndCoplanarPoint(dest.normal, _n.copy(dest.pos).addScaledVector(dest.normal, -0.03));
-      r.clippingPlanes = [this.plane];
-      r.setRenderTarget(slot.rt);
-      r.clear();
-      r.render(scene, v);
-      r.clippingPlanes = [];
+      cams.forEach((cam, e) => {
+        const rt = slot.rts[e];
+        if (vr && (rt.width !== cam.viewport.z || rt.height !== cam.viewport.w)) rt.setSize(cam.viewport.z, cam.viewport.w);
+        const v = this.vcam;
+        v.copy(camera);
+        v.projectionMatrix.copy(cam.projectionMatrix);
+        v.projectionMatrixInverse.copy(cam.projectionMatrixInverse);
+        v.matrixWorld.multiplyMatrices(p.M, cam.matrixWorld);
+        v.matrixWorld.decompose(v.position, v.quaternion, v.scale);
+        v.matrixAutoUpdate = false;
+        v.matrix.copy(v.matrixWorld);
+        v.matrixWorldInverse.copy(v.matrixWorld).invert();
+        prepare(dest.space, v.position);
+        r.clippingPlanes = [this.plane];
+        r.setRenderTarget(rt);
+        r.clear();
+        r.render(scene, v);
+        r.clippingPlanes = [];
+      });
       p.mesh.visible = true;
       dest.mesh.visible = !dest.sealed;
       p.mesh.material = slot.mat;
+      p.mesh.onBeforeRender = slot.bind;
     });
+    if (vr) xr.enabled = true;
 
-    r.setRenderTarget(null);
-    prepare(camSpace, camera.position);
+    r.setRenderTarget(target);
+    prepare(camSpace, eyePos);
     r.render(scene, camera);
     return live.length;
   }
 }
+
+function noop() {}
+

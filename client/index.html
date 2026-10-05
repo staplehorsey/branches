@@ -24,6 +24,7 @@
         <span id="online" title="here now">● 1</span>
         <button id="bell" title="notifications (N)">✦ <span id="unread">0</span></button>
         <button id="map-btn" title="worlds (L)">worlds</button>
+        <button id="vr-btn" hidden>Enter VR</button>
       </div>
       <div id="banner"></div>
       <div id="hint"></div>
@@ -45,7 +46,10 @@
           <input id="name" maxlength="24" placeholder="your name" />
           <input id="color" type="color" value="#ff9ec7" />
         </div>
-        <button id="enter">enter</button>
+        <div class="enter-row">
+          <button id="enter">enter</button>
+          <button id="enter-vr" hidden>enter in VR</button>
+        </div>
         <p class="keys">
           <b>WASD</b> walk · <b>shift</b> drift faster · <b>space</b> hop · <b>mouse</b> look<br />
           <b>E</b> visitor log · <b>F</b> more of this · <b>V</b> camera · <b>enter</b> chat · <b>L</b> worlds · <b>H</b> wake up at home

@@ -11,6 +11,7 @@ import { buildInterior } from './interior.js';
 import { DoorPortal, PortalRenderer, link } from './portals.js';
 import { Player, isTyping } from './player.js';
 import { Others } from './avatars.js';
+import { XR } from './xr.js';
 import { disposeTree } from './geo.js';
 import * as ui from './ui.js';
 import { CELL, HOUSE_D, DOOR_W, DOOR_H, pocketY, houseCenter, cellOf } from './layout.js';
@@ -35,6 +36,28 @@ scene.fog = fog;
 
 const portals = new PortalRenderer(renderer);
 const player = new Player(canvas, camera);
+// The camera rides on a rig: identity on a screen, your room in a headset.
+const rig = new THREE.Group();
+rig.add(camera);
+scene.add(rig);
+const xr = new XR({
+  renderer,
+  camera,
+  rig,
+  player,
+  onAction: (what, msg) => {
+    if (what === 'interact') interact();
+    else if (what === 'admire') admire();
+    else if (what === 'error') ui.toast('VR could not start', vrErrorText(msg));
+  },
+  onEnd: () => ui.toast('Left VR', 'You are standing in the same spot.'),
+});
+
+function vrErrorText(msg) {
+  return window.top !== window
+    ? 'This page is embedded, and the frame around it blocks headsets. Open the standalone page in the Quest browser instead.'
+    : msg;
+}
 scene.add(player.setAvatar(identity().color));
 
 // Realms sit this far apart vertically; far beyond the camera's reach.
@@ -539,12 +562,22 @@ function mailboxNear() {
 
 function interact() {
   const r = S.primary;
+  if (xr.active) return readLogInVR();
   if (S.inside) {
     if (S.inside.built.guestbook.distanceTo(player.eye) < 2.6) openLog(S.inside.realm, S.inside.x, S.inside.z);
   } else {
     const c = mailboxNear();
     if (c) openLog(r, c.x, c.z);
   }
+}
+
+// In a headset the visitor log is read from the wrist: the latest words.
+let vrNote = null;
+function readLogInVR() {
+  const it = S.inside;
+  if (!it || it.built.guestbook.distanceTo(player.eye) > 2.6) return;
+  const e = it.room.log.find((l) => l.kind !== 'visit');
+  vrNote = { text: e ? `${e.who}: ${e.text}` : 'No one has written here yet.', until: performance.now() + 8000 };
 }
 
 function openLog(r, x, z) {
@@ -633,10 +666,14 @@ function updateHud() {
     ui.hint(mailboxNear() ? 'E · visitor log for this house' : '');
   }
   $('online').textContent = `● ${S.others.count() + 1}`;
+  if (xr.active) {
+    const note = vrNote && performance.now() < vrNote.until ? vrNote.text : null;
+    const where = S.inside ? `${S.inside.room.theme_name} · ${S.inside.built.chambers[Math.max(0, S.chamber)]?.name || ''}` : S.primary.manifest.name;
+    xr.setWrist(where, note || $('hint').textContent.replace('E ·', 'A ·').replace('F ·', 'B ·'));
+  }
 }
 
 function frame() {
-  requestAnimationFrame(frame);
   timer.update();
   const dt = Math.min(timer.getDelta(), 0.05);
   if (!S.primary) return;
@@ -649,7 +686,8 @@ function step(dt) {
   t += dt;
   time.value = t;
 
-  player.enabled = S.started && !ui.isPanelOpen() && document.activeElement !== chatInput && !S.waking;
+  player.enabled = S.started && !S.waking && (xr.active || (!ui.isPanelOpen() && document.activeElement !== chatInput));
+  if (xr.active) xr.beforeUpdate();
   const before = player.eye;
   const space = spaceOf(before);
   const here = S.spaces.get(space);
@@ -663,7 +701,9 @@ function step(dt) {
   // Doors: if you walked through one, your body is now on the other side.
   for (const d of allDoors()) {
     if (d.space === space && d.crossed(before, after)) {
+      const yaw = player.yaw;
       player.carry(d.M);
+      if (xr.active) xr.carried(yaw, player.yaw);
       break;
     }
   }
@@ -693,7 +733,8 @@ function step(dt) {
       manage();
     }
   }
-  player.updateCamera(collidersFor(spaceOf(player.eye), player.pos));
+  if (xr.active) xr.afterUpdate();
+  else player.updateCamera(collidersFor(spaceOf(player.eye), player.pos));
 
   const r = S.primary;
   const home = homeCell();
@@ -766,7 +807,7 @@ async function boot() {
     $('intro-world').textContent = 'No world here';
     $('intro-tagline').textContent = e.message;
   }
-  frame();
+  renderer.setAnimationLoop(frame);
   const enter = () => {
     if (S.started) return;
     const id = identity();
@@ -782,10 +823,15 @@ async function boot() {
     ui.chatLine('', '', 'Walk up to any house. Go inside. Stay a while.', true);
   };
   $('enter').onclick = enter;
+  $('enter-vr').onclick = () => {
+    enter();
+    xr.enter();
+  };
+  navigator.xr?.isSessionSupported('immersive-vr').then((ok) => ($('enter-vr').hidden = !ok)).catch(() => {});
   $('name').addEventListener('keydown', (e) => e.code === 'Enter' && enter());
 }
 
 boot();
 
 // Exposed for debugging and automated checks.
-window.branches = { S, player, camera, renderer, wake, step: (dt, n = 1) => { for (let i = 0; i < n; i++) step(dt); } };
+window.branches = { S, player, camera, renderer, wake, xr, step: (dt, n = 1) => { for (let i = 0; i < n; i++) step(dt); } };
