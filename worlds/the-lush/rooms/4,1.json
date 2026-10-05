@@ -1,0 +1,96 @@
+{
+  "x": 4,
+  "z": 1,
+  "seed": 4107704596,
+  "theme": "moss-library",
+  "chambers": [
+    {
+      "name": "Entry Hall",
+      "tag": "books",
+      "seed": 4107704596,
+      "by": "generator",
+      "at": 0
+    },
+    {
+      "name": "The Slow Reading Room",
+      "tag": "books",
+      "seed": 1047246759,
+      "by": "reference-heuristic@2",
+      "at": 1791235076980
+    }
+  ],
+  "features": [
+    {
+      "id": "de1bd5062490",
+      "tag": "books",
+      "chamber": 1,
+      "seed": 2958704878,
+      "by": "reference-heuristic@2",
+      "at": 1791235076980
+    }
+  ],
+  "portals": [],
+  "log": [
+    {
+      "id": "e2c9372ce171",
+      "kind": "visit",
+      "who": "drift-57",
+      "player": "94b402ce6e6a1d1b",
+      "text": "stopped by",
+      "at": 1791235051059
+    },
+    {
+      "id": "08d5890b2953",
+      "kind": "growth",
+      "who": "architect",
+      "text": "The architect built The Slow Reading Room (books). New here: Odile, the cartographer.",
+      "at": 1791235076980
+    }
+  ],
+  "claim": null,
+  "attention": 10.49101683999999,
+  "weights": {
+    "books": 1.3463027,
+    "cozy": 1.4109542,
+    "plants": 1.2816433
+  },
+  "investors": {
+    "94b402ce6e6a1d1b": 28.491016839999993
+  },
+  "building": null,
+  "last_visit": {
+    "94b402ce6e6a1d1b": 1791235051059
+  },
+  "things": [
+    {
+      "id": "e25b92149cbb",
+      "kind": "character",
+      "chamber": 1,
+      "seed": 774029481,
+      "data": {
+        "cast": "odile",
+        "lines": [
+          "Every house on this street is the same house. I have measured them all twice.",
+          "The insides disagree with the outsides. I map the disagreements.",
+          "I dropped my pages somewhere between here and the fog. If you find one, read it. They were never meant to be in order.",
+          "The map is not finished. It cannot be. Someone keeps building at the edges.",
+          "If you meet the boy who counts doors, tell him I found a door that counts back."
+        ],
+        "look": {
+          "accent": "#f2d58a",
+          "coat": "#3f5a7a",
+          "hat": "wide"
+        },
+        "name": "Odile, the cartographer"
+      },
+      "by": "reference-heuristic@2",
+      "at": 1791235076980
+    }
+  ],
+  "looks": {
+    "de1bd5062490": 1.8,
+    "theme:plants": 6.8
+  },
+  "touches": {},
+  "replunged": false
+}

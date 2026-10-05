@@ -1,7 +1,42 @@
 {
   "0,0": {
     "inside": 0.0,
-    "outside": 179.15105,
+    "outside": 202.15108,
     "visits": 0
+  },
+  "0,1": {
+    "inside": 0.0,
+    "outside": 1.5917401,
+    "visits": 0
+  },
+  "1,1": {
+    "inside": 0.0,
+    "outside": 10.057235,
+    "visits": 0
+  },
+  "2,1": {
+    "inside": 0.0,
+    "outside": 0.63089323,
+    "visits": 0
+  },
+  "2,2": {
+    "inside": 0.0,
+    "outside": 2.4373312,
+    "visits": 0
+  },
+  "3,1": {
+    "inside": 0.0,
+    "outside": 2.3491824,
+    "visits": 0
+  },
+  "3,2": {
+    "inside": 0.0,
+    "outside": 1.0419421,
+    "visits": 0
+  },
+  "4,1": {
+    "inside": 28.491016,
+    "outside": 5.383211,
+    "visits": 2
   }
 }
