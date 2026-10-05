@@ -32,6 +32,9 @@ pub struct Account {
     pub shared: Option<String>,
     #[serde(default)]
     pub last_push: u64,
+    /// Why the last backup failed, shown in the app until one succeeds.
+    #[serde(default)]
+    pub push_error: Option<String>,
 }
 
 fn file(root: &Path) -> PathBuf {
@@ -114,10 +117,27 @@ pub fn device_poll(device_code: &str) -> Result<Option<String>, String> {
     Ok(v["access_token"].as_str().map(str::to_string))
 }
 
-/// Fork the main repository (GitHub returns the existing fork if there is one).
+/// Fork the main repository for this account and wait until GitHub has
+/// made it (forking is asynchronous; a brand-new fork can take a little
+/// while to accept pushes). The owner of the main repository gets the main
+/// repository itself back, which is fine: their worlds go on its `worlds`
+/// branch.
 pub fn fork(token: &str) -> Result<String, String> {
-    let f = call("POST", &format!("{API}/repos/{UPSTREAM}/forks"), token, Some(json!({ "default_branch_only": true })))?;
-    f["full_name"].as_str().map(str::to_string).ok_or_else(|| "the fork did not come back".into())
+    let f = call("POST", &format!("{API}/repos/{UPSTREAM}/forks"), token, Some(json!({ "default_branch_only": true })))
+        .map_err(|e| if e.contains("403") || e.contains("404") { format!("{e}: this token can't fork repositories (it needs the public_repo scope)") } else { e })?;
+    let name = f["full_name"].as_str().map(str::to_string).ok_or("the fork did not come back")?;
+    for _ in 0..20 {
+        if call("GET", &format!("{API}/repos/{name}"), token, None).is_ok() {
+            return Ok(name);
+        }
+        std::thread::sleep(std::time::Duration::from_secs(2));
+    }
+    Err(format!("GitHub is still making {name}; try again in a minute"))
+}
+
+/// The account a repository belongs to.
+pub fn owner(full_name: &str) -> &str {
+    full_name.split('/').next().unwrap_or(full_name)
 }
 
 /// Push the worlds repository (branch and version tags) to the fork.
@@ -130,8 +150,11 @@ pub fn push(root: &Path, a: &Account) -> Result<(), String> {
     let mut cb = git2::RemoteCallbacks::new();
     let token = a.token.clone();
     cb.credentials(move |_, _, _| git2::Cred::userpass_plaintext("x-access-token", &token));
+    let mut po = git2::ProxyOptions::new();
+    po.auto();
     let mut opts = git2::PushOptions::new();
     opts.remote_callbacks(cb);
+    opts.proxy_options(po);
     let mut specs = vec![format!("+refs/heads/{branch}:refs/heads/worlds")];
     repo.tag_foreach(|_, name| {
         if let Ok(n) = std::str::from_utf8(name) {
@@ -143,45 +166,122 @@ pub fn push(root: &Path, a: &Account) -> Result<(), String> {
     remote.push(&specs, Some(&mut opts)).map_err(|e| e.to_string())
 }
 
-/// Open a pull request adding these worlds to the main universe.json.
-pub fn share(a: &Account, worlds: &[(String, String)]) -> Result<String, String> {
+/// The same push with the git command line, when it is installed (Xcode's
+/// command line tools or Homebrew). The token goes in an environment
+/// variable, never on the command line.
+fn push_with_git(root: &Path, a: &Account) -> Result<(), String> {
     let fork = a.fork.as_deref().ok_or("not forked yet")?;
+    let git = ["/opt/homebrew/bin/git", "/usr/local/bin/git", "/Library/Developer/CommandLineTools/usr/bin/git", "/Applications/Xcode.app/Contents/Developer/usr/bin/git", "/usr/bin/git"]
+        .into_iter()
+        .find(|g| Path::new(g).exists() && (!g.starts_with("/usr/bin") || !cfg!(target_os = "macos") || Path::new("/Library/Developer/CommandLineTools").exists()))
+        .ok_or("git is not installed")?;
+    let auth = format!("Authorization: Basic {}", b64_encode(format!("x-access-token:{}", a.token).as_bytes()));
+    let out = std::process::Command::new(git)
+        .current_dir(root)
+        .args(["push", "--force", &format!("https://github.com/{fork}.git"), "HEAD:refs/heads/worlds", "refs/tags/*:refs/tags/*"])
+        .env("GIT_TERMINAL_PROMPT", "0")
+        .env("GIT_CONFIG_COUNT", "1")
+        .env("GIT_CONFIG_KEY_0", "http.extraHeader")
+        .env("GIT_CONFIG_VALUE_0", auth)
+        .output()
+        .map_err(|e| e.to_string())?;
+    if out.status.success() { Ok(()) } else { Err(String::from_utf8_lossy(&out.stderr).trim().replace(&a.token, "***")) }
+}
+
+/// Push, retrying while a new fork settles, then with the git command line.
+pub fn push_patiently(root: &Path, a: &Account) -> Result<(), String> {
+    let mut last = String::new();
+    for i in 0..4 {
+        match push(root, a) {
+            Ok(()) => return Ok(()),
+            Err(e) => last = e,
+        }
+        if i == 1 {
+            match push_with_git(root, a) {
+                Ok(()) => return Ok(()),
+                Err(e) => tracing::warn!("git push failed too: {e}"),
+            }
+        }
+        std::thread::sleep(std::time::Duration::from_secs(2 + 2 * i));
+    }
+    Err(last)
+}
+
+/// Bring the fork's copy of the code up to date with the main repository
+/// (GitHub's "sync fork"). Your worlds live on another branch and are not
+/// touched.
+pub fn sync_fork_code(a: &Account) -> Result<String, String> {
+    let fork = a.fork.as_deref().ok_or("not forked yet")?;
+    if fork == UPSTREAM {
+        return Ok("this is the main repository".into());
+    }
+    let up = call("GET", &format!("{API}/repos/{UPSTREAM}"), &a.token, None)?;
+    let base = up["default_branch"].as_str().unwrap_or("main");
+    let r = call("POST", &format!("{API}/repos/{fork}/merge-upstream"), &a.token, Some(json!({ "branch": base })))?;
+    Ok(r["message"].as_str().unwrap_or("up to date").to_string())
+}
+
+/// A house to put a door to in the Commons.
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+pub struct SharedRoom {
+    pub world: String,
+    pub x: i32,
+    pub z: i32,
+    pub title: String,
+}
+
+/// Open a pull request adding these worlds and houses to the main
+/// universe.json. Sharing again adds to what you shared before.
+pub fn share(a: &Account, worlds: &[(String, String)], rooms: &[SharedRoom]) -> Result<String, String> {
+    let fork = a.fork.as_deref().ok_or("not forked yet")?;
+    let fork_owner = owner(fork).to_string();
     let up = call("GET", &format!("{API}/repos/{UPSTREAM}"), &a.token, None)?;
     let base = up["default_branch"].as_str().unwrap_or("main").to_string();
     // Start from the main repository's latest universe.json.
     let cur = call("GET", &format!("{API}/repos/{UPSTREAM}/contents/universe.json?ref={base}"), &a.token, None)?;
     let text = cur["content"].as_str().map(|c| c.replace('\n', "")).and_then(|c| b64_decode(&c)).unwrap_or_default();
     let mut uni: Value = serde_json::from_slice(&text).unwrap_or_else(|_| json!({ "shared": [] }));
-    let entry = json!({
-        "owner": a.login,
-        "repo": fork,
-        "branch": "worlds",
-        "worlds": worlds.iter().map(|(id, name)| json!({ "id": id, "name": name })).collect::<Vec<_>>(),
-    });
-    let shared = uni["shared"].as_array_mut().ok_or("universe.json has no shared list")?;
-    shared.retain(|e| e["owner"] != a.login);
-    shared.push(entry);
+    if !uni["shared"].is_array() {
+        uni["shared"] = json!([]);
+    }
+    let shared = uni["shared"].as_array_mut().unwrap();
+    let before = shared.iter().position(|e| e["owner"] == a.login.as_str()).map(|i| shared.remove(i));
+    let mut all_worlds: Vec<Value> = before.as_ref().and_then(|e| e["worlds"].as_array().cloned()).unwrap_or_default();
+    for (id, name) in worlds {
+        if !all_worlds.iter().any(|w| w["id"] == id.as_str()) {
+            all_worlds.push(json!({ "id": id, "name": name }));
+        }
+    }
+    let mut all_rooms: Vec<SharedRoom> = before.as_ref().and_then(|e| serde_json::from_value(e["rooms"].clone()).ok()).unwrap_or_default();
+    for r in rooms {
+        all_rooms.retain(|o| !(o.world == r.world && o.x == r.x && o.z == r.z));
+        all_rooms.push(r.clone());
+    }
+    shared.push(json!({ "owner": a.login, "repo": fork, "branch": "worlds", "worlds": all_worlds, "rooms": all_rooms }));
     let body = serde_json::to_vec_pretty(&uni).map_err(|e| e.to_string())?;
     // A branch in the fork, from the main repository's tip.
     let tip = call("GET", &format!("{API}/repos/{UPSTREAM}/git/ref/heads/{base}"), &a.token, None)?;
     let sha = tip["object"]["sha"].as_str().ok_or("no tip")?;
     let branch = format!("share-{}", crate::model::now_ms() / 1000);
-    call("POST", &format!("{API}/repos/{fork}/git/refs"), &a.token, Some(json!({ "ref": format!("refs/heads/{branch}"), "sha": sha })))?;
-    let mut put = json!({ "message": format!("Share {}'s worlds", a.login), "content": b64_encode(&body), "branch": branch });
+    call("POST", &format!("{API}/repos/{fork}/git/refs"), &a.token, Some(json!({ "ref": format!("refs/heads/{branch}"), "sha": sha })))
+        .map_err(|e| format!("{e}: could not make a branch in {fork} (is the fork up to date? try sync)"))?;
+    let what = if rooms.is_empty() { format!("{}'s worlds", a.login) } else { format!("{} ({})", rooms.iter().map(|r| r.title.as_str()).collect::<Vec<_>>().join(", "), a.login) };
+    let mut put = json!({ "message": format!("Share {what}"), "content": b64_encode(&body), "branch": branch });
     if let Some(s) = cur["sha"].as_str() {
         put["sha"] = json!(s);
     }
     call("PUT", &format!("{API}/repos/{fork}/contents/universe.json"), &a.token, Some(put))?;
-    let names: Vec<&str> = worlds.iter().map(|(_, n)| n.as_str()).collect();
+    let mut lines: Vec<String> = all_rooms.iter().map(|r| format!("- the house \u{201c}{}\u{201d} at {} {},{}", r.title, r.world, r.x, r.z)).collect();
+    lines.extend(worlds.iter().map(|(id, n)| format!("- the world {n} (`{id}`)")));
     let pr = call(
         "POST",
         &format!("{API}/repos/{UPSTREAM}/pulls"),
         &a.token,
         Some(json!({
-            "title": format!("Add {}'s worlds to the Commons", a.login),
-            "head": format!("{}:{branch}", a.login),
+            "title": format!("Add {what} to the Commons"),
+            "head": format!("{fork_owner}:{branch}"),
             "base": base,
-            "body": format!("Adds a door in the Commons to {}'s worlds ({}), kept on the `worlds` branch of {fork}.\n\nOpened by Branches for Mac.", a.login, names.join(", ")),
+            "body": format!("Adds doors in the Commons to:\n\n{}\n\nThey are read from the `worlds` branch of {fork}.\n\nOpened by Branches for Mac.", lines.join("\n")),
         })),
     )?;
     pr["html_url"].as_str().map(str::to_string).ok_or_else(|| "the pull request did not open".into())

@@ -183,6 +183,8 @@ impl Architect for Heuristic {
 /// plan. `claude -p` makes Claude Code the architect.
 pub struct Command {
     pub cmd: String,
+    /// Where it runs (a quiet folder of its own).
+    pub dir: std::path::PathBuf,
 }
 
 #[derive(Deserialize)]
@@ -269,7 +271,7 @@ In "detail" mode leave chamber_name empty and put everything in enrich/things wi
 }
 
 /// Pull the first balanced JSON object out of a model's reply.
-fn extract_json(text: &str) -> Option<Value> {
+pub fn extract_json(text: &str) -> Option<Value> {
     let start = text.find('{')?;
     let mut depth = 0i32;
     let mut in_str = false;
@@ -319,13 +321,14 @@ impl Architect for Command {
     }
 
     fn plan(&self, ctx: &PlanContext, seed: u64) -> Plan {
-        use std::io::Write;
-        use std::process::{Command as Proc, Stdio};
         let run = || -> Option<Plan> {
-            let mut child = Proc::new("/bin/sh").arg("-c").arg(&self.cmd).stdin(Stdio::piped()).stdout(Stdio::piped()).stderr(Stdio::null()).spawn().ok()?;
-            child.stdin.take()?.write_all(prompt(ctx).as_bytes()).ok()?;
-            let out = child.wait_with_output().ok()?;
-            parse_plan(&String::from_utf8_lossy(&out.stdout), &self.id())
+            match crate::agent::run(&self.cmd, &prompt(ctx), Some(&self.dir), std::time::Duration::from_secs(300)) {
+                Ok(out) => parse_plan(&out, &self.id()),
+                Err(e) => {
+                    tracing::warn!("architect `{}`: {e}", self.cmd);
+                    None
+                }
+            }
         };
         match run() {
             Some(p) if ctx.detail || !p.chamber_name.is_empty() => p,
@@ -439,6 +442,7 @@ pub fn tick(app: &Arc<App>) {
     {
         let mut uni = app.uni.lock().unwrap();
         let world_ids: Vec<String> = uni.worlds.keys().cloned().collect();
+        let world_ids_all = world_ids.clone();
         for wid in world_ids {
             let budget = Budget::from_pace(uni.worlds[&wid].pace);
             let keys: Vec<String> = uni.worlds[&wid].rooms.keys().cloned().collect();
@@ -449,6 +453,9 @@ pub fn tick(app: &Arc<App>) {
                 };
                 match building {
                     None if attention >= app.threshold(growth) * budget.cost() => {
+                        if hold_for_setup(app, now, &mut broadcasts, &world_ids_all) {
+                            continue;
+                        }
                         let r = uni.worlds.get_mut(&wid).unwrap().rooms.get_mut(&key).unwrap();
                         let (lo, span) = match budget {
                             Budget::Sketch => (5, 8),
@@ -485,6 +492,29 @@ pub fn tick(app: &Arc<App>) {
             app.in_flight.lock().unwrap().remove(&job);
         });
     }
+}
+
+/// How long the very first build waits for you to choose an architect.
+const SETUP_WAIT_MS: u64 = 3 * 60 * 1000;
+
+/// In the app, the first time a house is about to grow, ask who should
+/// build (Claude Code with your subscription, another program, or the
+/// built-in architect) and hold builds for a few minutes while you choose.
+fn hold_for_setup(app: &App, now: u64, broadcasts: &mut Vec<(String, Value)>, worlds: &[String]) -> bool {
+    use std::sync::atomic::Ordering;
+    if !app.cfg.app || app.settings.lock().unwrap().asked {
+        return false;
+    }
+    let asked = app.ai_asked_at.load(Ordering::Relaxed);
+    if asked == 0 {
+        app.ai_asked_at.store(now, Ordering::Relaxed);
+        let claude = crate::agent::find_claude().map(|p| p.to_string_lossy().to_string());
+        for w in worlds {
+            broadcasts.push((w.clone(), json!({ "t": "setup_ai", "claude": claude })));
+        }
+        return true;
+    }
+    now.saturating_sub(asked) < SETUP_WAIT_MS
 }
 
 fn label(r: &Room, id: &str) -> String {

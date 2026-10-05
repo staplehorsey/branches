@@ -84,6 +84,9 @@ pub struct App {
     pub last_activity: Mutex<std::time::Instant>,
     pub last_night: Mutex<Option<std::time::Instant>>,
     pub night_running: AtomicBool,
+    pub syncing: AtomicBool,
+    /// When the app asked who should build (0: not yet).
+    pub ai_asked_at: std::sync::atomic::AtomicU64,
 }
 
 /// Who builds. `heuristic` is built in; `command` hands a prompt to any
@@ -94,11 +97,14 @@ pub struct Settings {
     pub command: String,
     #[serde(default)]
     pub night: crate::nightshift::Night,
+    /// Whether you have chosen an architect (asked once, before the first build).
+    #[serde(default)]
+    pub asked: bool,
 }
 
 impl Default for Settings {
     fn default() -> Self {
-        Settings { architect: "heuristic".into(), command: "claude -p".into(), night: Default::default() }
+        Settings { architect: "heuristic".into(), command: "claude -p".into(), night: Default::default(), asked: false }
     }
 }
 
@@ -124,6 +130,8 @@ impl App {
             last_activity: Mutex::new(std::time::Instant::now()),
             last_night: Mutex::new(None),
             night_running: AtomicBool::new(false),
+            syncing: AtomicBool::new(false),
+            ai_asked_at: std::sync::atomic::AtomicU64::new(0),
         })
     }
 
@@ -139,7 +147,7 @@ impl App {
         if budget == Budget::Sketch || s.architect != "command" || s.command.trim().is_empty() {
             Arc::new(architect::Heuristic)
         } else {
-            Arc::new(architect::Command { cmd: s.command })
+            Arc::new(architect::Command { cmd: s.command, dir: crate::agent::workdir(&self.store.root) })
         }
     }
 
@@ -230,6 +238,9 @@ impl Universe {
         for m in procgen::builtin_worlds() {
             // Worlds evolve once they exist; only create missing ones.
             self.worlds.entry(m.id.clone()).or_insert_with(|| World::new(m));
+        }
+        for w in self.worlds.values_mut() {
+            crate::procgen::liminal(&mut w.manifest.generator.params);
         }
     }
 

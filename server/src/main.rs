@@ -4,6 +4,7 @@
 //! an architect that grows rooms asynchronously. Hosts federate simply by
 //! linking to each other: a portal's target is an address on another host.
 
+mod agent;
 mod api;
 mod architect;
 mod genesis;
@@ -14,6 +15,7 @@ mod procgen;
 mod state;
 mod stories;
 mod store;
+mod sync;
 mod ws;
 
 use axum::Router;
@@ -72,13 +74,15 @@ fn persist(app: &Arc<App>, last_commit: &mut std::time::Instant) {
             // Connected to GitHub: keep the fork's worlds branch current.
             if let Some(mut a) = github::load(&app.store.root) {
                 if a.fork.is_some() && model::now_ms().saturating_sub(a.last_push) > 120_000 {
+                    a.last_push = model::now_ms();
                     match github::push(&app.store.root, &a) {
-                        Ok(()) => {
-                            a.last_push = model::now_ms();
-                            github::save(&app.store.root, &a);
+                        Ok(()) => a.push_error = None,
+                        Err(e) => {
+                            tracing::warn!("push to {:?} failed: {e}", a.fork);
+                            a.push_error = Some(e);
                         }
-                        Err(e) => tracing::warn!("push to {:?} failed: {e}", a.fork),
                     }
+                    github::save(&app.store.root, &a);
                 }
             }
         }

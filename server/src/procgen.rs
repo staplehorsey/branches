@@ -117,14 +117,29 @@ pub fn chamber_name(tag: &str, rng: &mut Rng) -> String {
     format!("The {} {}", rng.pick(ADJECTIVES), rng.pick(nouns(tag)))
 }
 
+/// Every world starts liminal: flat land and the same house on the same
+/// lawn, over and over. Height and variety come only from building: a
+/// house grows storeys as chambers are added, and only grown houses get
+/// their own trees, ponds and place shapes (tower, cave, arch). Worlds
+/// made before this get it once (`start` marks it).
+pub fn liminal(params: &mut serde_json::Value) {
+    if params.get("start").and_then(|v| v.as_str()) == Some("liminal") {
+        return;
+    }
+    let scale = params.pointer("/terrain/scale").and_then(|v| v.as_f64()).unwrap_or(60.0);
+    params["terrain"] = serde_json::json!({ "amp": 0.0, "scale": scale });
+    params["start"] = serde_json::json!("liminal");
+}
+
 fn manifest(
     id: &str,
     name: &str,
     tagline: &str,
     seed: u32,
     policy: PortalPolicy,
-    params: serde_json::Value,
+    mut params: serde_json::Value,
 ) -> WorldManifest {
+    liminal(&mut params);
     WorldManifest {
         id: id.into(),
         name: name.into(),

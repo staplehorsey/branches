@@ -44,9 +44,9 @@ function raised(batch, dy) {
   };
 }
 
-function gableRoof(b) {
+function gableRoof(b, up = 0) {
   // Ridge along x. Built from triangles so it can be merged into the batch.
-  const w = HOUSE_W / 2 + 0.45, eaveY = WALL_H, ridgeY = WALL_H + 2.1, d = HOUSE_D / 2 + 0.5;
+  const w = HOUSE_W / 2 + 0.45, eaveY = WALL_H + up, ridgeY = WALL_H + up + 2.1, d = HOUSE_D / 2 + 0.5;
   const v = [];
   const quad = (a, b2, c, d2) => v.push(...a, ...b2, ...c, ...a, ...c, ...d2);
   quad([-w, eaveY, d], [w, eaveY, d], [w, ridgeY, 0], [-w, ridgeY, 0]);
@@ -70,8 +70,12 @@ function gableRoof(b) {
   gg.dispose();
 }
 
-// One shell geometry per world; every house uses it.
-function buildHouse(biome) {
+// Each storey a house grows (as chambers are built) adds this much height.
+const STOREY_H = 3;
+
+// One shell geometry per world and height; every house uses it.
+function buildHouse(biome, storeys = 1) {
+  const up = (storeys - 1) * STOREY_H;
   const h = biome.house;
   const solid = new Batch();
   const glow = new Batch();
@@ -90,8 +94,18 @@ function buildHouse(biome) {
   solid.put(G.box, shade(wall, -0.25), 0, 0.12, 0, { sx: HOUSE_W + 0.12, sy: 0.24, sz: HOUSE_D + 0.12 });
   for (const sx of [-1, 1]) for (const sz of [-1, 1]) solid.put(G.box, trim, sx * (W - 0.05), WALL_H / 2, sz * (D - 0.05), { sx: 0.2, sy: WALL_H, sz: 0.2 });
   solid.put(G.box, trim, 0, WALL_H - 0.05, D + 0.02, { sx: HOUSE_W + 0.2, sy: 0.14, sz: 0.1 });
-  gableRoof(solid);
-  solid.put(G.box, shade(h.roof, -0.15), 2.6, WALL_H + 2.0, -1.2, { sx: 0.8, sy: 1.6, sz: 0.8 });
+  // Storeys added by building: plain walls, a trim band, lit windows.
+  for (let k = 1; k < storeys; k++) {
+    const y0 = WALL_H + (k - 1) * STOREY_H, yc = y0 + STOREY_H / 2;
+    solid.put(G.box, wall, 0, yc, -D + T / 2, { sx: HOUSE_W, sy: STOREY_H, sz: T });
+    solid.put(G.box, wall, 0, yc, D - T / 2, { sx: HOUSE_W, sy: STOREY_H, sz: T });
+    solid.put(G.box, wall, -W + T / 2, yc, 0, { sx: T, sy: STOREY_H, sz: HOUSE_D });
+    solid.put(G.box, wall, W - T / 2, yc, 0, { sx: T, sy: STOREY_H, sz: HOUSE_D });
+    solid.put(G.box, trim, 0, y0 + 0.05, 0, { sx: HOUSE_W + 0.16, sy: 0.12, sz: HOUSE_D + 0.16 });
+    for (const sx of [-1, 1]) for (const sz of [-1, 1]) solid.put(G.box, trim, sx * (W - 0.05), yc, sz * (D - 0.05), { sx: 0.2, sy: STOREY_H, sz: 0.2 });
+  }
+  gableRoof(solid, up);
+  solid.put(G.box, shade(h.roof, -0.15), 2.6, WALL_H + up + 2.0, -1.2, { sx: 0.8, sy: 1.6, sz: 0.8 });
   // Door frame and porch.
   for (const sx of [-1, 1]) solid.put(G.box, trim, sx * (DOOR_W / 2 + 0.07), DOOR_H / 2, D + 0.04, { sx: 0.14, sy: DOOR_H, sz: 0.1 });
   solid.put(G.box, trim, 0, DOOR_H + 0.08, D + 0.04, { sx: DOOR_W + 0.3, sy: 0.16, sz: 0.12 });
@@ -115,6 +129,13 @@ function buildHouse(biome) {
   win(W + 0.03, 1.6, 0, Math.PI / 2);
   win(-2.5, 1.6, -D - 0.03, 0);
   win(2.5, 1.6, -D - 0.03, 0);
+  for (let k = 1; k < storeys; k++) {
+    const y = WALL_H + (k - 1) * STOREY_H + 1.55;
+    for (const x of [-3, 0, 3]) win(x, y, D + 0.03, 0);
+    win(-W - 0.03, y, 0, Math.PI / 2);
+    win(W + 0.03, y, 0, Math.PI / 2);
+    for (const x of [-2.5, 2.5]) win(x, y, -D - 0.03, 0);
+  }
   const colliders = [
     [-W, -D, W, -D + T],
     [-W, -D, -W + T, D],
@@ -122,7 +143,7 @@ function buildHouse(biome) {
     [-W, D - T - 0.05, -DOOR_W / 2, D + 0.1],
     [DOOR_W / 2, D - T - 0.05, W, D + 0.1],
   ];
-  return { solid: solid.build(), glow: glow.build(), colliders, top: WALL_H + 2.9 };
+  return { solid: solid.build(), glow: glow.build(), colliders, top: WALL_H + up + 2.9, chimney: [2.6, WALL_H + up + 2.9, -1.2] };
 }
 
 // Every place has its door in the same spot (centre front, facing +z), so
@@ -425,10 +446,20 @@ export class Outdoor {
     return kinds[0];
   }
 
-  place(band, kind) {
-    const key = `${band}:${kind}`;
+  // Untouched addresses are all the same house; a house that has grown
+  // gets its own shape (by the biome's mix of places) and a storey for
+  // every couple of chambers.
+  shapeOf(cx, cz, biome) {
+    const g = this.summaries.get(`${cx},${cz}`)?.growth || 0;
+    if (g <= 0) return { kind: 'house', storeys: 1, grown: false };
+    const kind = this.placeOf(cx, cz, biome);
+    return { kind, storeys: kind === 'house' ? 1 + Math.min(8, Math.floor((g + 1) / 2)) : 1, grown: true };
+  }
+
+  place(band, kind, storeys = 1) {
+    const key = `${band}:${kind}:${storeys}`;
     if (!this.places.has(key)) {
-      const p = PLACES[kind](this.bands[band]);
+      const p = PLACES[kind](this.bands[band], storeys);
       for (const g of [p.solid, p.glow]) if (g) g.userData.shared = true;
       this.places.set(key, p);
     }
@@ -627,7 +658,9 @@ export class Outdoor {
   buildCell(cx, cz) {
     const band = this.bandOf(cx, cz);
     const b = this.bands[band];
-    const r = new Rand(hash32(this.seed, cx, cz, 77));
+    const shape = this.shapeOf(cx, cz, b);
+    // Liminal: every untouched lawn is the same lawn.
+    const r = new Rand(shape.grown ? hash32(this.seed, cx, cz, 77) : hash32(this.seed, 0, 0, 77 + band));
     const group = new THREE.Group();
     const ox = cx * CELL, oz = cz * CELL;
     group.position.set(ox, 0, oz);
@@ -646,8 +679,8 @@ export class Outdoor {
     group.add(this.groundMesh(cx, cz, b));
 
     // The place with the door: same door, many shapes.
-    const kind = this.placeOf(cx, cz, b);
-    const pl = this.place(band, kind);
+    const kind = shape.kind;
+    const pl = this.place(band, kind, shape.storeys);
     const body = new THREE.Mesh(pl.solid, this.solidMat);
     body.position.y = pad;
     group.add(body);
@@ -717,7 +750,7 @@ export class Outdoor {
     }
 
     // A pond in some back yards, where the land allows.
-    if (r.chance(b.ponds ?? 0.2) && kind !== 'cave') {
+    if (shape.grown && r.chance(b.ponds ?? 0.2) && kind !== 'cave') {
       const px = r.chance(0.5) ? -4.5 : 4.5, pz = -H + 4.2;
       const py = Math.min(h(px - 2, pz), h(px + 2, pz), h(px, pz - 1.5), h(px, pz + 1.5));
       const pond = new THREE.Mesh(G.cyl, this.waterMat);
@@ -768,7 +801,7 @@ export class Outdoor {
       group.add(m);
     }
     this.root.add(group);
-    const cell = { x: cx, z: cz, band, kind, top: pl.top + pad, group, colliders, grass: null, extras: null };
+    const cell = { x: cx, z: cz, band, kind, storeys: shape.storeys, grown: shape.grown, chimney: pl.chimney, top: pl.top + pad, group, colliders, grass: null, extras: null };
     this.applySummary(cell);
     return cell;
   }
@@ -819,9 +852,24 @@ export class Outdoor {
   }
 
   setSummary(s) {
-    this.summaries.set(`${s.x},${s.z}`, s);
-    const cell = this.cells.get(`${s.x},${s.z}`);
-    if (cell) this.applySummary(cell);
+    const k = `${s.x},${s.z}`;
+    this.summaries.set(k, s);
+    const cell = this.cells.get(k);
+    if (!cell) return;
+    const sh = this.shapeOf(s.x, s.z, this.bands[cell.band]);
+    if (sh.kind === cell.kind && sh.storeys === cell.storeys && sh.grown === cell.grown) return this.applySummary(cell);
+    // It grew: build the address again, taller.
+    const grass = !!cell.grass;
+    this.root.remove(cell.group);
+    if (cell.grass) {
+      this.root.remove(cell.grass);
+      cell.grass.dispose();
+    }
+    disposeTree(cell.group);
+    this.racks.delete(k);
+    const fresh = this.buildCell(s.x, s.z);
+    this.cells.set(k, fresh);
+    this.setGrass(fresh, grass);
   }
 
   // Claimed places get a name; places being built get chimney smoke.
@@ -849,11 +897,11 @@ export class Outdoor {
         extras.add(p);
         puffs.push(p);
       }
-      const top = cell.kind === 'house' ? pad + WALL_H + 2.9 : cell.top;
+      const top = cell.chimney ? pad + cell.chimney[1] : cell.top;
       extras.userData.update = (t) => {
         for (const p of puffs) {
           const k = (t * 0.12 + p.userData.phase) % 1;
-          p.position.set((cell.kind === 'house' ? 2.6 : 0) + Math.sin(k * 6) * 0.3, top + k * 4, cell.kind === 'house' ? -1.2 : 0);
+          p.position.set((cell.chimney ? cell.chimney[0] : 0) + Math.sin(k * 6) * 0.3, top + k * 4, cell.chimney ? cell.chimney[2] : 0);
           const sc = 0.6 + k * 1.8;
           p.scale.set(sc, sc, 1);
         }

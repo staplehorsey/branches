@@ -84,7 +84,7 @@ function entryHtml(e) {
 }
 
 // The visitor log for one address, plus claim and owner tools.
-export async function openRoomPanel({ host, world, x, z, themes, local = false, needsApp }) {
+export async function openRoomPanel({ host, world, x, z, themes, local = false, app = false, needsApp }) {
   const me = identity();
   const body = openPanel('<p class="sub">opening the visitor log…</p>');
   let room;
@@ -120,16 +120,41 @@ export async function openRoomPanel({ host, world, x, z, themes, local = false, 
       <div id="log-msg"></div>
     </div>
     <div class="log" id="log-list" style="margin-top:10px">${room.log.map(entryHtml).join('') || '<div class="sub">No one has written here yet.</div>'}</div>
-    ${room.claim || local ? '' : `
+    ${room.claim ? '' : local ? `
+      <h3>Claim this address</h3>
+      <div class="sub">Make this house yours: name it, choose its theme, open doors from it, and share it.</div>
+      <div class="btns" style="margin-top:8px"><button class="btn" id="claim-need">claim this house</button></div>` : `
       <h3>Claim this address</h3>
       <div class="sub">Tend it: rename it, choose its theme, open doors to other worlds, and let your own agents build here.</div>
       <div class="row" style="margin-top:8px"><input id="claim-title" maxlength="60" placeholder="${esc(me.name)}'s house" /><button class="btn" id="claim">claim</button></div>
       <div id="claim-msg"></div>`}
+    ${app ? `
+      <h3>Share this house</h3>
+      <div class="sub">Put a door to it in the Commons, the street just west of The Lush's spawn, so anyone can walk in. It doesn't need to have grown: an empty house is a fine place to start. This backs up your worlds to your GitHub fork and opens a pull request to the main world.</div>
+      <div class="btns" style="margin-top:8px"><button class="btn" id="share-house">share this house</button></div>
+      <div id="share-msg"></div>` : local ? `
+      <h3>Share this house</h3>
+      <div class="sub">Sharing a house puts a door to it in the Commons for everyone. It needs Branches for Mac and a GitHub account.</div>
+      <div class="btns" style="margin-top:8px"><button class="btn" id="share-need">share this house</button></div>` : ''}
     ${mine ? ownerTools(room, themes) : ''}
   `;
   $('need-app') && ($('need-app').onclick = () => needsApp?.('book'));
+  $('claim-need') && ($('claim-need').onclick = () => needsApp?.('claim'));
+  $('share-need') && ($('share-need').onclick = () => needsApp?.('share'));
+  $('share-house') &&
+    ($('share-house').onclick = async () => {
+      const gh = await host.get('/api/app/github').catch(() => ({}));
+      if (!gh.connected) return openGithub(host, { then: { world, x, z } });
+      msg('share-msg', 'backing up and opening a pull request\u2026', true);
+      try {
+        const r = await host.send('POST', '/api/app/github/share', { world, x, z });
+        $('share-msg').innerHTML = `<span class="ok">Shared. <a href="${esc(r.url)}" target="_blank" rel="noopener">Your pull request</a> adds a door to this house in the Commons once it's merged.</span>`;
+      } catch (e) {
+        msg('share-msg', e.message);
+      }
+    });
   const msg = (id, text, ok) => ($(id).innerHTML = `<span class="${ok ? 'ok' : 'err'}">${esc(text)}</span>`);
-  const reopen = () => openRoomPanel({ host, world, x, z, themes });
+  const reopen = () => openRoomPanel({ host, world, x, z, themes, local, app, needsApp });
 
   body.querySelectorAll('[data-kind]').forEach((b) => {
     b.onclick = async () => {
@@ -288,6 +313,7 @@ export const DOWNLOAD = 'https://github.com/staplehorsey/branches/releases/downl
 const WHY = {
   book: ['Write in visitor books', 'Visitor books are kept by Branches for Mac. It saves your worlds on your computer and runs the architect that reads what you write.'],
   claim: ['Make a house yours', 'Claiming houses, opening doors and asking the architect for things happen in Branches for Mac.'],
+  share: ['Share a house', 'Sharing puts a door to your house in the Commons, where everyone arrives. Branches for Mac keeps your houses and backs them up to your own fork on GitHub, so it needs the app and a GitHub account (free). It makes the fork for you.'],
   time: ['Keep this world growing', 'Right now everything lives in this browser tab. Branches for Mac keeps your worlds on your computer, saved in a git repository, and the architect keeps building while you are away.'],
 };
 
@@ -351,8 +377,8 @@ export async function appSettings(host, el) {
       <label class="sub"><input type="radio" name="arch" value="heuristic" ${s.settings.architect !== 'command' ? 'checked' : ''}/> built in: quick, always available</label>
       <label class="sub"><input type="radio" name="arch" value="command" ${s.settings.architect === 'command' ? 'checked' : ''}/> a program you choose, for example Claude Code</label>
       <input id="arch-cmd" value="${esc(s.settings.command)}" placeholder="claude -p" />
-      <div class="sub">It gets a description of the house and what visitors want on stdin and prints a JSON plan. Quick sketches always use the built-in architect; your program gets the rooms people linger in.</div>
-      <div class="btns"><button class="btn" id="arch-save">save</button></div>
+      <div class="sub">It gets a description of the house and what visitors want on stdin and prints a JSON plan. Quick sketches always use the built-in architect; your program gets the rooms people linger in. ${s.claude ? `Claude Code is installed (<code>${esc(s.claude)}</code>); <code>claude -p</code> uses your Claude subscription.` : 'Claude Code is not installed yet.'}</div>
+      <div class="btns"><button class="btn" id="arch-save">save</button><button class="btn" id="arch-test">test it</button></div>
       <div id="arch-msg"></div>
     </div>
     <h3>Night shift</h3>
@@ -376,6 +402,11 @@ export async function appSettings(host, el) {
     } catch (e) {
       $('arch-msg').innerHTML = `<span class="err">${esc(e.message)}</span>`;
     }
+  };
+  $('arch-test').onclick = async () => {
+    $('arch-msg').innerHTML = '<span class="ok">asking it something small\u2026</span>';
+    const r = await host.send('POST', '/api/app/agent/check', { command: $('arch-cmd').value.trim() }).catch((e) => ({ error: e.message }));
+    $('arch-msg').innerHTML = r.ok ? `<span class="ok">It works (answered in ${r.seconds.toFixed(1)}s).</span>` : `<span class="err">${esc(r.error)}</span>`;
   };
   const nightValues = () => ({
     enabled: $('night-on').checked,
@@ -403,6 +434,51 @@ export async function appSettings(host, el) {
   $('app-quit').onclick = async () => {
     await host.send('POST', '/api/app/quit', {}).catch(() => {});
     document.body.innerHTML = '<div style="display:grid;place-items:center;height:100%;font-family:Georgia,serif;font-style:italic;font-size:22px;color:#556">Branches is resting. Open the app to come back.</div>';
+  };
+}
+
+// ------------------------------------------------------------ who builds
+
+// Asked once, the first time a house is about to grow: who should build?
+// Claude Code with your own subscription is one click when it's installed.
+export async function setupAi(host, { claude } = {}) {
+  let s;
+  try {
+    s = await host.get('/api/app/settings');
+  } catch {
+    return;
+  }
+  if (s.settings.asked) return;
+  const body = openPanel(`
+    <h2>Who should build?</h2>
+    <p class="sub" style="font-size:14px;line-height:1.5">A house is about to grow for the first time. The architect can be the quick built-in one, or an AI agent on this Mac that invents chambers, characters, stories and games from what visitors do and write.</p>
+    <h3>Claude Code</h3>
+    <p class="sub">${claude ? `Found at <code>${esc(claude)}</code>. It runs here as <code>claude -p</code> and uses your own Claude subscription (Pro or Max), not an API key.` : 'Not installed on this Mac yet. Install it, run <code>claude</code> once in Terminal to sign in with your Claude account, then come back here.'}</p>
+    <div class="btns">
+      <button class="btn" id="ai-claude">${claude ? 'use Claude Code' : 'I installed it: check again'}</button>
+      ${claude ? '' : '<a class="btn" href="https://claude.com/claude-code" target="_blank" rel="noopener">get Claude Code</a>'}
+    </div>
+    <h3>Or</h3>
+    <div class="btns"><button class="btn" id="ai-builtin">use the built-in architect for now</button><button class="btn" id="ai-other">another program\u2026</button></div>
+    <p class="sub">You can change this any time: L, then the settings at the bottom.</p>
+    <div id="ai-msg" style="margin-top:10px"></div>`);
+  const msg = (t, ok) => ($('ai-msg').innerHTML = `<span class="${ok ? 'ok' : 'err'}">${t}</span>`);
+  const save = (architect, command) => host.send('POST', '/api/app/settings', { ...s.settings, architect, command, asked: true });
+  $('ai-claude').onclick = async () => {
+    msg('checking that Claude Code is signed in\u2026 (this takes a few seconds)', true);
+    const r = await host.send('POST', '/api/app/agent/check', { command: 'claude -p' }).catch((e) => ({ error: e.message }));
+    if (!r.ok) return msg(`${esc(r.error)}<br/>Open Terminal, run <code>claude</code>, sign in with <code>/login</code>, then try again.`);
+    await save('command', 'claude -p');
+    msg(`Claude Code is the architect now (it answered in ${r.seconds.toFixed(1)}s). Linger somewhere, and it will build.`, true);
+    setTimeout(closePanel, 2500);
+  };
+  $('ai-builtin').onclick = async () => {
+    await save('heuristic', s.settings.command).catch(() => {});
+    closePanel();
+  };
+  $('ai-other').onclick = () => {
+    closePanel();
+    document.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyL' }));
   };
 }
 
@@ -484,8 +560,9 @@ export function openMap({ worldName, center, yaw, explored, heat, rooms, version
 
 // ------------------------------------------------------------ GitHub
 
-// Back up and share, one step at a time, nothing required.
-export async function openGithub(host) {
+// Back up and share, one step at a time, nothing required. `then` is a
+// house to share as soon as GitHub is connected.
+export async function openGithub(host, { then } = {}) {
   const body = openPanel('<p class="sub">checking GitHub\u2026</p>');
   let st;
   try {
@@ -496,31 +573,58 @@ export async function openGithub(host) {
   }
   const render = (inner) => (body.innerHTML = `<h2>Your worlds on GitHub</h2>${inner}<div id="gh-msg" style="margin-top:10px"></div>`);
   const msg = (t, ok) => ($('gh-msg').innerHTML = `<span class="${ok ? 'ok' : 'err'}">${esc(t)}</span>`);
-  const connected = (s) => {
-    render(`
-      <p class="sub" style="font-size:14px;line-height:1.5">Signed in as <b>${esc(s.login)}</b>. Your worlds are backed up to the <code>worlds</code> branch of <a href="https://github.com/${esc(s.fork)}/tree/worlds" target="_blank" rel="noopener">${esc(s.fork)}</a>, versions included, and stay up to date as the architect builds.</p>
-      ${s.shared ? `<p class="sub">Shared: <a href="${esc(s.shared)}" target="_blank" rel="noopener">your pull request</a>. Once it's merged, a door to your worlds appears in the Commons, the house just west of The Lush's spawn.</p>` : `
-      <h3>Share them?</h3>
-      <p class="sub">This opens a pull request to the main world that adds a door to your worlds in the Commons. Anyone can then walk in. Only you can change them.</p>
-      <div class="btns"><button class="btn" id="gh-share">share my worlds</button><button class="btn" id="gh-keep">keep them to myself</button></div>`}
-    `);
-    $('gh-keep') && ($('gh-keep').onclick = closePanel);
-    $('gh-share') &&
-      ($('gh-share').onclick = async () => {
-        msg('opening a pull request\u2026', true);
-        try {
-          const r = await host.send('POST', '/api/app/github/share', {});
-          connected({ ...s, shared: r.url });
-        } catch (e) {
-          msg(e.message);
-        }
-      });
+  const share = async (s, house) => {
+    if (!$('gh-msg')) render('');
+    msg(house ? 'backing up and sharing this house\u2026' : 'backing up and opening a pull request\u2026', true);
+    try {
+      const r = await host.send('POST', '/api/app/github/share', house || {});
+      connected({ ...s, shared: r.url, push_error: null }, house ? 'Shared. A door to the house appears in the Commons once the pull request is merged.' : null);
+    } catch (e) {
+      msg(e.message);
+    }
   };
+  const connected = (s, note) => {
+    const repo = `https://github.com/${esc(s.fork)}/tree/worlds`;
+    render(`
+      <p class="sub" style="font-size:14px;line-height:1.5">Signed in as <b>${esc(s.login)}</b>. Your worlds are backed up to the <code>worlds</code> branch of <a href="${repo}" target="_blank" rel="noopener">${esc(s.fork)}</a>, versions included, and stay up to date as the architect builds.</p>
+      ${s.push_error ? `<p class="err" style="font-size:13px">The last backup didn't go through: ${esc(s.push_error)}</p>` : ''}
+      ${s.restored ? `<p class="ok">Brought back ${s.restored} files from your fork.</p>` : ''}
+      ${note ? `<p class="ok">${esc(note)}</p>` : ''}
+      ${s.shared ? `<p class="sub">Shared: <a href="${esc(s.shared)}" target="_blank" rel="noopener">your latest pull request</a>. Once it's merged, doors appear in the Commons, the street just west of The Lush's spawn.</p>` : ''}
+      <h3>Share</h3>
+      <p class="sub">A pull request to the main world adds doors to your worlds in the Commons. Anyone can walk in; only you can change them. To share one house, claimed or empty, open its visitor book (E) and choose <i>share this house</i>.</p>
+      <div class="btns"><button class="btn" id="gh-share">share my worlds</button><button class="btn" id="gh-push">back up now</button></div>
+      <h3>Changes from the main world</h3>
+      <p class="sub">Bring in what has grown in the main world and keep your fork's code current. Houses both of you changed are merged by your agent when the architect is a program (such as Claude Code), otherwise by Branches, keeping what both sides added.</p>
+      <div class="btns"><button class="btn" id="gh-sync">bring in changes</button><button class="btn" id="gh-restore">restore from my fork</button></div>
+    `);
+    $('gh-share').onclick = () => share(s);
+    $('gh-push').onclick = async () => {
+      msg('backing up\u2026', true);
+      const r = await host.send('POST', '/api/app/github/push', {}).catch((e) => ({ error: e.message }));
+      r.error ? msg(r.error) : connected({ ...s, push_error: null }, 'Backed up.');
+    };
+    const sync = (from) => async () => {
+      msg(from === 'fork' ? 'fetching your fork\u2026' : 'fetching the main world\u2026 (your agent may take a few minutes on busy houses)', true);
+      try {
+        const r = await host.send('POST', '/api/app/sync', { from });
+        const parts = r.nothing_there ? ['There is nothing there to bring in yet.'] : r.up_to_date ? ['Already up to date.'] : [`${r.files} files changed${r.conflicts ? `; ${r.conflicts} houses changed on both sides, ${r.by_agent} merged by your agent` : ''}.`];
+        if (r.new_worlds?.length) parts.push(`New worlds: ${r.new_worlds.join(', ')}.`);
+        if (r.fork_code) parts.push(`Your fork's code: ${r.fork_code}.`);
+        msg(parts.join(' '), true);
+      } catch (e) {
+        msg(e.message);
+      }
+    };
+    $('gh-sync').onclick = sync('upstream');
+    $('gh-restore').onclick = sync('fork');
+  };
+  const afterConnect = (r) => (then ? share(r, then) : connected(r));
   const connect = async (extra = {}) => {
     msg('connecting\u2026', true);
     try {
       const r = await host.send('POST', '/api/app/github/connect', extra);
-      if (r.connected) return connected(r);
+      if (r.connected) return afterConnect(r);
       if (r.device) return device(r.device);
       if (r.needs_token) return askToken();
     } catch (e) {
@@ -532,7 +636,7 @@ export async function openGithub(host) {
     const poll = async () => {
       try {
         const r = await host.send('POST', '/api/app/github/poll', { device_code: d.device_code });
-        if (r.connected) return connected(r);
+        if (r.connected) return afterConnect(r);
       } catch (e) {
         return msg(e.message);
       }
@@ -548,9 +652,9 @@ export async function openGithub(host) {
       <p class="sub">Tip: if you use the GitHub command line tool (<code>gh auth login</code>), Branches signs in with it automatically.</p>`);
     $('gh-use').onclick = () => connect({ token: $('gh-token').value });
   };
-  if (st.connected) return connected(st);
+  if (st.connected) return then ? share(st, then) : connected(st);
   render(`
-    <p class="sub" style="font-size:14px;line-height:1.5">Your worlds are already saved on this Mac. Connecting GitHub backs them up to your own fork of the main world, keeps every version, and lets you share them when you want to.</p>
+    <p class="sub" style="font-size:14px;line-height:1.5">Your worlds are already saved on this Mac. Connecting GitHub makes your own copy (a fork) of the main world for you, backs your worlds up there with every version, and lets you share them when you want to. You only need a free GitHub account.</p>
     <div class="btns"><button class="btn" id="gh-go">connect GitHub</button><button class="btn" id="gh-later">later</button></div>`);
   $('gh-go').onclick = () => connect();
   $('gh-later').onclick = closePanel;

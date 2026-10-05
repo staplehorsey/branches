@@ -47,6 +47,9 @@ pub fn router() -> Router<Arc<App>> {
         .route("/api/app/github/connect", post(github_connect))
         .route("/api/app/github/poll", post(github_poll))
         .route("/api/app/github/share", post(github_share))
+        .route("/api/app/github/push", post(github_push))
+        .route("/api/app/sync", post(sync))
+        .route("/api/app/agent/check", post(agent_check))
         .route("/api/worlds/{w}/log", get(world_log).post(post_world_log))
         .route("/api/worlds/{w}/rooms/{x}/{z}", get(room).patch(patch_room))
         .route("/api/worlds/{w}/rooms/{x}/{z}/log", post(post_room_log))
@@ -591,6 +594,7 @@ async fn get_settings(State(app): AppState) -> Json<Value> {
         "data_dir": app.store.root,
         "night_running": app.night_running.load(std::sync::atomic::Ordering::Relaxed),
         "night_built": crate::nightshift::built(&app),
+        "claude": crate::agent::find_claude().map(|p| p.to_string_lossy().to_string()),
     }))
 }
 
@@ -613,6 +617,9 @@ async fn put_settings(State(app): AppState, headers: HeaderMap, Json(s): Json<cr
     if !["heuristic", "command"].contains(&s.architect.as_str()) {
         return Err(err(StatusCode::BAD_REQUEST, "architect must be heuristic or command"));
     }
+    // Saving settings is choosing: don't ask who should build again.
+    let mut s = s;
+    s.asked = true;
     app.save_settings(s);
     Ok(Json(json!({ "ok": true })))
 }
@@ -680,6 +687,8 @@ async fn github_status(State(app): AppState) -> Json<Value> {
         "login": a.as_ref().map(|a| a.login.clone()),
         "fork": a.as_ref().and_then(|a| a.fork.clone()),
         "shared": a.as_ref().and_then(|a| a.shared.clone()),
+        "push_error": a.as_ref().and_then(|a| a.push_error.clone()),
+        "last_push": a.as_ref().map(|a| a.last_push),
         "device": crate::github::client_id().is_some(),
     }))
 }
@@ -692,31 +701,37 @@ struct ConnectBody {
     device_code: Option<String>,
 }
 
-/// Sign in with a token, fork, push. Shared by every way of connecting.
-fn finish_connect(root: &std::path::Path, token: String) -> Result<Value, String> {
+/// Sign in with a token, fork, bring back worlds already on the fork (a new
+/// Mac, a reinstall), push. Shared by every way of connecting.
+fn finish_connect(app: &App, token: String) -> Result<Value, String> {
+    let root = app.store.root.clone();
     let login = crate::github::whoami(&token)?;
     let fork = crate::github::fork(&token)?;
-    let mut a = crate::github::Account { token, login: login.clone(), fork: Some(fork.clone()), shared: None, last_push: 0 };
-    if let Some(old) = crate::github::load(root) {
+    let mut a = crate::github::Account { token, login: login.clone(), fork: Some(fork.clone()), ..Default::default() };
+    if let Some(old) = crate::github::load(&root) {
         a.shared = old.shared;
     }
-    crate::github::save(root, &a);
-    // GitHub can take a moment to create a fork; a failed first push is retried later.
-    let pushed = crate::github::push(root, &a).is_ok();
-    if pushed {
-        a.last_push = now_ms();
-        crate::github::save(root, &a);
-    }
-    Ok(json!({ "connected": true, "login": login, "fork": fork, "pushed": pushed }))
+    crate::github::save(&root, &a);
+    let restored = match crate::sync::sync(app, crate::sync::Source::Fork) {
+        Ok(r) => r.files,
+        Err(e) => {
+            tracing::warn!("could not bring worlds back from {fork}: {e}");
+            0
+        }
+    };
+    let pushed = crate::github::push_patiently(&root, &a);
+    a.last_push = now_ms();
+    a.push_error = pushed.clone().err();
+    crate::github::save(&root, &a);
+    Ok(json!({ "connected": true, "login": login, "fork": fork, "pushed": pushed.is_ok(), "push_error": a.push_error, "restored": restored, "shared": a.shared }))
 }
 
 async fn github_connect(State(app): AppState, headers: HeaderMap, body: Option<Json<ConnectBody>>) -> Res {
     app_only(&app, &headers)?;
     let token = body.and_then(|b| b.0.token).map(|t| t.trim().to_string()).filter(|t| !t.is_empty());
-    let root = app.store.root.clone();
     let out = tokio::task::spawn_blocking(move || -> Result<Value, String> {
         if let Some(t) = token.or_else(crate::github::gh_cli_token) {
-            return finish_connect(&root, t);
+            return finish_connect(&app, t);
         }
         if crate::github::client_id().is_some() {
             return Ok(json!({ "device": crate::github::device_start()? }));
@@ -731,9 +746,8 @@ async fn github_connect(State(app): AppState, headers: HeaderMap, body: Option<J
 async fn github_poll(State(app): AppState, headers: HeaderMap, Json(b): Json<ConnectBody>) -> Res {
     app_only(&app, &headers)?;
     let code = b.device_code.ok_or_else(|| err(StatusCode::BAD_REQUEST, "device_code required"))?;
-    let root = app.store.root.clone();
     let out = tokio::task::spawn_blocking(move || match crate::github::device_poll(&code)? {
-        Some(token) => finish_connect(&root, token),
+        Some(token) => finish_connect(&app, token),
         None => Ok(json!({ "waiting": true })),
     })
     .await
@@ -741,27 +755,150 @@ async fn github_poll(State(app): AppState, headers: HeaderMap, Json(b): Json<Con
     out.map(Json).map_err(|e| err(StatusCode::BAD_GATEWAY, e))
 }
 
-async fn github_share(State(app): AppState, headers: HeaderMap) -> Res {
+#[derive(Deserialize, Default)]
+struct ShareBody {
+    #[serde(flatten)]
+    creds: Creds,
+    /// Share one house (claimed or not, grown or empty).
+    world: Option<String>,
+    x: Option<i32>,
+    z: Option<i32>,
+}
+
+/// Share on GitHub: one house, or your worlds. Nothing needs to have grown:
+/// an empty house is a fine place to start.
+async fn github_share(State(app): AppState, headers: HeaderMap, body: Option<Json<ShareBody>>) -> Res {
     app_only(&app, &headers)?;
+    let b = body.map(|b| b.0).unwrap_or_default();
     let root = app.store.root.clone();
     let mut a = crate::github::load(&root).ok_or_else(|| err(StatusCode::BAD_REQUEST, "connect GitHub first"))?;
-    let worlds: Vec<(String, String)> = {
-        let uni = app.uni.lock().unwrap();
-        uni.worlds.values().filter(|w| w.rooms.values().any(|r| r.growth() > 0) || !w.manifest.hub).map(|w| (w.manifest.id.clone(), w.manifest.name.clone())).collect()
+    let (worlds, rooms) = {
+        let mut uni = app.uni.lock().unwrap();
+        match (b.world, b.x, b.z) {
+            (Some(w), Some(x), Some(z)) => {
+                need_world(&uni, &w)?;
+                let name = match who(&app, &uni, &headers, &b.creds) {
+                    Ok(Who::Player(_, n)) => n,
+                    _ => "someone".into(),
+                };
+                // Store the house so it is in the repository, even untouched.
+                let room = uni.room_mut(&w, x, z).ok_or_else(|| err(StatusCode::NOT_FOUND, "no such house"))?;
+                let title = room.claim.as_ref().map(|c| c.title.clone()).unwrap_or_else(|| format!("{name}'s house"));
+                (vec![], vec![crate::github::SharedRoom { world: w, x, z, title }])
+            }
+            _ => {
+                // Born worlds first; then whatever grew; else every world.
+                let mut ws: Vec<&World> = uni.worlds.values().filter(|w| !w.manifest.hub || w.rooms.values().any(|r| r.growth() > 0 || r.claim.is_some())).collect();
+                if ws.is_empty() {
+                    ws = uni.worlds.values().collect();
+                }
+                (ws.iter().map(|w| (w.manifest.id.clone(), w.manifest.name.clone())).collect(), vec![])
+            }
+        }
     };
-    if worlds.is_empty() {
-        return Err(err(StatusCode::BAD_REQUEST, "nothing has grown yet: linger somewhere first"));
-    }
+    app.touch();
     let out = tokio::task::spawn_blocking(move || -> Result<Value, String> {
-        let _ = crate::github::push(&root, &a);
-        let url = crate::github::share(&a, &worlds)?;
+        {
+            let uni = app.uni.lock().unwrap();
+            app.store.save(&uni).map_err(|e| e.to_string())?;
+            app.store.commit(&format!("Share {}", rooms.first().map(|r| r.title.clone()).unwrap_or_else(|| "worlds".into()))).map_err(|e| e.to_string())?;
+        }
+        // The door must lead somewhere: the fork has to have the worlds first.
+        a.last_push = now_ms();
+        if let Err(e) = crate::github::push_patiently(&root, &a) {
+            a.push_error = Some(e.clone());
+            crate::github::save(&root, &a);
+            return Err(format!("could not back up to {}: {e}", a.fork.clone().unwrap_or_default()));
+        }
+        a.push_error = None;
+        let url = crate::github::share(&a, &worlds, &rooms)?;
         a.shared = Some(url.clone());
         crate::github::save(&root, &a);
-        Ok(json!({ "url": url }))
+        Ok(json!({ "url": url, "rooms": rooms, "worlds": worlds.len() }))
     })
     .await
     .map_err(|e| err(StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
     out.map(Json).map_err(|e| err(StatusCode::BAD_GATEWAY, e))
+}
+
+#[derive(Deserialize)]
+struct CheckBody {
+    command: String,
+}
+
+/// Try an architect command before using it: installed, signed in, answering?
+async fn agent_check(State(app): AppState, headers: HeaderMap, Json(b): Json<CheckBody>) -> Res {
+    app_only(&app, &headers)?;
+    let root = app.store.root.clone();
+    let r = tokio::task::spawn_blocking(move || crate::agent::check(&b.command, &root)).await.map_err(|e| err(StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+    Ok(Json(match r {
+        Ok(took) => json!({ "ok": true, "seconds": took.as_secs_f32() }),
+        Err(e) => json!({ "ok": false, "error": e }),
+    }))
+}
+
+/// Back up now.
+async fn github_push(State(app): AppState, headers: HeaderMap) -> Res {
+    app_only(&app, &headers)?;
+    let out = tokio::task::spawn_blocking(move || -> Result<Value, String> {
+        let root = app.store.root.clone();
+        let mut a = crate::github::load(&root).ok_or("connect GitHub first")?;
+        {
+            let uni = app.uni.lock().unwrap();
+            app.store.save(&uni).map_err(|e| e.to_string())?;
+            app.store.commit("Back up").map_err(|e| e.to_string())?;
+        }
+        let r = crate::github::push_patiently(&root, &a);
+        a.last_push = now_ms();
+        a.push_error = r.clone().err();
+        crate::github::save(&root, &a);
+        r.map(|_| json!({ "ok": true }))
+    })
+    .await
+    .map_err(|e| err(StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+    out.map(Json).map_err(|e| err(StatusCode::BAD_GATEWAY, e))
+}
+
+#[derive(Deserialize, Default)]
+struct SyncBody {
+    /// "upstream" (the main world, the default) or "fork" (your own backup).
+    #[serde(default)]
+    from: Option<String>,
+}
+
+/// Bring in changes from the main world (or your fork). Houses changed on
+/// both sides are merged by your agent when the architect is a command.
+async fn sync(State(app): AppState, headers: HeaderMap, body: Option<Json<SyncBody>>) -> Res {
+    app_only(&app, &headers)?;
+    let from = body.and_then(|b| b.0.from).unwrap_or_else(|| "upstream".into());
+    if app.syncing.swap(true, std::sync::atomic::Ordering::Relaxed) {
+        return Err(err(StatusCode::CONFLICT, "already syncing"));
+    }
+    let a2 = app.clone();
+    let out = tokio::task::spawn_blocking(move || -> Result<crate::sync::Report, String> {
+        let source = if from == "fork" { crate::sync::Source::Fork } else { crate::sync::Source::Upstream };
+        let upstream = matches!(source, crate::sync::Source::Upstream);
+        let mut rep = crate::sync::sync(&a2, source)?;
+        if upstream {
+            if let Some(acct) = crate::github::load(&a2.store.root) {
+                rep.fork_code = Some(crate::github::sync_fork_code(&acct).unwrap_or_else(|e| format!("could not update your fork's code: {e}")));
+            }
+        }
+        if !rep.up_to_date {
+            a2.note_commit(format!("Synced with {}", rep.source));
+        }
+        Ok(rep)
+    })
+    .await;
+    app.syncing.store(false, std::sync::atomic::Ordering::Relaxed);
+    let rep = out.map_err(|e| err(StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?.map_err(|e| err(StatusCode::BAD_GATEWAY, e))?;
+    if !rep.up_to_date {
+        let ids: Vec<String> = app.uni.lock().unwrap().worlds.keys().cloned().collect();
+        for w in ids {
+            app.broadcast(&w, &json!({ "t": "synced" }));
+        }
+    }
+    Ok(Json(serde_json::to_value(rep).unwrap_or_default()))
 }
 
 /// "Build something now": start a night-shift project immediately.

@@ -9,7 +9,7 @@ import { Host, Live, identity, saveIdentity, LOCAL_ORIGIN } from './net.js';
 import { Outdoor, time } from './outdoor.js';
 import { buildInterior } from './interior.js';
 import { DoorPortal, PortalRenderer, link } from './portals.js';
-import { Player, isTyping } from './player.js';
+import { Player, isTyping, makeVehicle } from './player.js';
 import { Others } from './avatars.js';
 import { XR } from './xr.js';
 import { Signals, tone } from './play.js';
@@ -86,6 +86,8 @@ const S = {
   nudged: false,
   lastSend: 0,
   lastPoll: 0,
+  folded: null, // the scooter, under your arm indoors
+  parkTry: -1,
 };
 
 // ---------------------------------------------------------------- addresses
@@ -255,22 +257,41 @@ function signature(room) {
   return [room.theme, room.chambers.length, room.features.length, room.portals.map((p) => p.id + p.sealed).join(','), !!room.building].join(':');
 }
 
-// The Commons: the house just west of The Lush's spawn holds a door to
-// every world people have shared (listed in the main universe.json).
-const COMMONS = { world: 'the-lush', addr: '-1,0' };
-let commons = [];
+// The Commons: the house just west of The Lush's spawn holds doors to what
+// people have shared (listed in the main universe.json): their houses
+// first, then their worlds. When it fills, the street carries on west,
+// six doors to a house.
+const COMMONS = { world: 'the-lush', x: -1, z: 0, perHouse: 6, houses: 8 };
+let commons = new Map();
 fetch('https://raw.githubusercontent.com/staplehorsey/branches/HEAD/universe.json')
   .then((r) => (r.ok ? r.json() : null))
   .then((u) => {
-    commons = (u?.shared || []).flatMap((e) =>
-      (e.worlds || []).map((w) => ({ id: `commons-${e.owner}-${w.id}`, slot: 0, target: `gh://${e.repo}@${e.branch || 'worlds'}/w/${w.id}/0,0`, label: `${w.name} (${e.owner})`, by: 'commons', at: 0 })),
-    );
-    for (const r of S.realms.values()) if (r.manifest.id === COMMONS.world && r.interiors.has(COMMONS.addr)) loadInterior(r, -1, 0, true);
+    const doors = (u?.shared || []).flatMap((e) => {
+      const at = (path) => `gh://${e.repo}@${e.branch || 'worlds'}/w/${path}`;
+      const owner = e.owner || e.repo.split('/')[0];
+      return [
+        ...(e.rooms || []).map((h) => ({ id: `commons-${owner}-${h.world}-${h.x},${h.z}`, target: at(`${h.world}/${h.x},${h.z}`), label: `${h.title} (${owner})` })),
+        ...(e.worlds || []).map((w) => ({ id: `commons-${owner}-${w.id}`, target: at(`${w.id}/0,0`), label: `${w.name} (${owner})` })),
+      ];
+    });
+    commons = new Map();
+    doors.slice(0, COMMONS.perHouse * COMMONS.houses).forEach((d, i) => {
+      const key = `${COMMONS.x - Math.floor(i / COMMONS.perHouse)},${COMMONS.z}`;
+      if (!commons.has(key)) commons.set(key, []);
+      commons.get(key).push({ ...d, slot: 0, by: 'commons', at: 0 });
+    });
+    for (const r of S.realms.values())
+      if (r.manifest.id === COMMONS.world)
+        for (const key of commons.keys())
+          if (r.interiors.has(key)) {
+            const [x, z] = key.split(',').map(Number);
+            loadInterior(r, x, z, true);
+          }
   })
   .catch(() => {});
 
 function withInjected(r, x, z, room) {
-  const extra = [...(r.inject.get(`${x},${z}`) || []), ...(r.manifest.id === COMMONS.world && `${x},${z}` === COMMONS.addr && !r.host.git ? commons.slice(0, 6) : [])];
+  const extra = [...(r.inject.get(`${x},${z}`) || []), ...(r.manifest.id === COMMONS.world && !r.host.git ? commons.get(`${x},${z}`) || [] : [])];
   const missing = extra.filter((p) => !room.portals.some((q) => q.id === p.id || sameAddress(q.target, r.origin, p.target, r.origin)));
   return missing.length ? { ...room, portals: [...room.portals, ...missing] } : room;
 }
@@ -576,6 +597,17 @@ function connect() {
     admired(m) {
       ui.toast('The architect noticed', m.tags.length ? `more ${m.tags.join(', ')}` : '');
     },
+    setup_ai(m) {
+      if (S.app) ui.setupAi(r.host, m);
+    },
+    synced() {
+      // Worlds merged in from GitHub: redraw the houses that are loaded.
+      for (const [addr] of r.interiors) {
+        const [x, z] = addr.split(',').map(Number);
+        loadInterior(r, x, z, true);
+      }
+      ui.toast('Synced', 'New houses and visitor-book entries from GitHub have arrived.');
+    },
     error(m) {
       ui.toast('Hmm', m.error);
     },
@@ -607,6 +639,7 @@ function nearestUse() {
     }
     return best;
   }
+  if (!player.vehicle && parkedNear()) return { kind: 'mybike', hint: 'get on your bike' };
   if (mailboxNear()) return { kind: 'mailbox', hint: 'visitor log for this house' };
   const rack = S.primary.outdoor?.bikeNear(player.pos);
   if (rack && player.vehicle !== 'bike') return { kind: 'bike', hint: 'ride a bike' };
@@ -626,6 +659,10 @@ function interact() {
     return openLog(r, c.x, c.z);
   }
   if (u.kind === 'bike') return ride('bike');
+  if (u.kind === 'mybike') {
+    unpark();
+    return ride('bike');
+  }
   u.use(thingApi);
   ui.hint('');
 }
@@ -684,7 +721,7 @@ function readLogInVR() {
 }
 
 function openLog(r, x, z) {
-  ui.openRoomPanel({ host: r.host, world: r.manifest.id, x, z, themes: S.themes, local: r.origin === LOCAL_ORIGIN, needsApp: (why) => needsApp(why) });
+  ui.openRoomPanel({ host: r.host, world: r.manifest.id, x, z, themes: S.themes, local: r.origin === LOCAL_ORIGIN, app: S.app && r === S.primary && r.host === S.primary.host && !r.host.git, needsApp: (why) => needsApp(why) });
 }
 
 // ---------------------------------------------------------------- the Mac app
@@ -748,8 +785,93 @@ function maybeNudge(dt) {
 
 function ride(kind) {
   if (S.inside) return;
+  // Stepping off a bike leaves it standing where you are.
+  if (player.vehicle === 'bike') park(player.pos.clone(), player.yaw);
+  if (player.vehicle === 'bike' && kind === 'bike') {
+    player.setVehicle(null);
+    ui.hint('');
+    return;
+  }
+  if (kind === 'bike') unpark();
   player.setVehicle(player.vehicle === kind ? null : kind);
   ui.hint(player.vehicle ? `${player.vehicle === 'bike' ? 'riding a bike' : 'on your scooter'} \u00b7 ${player.vehicle === 'bike' ? 'E' : 'Q'} to step off` : '');
+}
+
+// Your bike. A bike taken from a rack is yours: step off it (E), or ride
+// up to a house and walk in, and it waits on its kickstand where you left
+// it (by the front walk, for houses), even after you close the page, until
+// you come back for it. Taking another bike moves "yours" to that one. The
+// scooter folds under your arm indoors and unfolds when you step outside.
+const BIKE_KEY = 'branches.bike.v1';
+let parked = (() => {
+  try {
+    return JSON.parse(localStorage.getItem(BIKE_KEY) || 'null');
+  } catch {
+    return null;
+  }
+})();
+
+function saveParked() {
+  try {
+    localStorage.setItem(BIKE_KEY, JSON.stringify(parked ? { origin: parked.origin, world: parked.world, x: parked.x, y: parked.y, z: parked.z, ry: parked.ry } : null));
+  } catch {}
+}
+
+function dropParkedMesh() {
+  if (parked?.mesh) {
+    parked.mesh.removeFromParent();
+    disposeTree(parked.mesh);
+  }
+  if (parked) parked.mesh = parked.realm = null;
+}
+
+function park(at, ry, r = S.primary) {
+  dropParkedMesh();
+  parked = { origin: r.origin, world: r.manifest.id, x: at.x, y: at.y - r.base, z: at.z, ry };
+  saveParked();
+  showParked();
+}
+
+function unpark() {
+  dropParkedMesh();
+  parked = null;
+  saveParked();
+}
+
+// Draw your bike in its world, whenever that world is loaded.
+function showParked() {
+  if (!parked) return;
+  if (parked.realm && !S.realms.has(parked.realm.key)) parked.mesh = parked.realm = null;
+  if (parked.mesh) return;
+  const r = [...S.realms.values()].find((q) => q.origin === parked.origin && q.manifest.id === parked.world && q.outdoor);
+  if (!r) return;
+  const m = makeVehicle('bike', player.color || '#e94a6a');
+  m.position.set(parked.x, parked.y, parked.z);
+  m.rotation.set(0, parked.ry, 0.13);
+  r.outdoor.root.add(m);
+  parked.mesh = m;
+  parked.realm = r;
+}
+
+function parkedNear() {
+  if (!parked?.realm || parked.realm !== S.primary || S.inside) return false;
+  return Math.hypot(player.pos.x - parked.x, player.pos.z - parked.z) < 2.4 && Math.abs(player.pos.y - S.primary.base - parked.y) < 3;
+}
+
+// Walking into a house: the bike stays by the front walk, the scooter folds.
+function stowVehicle() {
+  const kind = player.vehicle;
+  player.setVehicle(null);
+  if (kind === 'scooter') {
+    S.folded = 'scooter';
+    return;
+  }
+  const r = S.inside.realm;
+  if (!r.outdoor) return;
+  const h = houseCenter(S.inside.x, S.inside.z);
+  const x = h.x - 3.4, z = h.z + CELL / 2 - 2.8;
+  park(new THREE.Vector3(x, r.base + r.outdoor.heightAt(x, z), z), Math.PI / 2, r);
+  ui.hint('your bike is waiting outside');
 }
 
 async function openMap() {
@@ -950,7 +1072,16 @@ function step(dt) {
   r.outdoor.animate(t);
   for (const realm of S.realms.values()) for (const it of realm.interiors.values()) for (const a of it.built.anims) a(t, dt);
   S.others.update(dt, t);
-  if (S.inside && player.vehicle) player.setVehicle(null);
+  if (S.inside && player.vehicle) stowVehicle();
+  if (!S.inside && S.folded) {
+    player.setVehicle(S.folded);
+    S.folded = null;
+    ui.hint('scooter unfolded \u00b7 Q to step off');
+  }
+  if (parked && !parked.mesh && Math.floor(t * 2) !== S.parkTry) {
+    S.parkTry = Math.floor(t * 2);
+    showParked();
+  }
   S.signals.gaze(camera, S.inside, dt);
   S.signals.path(player.pos, performance.now(), S.live, r.key);
   S.signals.flush(S.live);

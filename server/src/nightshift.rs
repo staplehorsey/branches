@@ -129,9 +129,9 @@ You have about {minutes} minutes. Go deep: depth of play, polish, small surprise
 
 fn run_agent(cmd: &str, dir: &Path, prompt: &str, max: Duration) -> Result<(), String> {
     use std::io::Write;
-    use std::process::{Command, Stdio};
+    use std::process::Stdio;
     let log = std::fs::File::create(dir.join("agent.log")).map_err(|e| e.to_string())?;
-    let mut child = Command::new("/bin/sh").arg("-c").arg(cmd).current_dir(dir).stdin(Stdio::piped()).stdout(log.try_clone().map_err(|e| e.to_string())?).stderr(log).spawn().map_err(|e| e.to_string())?;
+    let mut child = crate::agent::command(cmd).current_dir(dir).stdin(Stdio::piped()).stdout(log.try_clone().map_err(|e| e.to_string())?).stderr(log).spawn().map_err(|e| e.to_string())?;
     child.stdin.take().ok_or("no stdin")?.write_all(prompt.as_bytes()).map_err(|e| e.to_string())?;
     let started = Instant::now();
     loop {

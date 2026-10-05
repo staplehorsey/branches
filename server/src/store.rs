@@ -127,6 +127,14 @@ impl Store {
         Ok(true)
     }
 
+    /// Forget what was written and read, after the files changed underneath
+    /// (a merge): the next save rewrites whatever differs.
+    pub fn forget(&self) {
+        self.written.lock().unwrap().clear();
+        self.old.lock().unwrap().clear();
+        self.old_worlds.lock().unwrap().clear();
+    }
+
     /// Write everything that changed. Returns whether anything did.
     pub fn save(&self, uni: &Universe) -> std::io::Result<bool> {
         let mut changed = false;

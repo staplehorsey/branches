@@ -136,7 +136,8 @@ pub fn mutate(params: &Value, rng: &mut Rng, amount: f32, sig: Option<Sig>) -> V
     scale(&mut b, &["fog", "far"], fog, 40.0, 240.0);
     scale(&mut b, &["grass", "density"], 1.0 + (close - 0.5) * 0.6 * amount, 0.1, 1.4);
     scale(&mut b, &["grass", "height"], 1.0 + swing(rng) * 0.15 * amount, 0.2, 0.9);
-    scale(&mut b, &["terrain", "amp"], 1.0 + (s.turn.min(1.0) - 0.3) * amount + swing(rng) * 0.2 * amount, 0.2, 10.0);
+    // The land stays flat: height comes from what people build.
+    scale(&mut b, &["terrain", "amp"], 1.0, 0.0, 0.0);
     scale(&mut b, &["terrain", "scale"], 1.0 + swing(rng) * 0.2 * amount, 25.0, 140.0);
     scale(&mut b, &["ponds"], 1.0 + swing(rng) * 0.3 * amount, 0.0, 0.8);
     scale(&mut b, &["sun", "elevation"], 1.0 + swing(rng) * 0.2 * amount, 0.08, 1.4);
