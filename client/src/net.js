@@ -1,6 +1,8 @@
 // Talking to world hosts. A host is just an origin that speaks the Branches
 // HTTP + websocket protocol; the client can hop between hosts freely.
 
+import { LOCAL_ORIGIN, localHost, LocalLive } from './localhost.js';
+
 const KEY = 'branches.identity.v1';
 
 function randomHex(n) {
@@ -36,14 +38,18 @@ export function saveIdentity(id) {
   } catch {}
 }
 
+export { LOCAL_ORIGIN };
+
 export class Host {
   constructor(origin) {
     this.origin = origin.replace(/\/$/, '');
+    this.local = this.origin === LOCAL_ORIGIN ? localHost() : null;
   }
   url(path) {
     return this.origin + path;
   }
   async get(path) {
+    if (this.local) return this.local.get(path);
     const r = await fetch(this.url(path));
     const body = await r.json().catch(() => ({}));
     if (!r.ok) throw new Error(body.error || r.statusText);
@@ -51,6 +57,7 @@ export class Host {
   }
   async send(method, path, body) {
     const me = identity();
+    if (this.local) return this.local.send(method, path, { player: me.player, secret: me.secret, ...body });
     const r = await fetch(this.url(path), {
       method,
       headers: { 'content-type': 'application/json' },
@@ -87,6 +94,13 @@ export class Live {
   }
   connect() {
     if (this.closed) return;
+    if (this.host.local) {
+      this.ws = null;
+      this.fake = new LocalLive(this.world, this.handlers);
+      const me = identity();
+      this.fake.send({ t: 'hello', player: me.player, secret: me.secret, name: me.name, color: me.color });
+      return;
+    }
     const wsUrl = this.host.origin.replace(/^http/, 'ws') + `/ws/${encodeURIComponent(this.world)}`;
     const ws = new WebSocket(wsUrl);
     this.ws = ws;
@@ -109,10 +123,12 @@ export class Live {
     };
   }
   send(msg) {
+    if (this.fake) return this.fake.send(msg);
     if (this.ws?.readyState === 1) this.ws.send(JSON.stringify(msg));
   }
   close() {
     this.closed = true;
+    this.fake?.close();
     this.ws?.close();
   }
 }

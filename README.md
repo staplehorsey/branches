@@ -12,7 +12,9 @@ you linger in, what you ask for in the visitor log, and what you mark as
 notification.
 
 Some doors lead to other worlds: Dusk Orchard, Fog Pines, Moonlit Meadow,
-and the island Salt Flat Noon. A door can also lead to another host
+and the island Salt Flat Noon. There are no loading screens: through a door
+you see the room on the other side, you walk through, and the door you came
+through is behind you. A door can also lead to another host
 entirely. Anyone can run a host, claim addresses, and let their own agents
 grow them.
 
@@ -35,7 +37,13 @@ cargo run --release
 | `ARCHITECT_PACE` | `40` | seconds of attention the first growth costs (try `8` to watch it build) |
 | `ADMIN_KEY` | none | bearer key with owner rights everywhere on this host |
 
-Open two browser windows to see each other. Every address is a URL:
+Open two browser windows to see each other.
+
+**No server?** Open `client/index.html` from any static file host (or add
+`?offline` to the URL) and the worlds run inside the page, single-player,
+saved in your browser. `scripts/build-page.sh <dir>` packages that as a
+self-contained page. `scripts/export-offline.sh` refreshes the page's copy
+of the world list from a running host. Every address is a URL:
 `/w/the-lush/3,-2`.
 
 ## Controls
@@ -43,7 +51,7 @@ Open two browser windows to see each other. Every address is a URL:
 **WASD** walk · **shift** faster · **space** hop · **mouse** look (click to
 capture) · **V** first/third person · **E** visitor log (at the lectern
 inside, or the mailbox outside) · **F** more of this · **enter** chat ·
-**L** worlds · **N** notifications · **H** home. On touch screens, use the
+**L** worlds · **N** notifications · **H** wake up at home. If pointer lock isn't available, drag to look. On touch screens, use the
 stick to walk and drag to look.
 
 ## Let an agent build

@@ -5,7 +5,7 @@
 // every door is a live window onto the door it is linked to. Walking through
 // one carries your body to the other side: no fades, no loading screens.
 import * as THREE from 'three';
-import { Host, Live, identity, saveIdentity } from './net.js';
+import { Host, Live, identity, saveIdentity, LOCAL_ORIGIN } from './net.js';
 import { Outdoor, time } from './outdoor.js';
 import { buildInterior } from './interior.js';
 import { DoorPortal, PortalRenderer, link } from './portals.js';
@@ -47,6 +47,7 @@ const S = {
   live: null,
   others: new Others(peopleRoot, identity().player),
   manifests: new Map(),
+  home: location.origin, // the host this page belongs to (or the in-page host)
   pairing: new Set(),
   themes: [],
   inside: null, // interior you are in
@@ -63,7 +64,10 @@ const S = {
 
 function resolve(target, origin) {
   let path = target;
-  if (/^https?:\/\//.test(target)) {
+  if (target.startsWith(LOCAL_ORIGIN + '/')) {
+    origin = LOCAL_ORIGIN;
+    path = target.slice(LOCAL_ORIGIN.length);
+  } else if (/^https?:\/\//.test(target)) {
     const u = new URL(target);
     origin = u.origin;
     path = u.pathname;
@@ -420,6 +424,10 @@ function promote(r) {
 
 function setUrl(x, z) {
   const r = S.primary;
+  if (r.origin === LOCAL_ORIGIN) {
+    $('address').textContent = `${r.manifest.id} \u00b7 ${x},${z}`;
+    return;
+  }
   const path = `/w/${encodeURIComponent(r.manifest.id)}/${x},${z}`;
   const url = r.origin === location.origin ? path : `${location.pathname.startsWith('/w/') ? '/' : location.pathname}?at=${encodeURIComponent(r.origin + path)}`;
   try {
@@ -439,7 +447,7 @@ async function fetchChunk(cx, cz) {
 
 // Arrive somewhere by address alone (first load, or waking up at home).
 async function arrive(target) {
-  const t = resolve(target, location.origin);
+  const t = resolve(target, S.home);
   const manifest = await manifestFor(t.origin, t.world);
   for (const r of [...S.realms.values()]) disposeRealm(r);
   S.inside = null;
@@ -459,7 +467,7 @@ async function wake() {
   $('fade').classList.add('on');
   await new Promise((res) => setTimeout(res, 450));
   try {
-    await arrive(`${location.origin}/w/the-lush/0,0`);
+    await arrive(`${S.home}/w/the-lush/0,0`);
   } catch (e) {
     ui.toast('Still dreaming', e.message);
   }
@@ -726,9 +734,21 @@ addEventListener('resize', resize);
 
 // ---------------------------------------------------------------- boot
 
+// Use the server this page came from if there is one; otherwise run the
+// worlds right here in the page.
+async function findHome(params) {
+  if (params.has('offline') || !location.protocol.startsWith('http')) return LOCAL_ORIGIN;
+  try {
+    const r = await fetch('/.well-known/branches.json', { signal: AbortSignal.timeout(2500) });
+    if (r.ok && (await r.json()).protocol) return location.origin;
+  } catch {}
+  return LOCAL_ORIGIN;
+}
+
 async function boot() {
   resize();
   const params = new URLSearchParams(location.search);
+  S.home = await findHome(params);
   const start = params.get('at') || (location.pathname.startsWith('/w/') ? location.pathname : '/w/the-lush/0,0');
   const me = identity();
   $('name').value = me.name;

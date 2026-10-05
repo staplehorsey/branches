@@ -93,22 +93,40 @@ chambers going away from the front door, each one built by the architect.
 The last chamber always ends at a misty **frontier** archway where the
 next chamber will appear.
 
-### Branch doors
+### Branch doors: one physical space
 
-Doors stored on a room (`portals`) appear on the side walls of the chamber
-named by `slot`, so a door in slot 2 shows up once the room has grown two
-chambers. Each door surface is tinted with its destination's sky.
-Crossing one:
+The requirement is that everything feels like real life: no loading
+screens, no fades, no menus that move you. Every world is somewhere you can
+walk to, and every door has another side.
 
-1. resolves the target: relative `/w/...` goes to the same host, absolute
-   URLs go to another host;
-2. fetches the destination manifest, fades to its horizon colour, tears
-   down the current world and builds the new one;
-3. places you outside the destination house's front door, facing out.
-   Your player primitive carries over.
+* **Doors come in pairs.** If house (x,z) in world A has a door to world
+  B, then house (x,z) in B has the door back. Each world's spawn house is
+  joined door-to-door with every other spawn house. When an owner opens a
+  door to a local address, the host adds the door back in that house's
+  entry hall. A door into a closed world (an island) is real, but its far
+  side is **sealed**: you can walk in, not out.
+* **Realms.** The client loads several worlds into one scene at once,
+  each stacked 1,500 m above the last, far beyond the camera's reach. Only
+  one space is drawn per render pass, so they never see each other.
+* **Live views at any angle.** A door is a frame: an origin at the centre
+  of the opening and a facing. Linking door A to door B gives
+  `A.M = B.frame · rotY(π) · A.frame⁻¹`, which maps a side-wall door in
+  one world onto an entry-hall door in another, at any heading. The portal
+  renderer draws the far room through the opening using that transform,
+  and crossing the opening applies it to your body: position, heading and
+  momentum.
+* **Pairing on approach.** When you enter a room, the client loads the
+  world and the house behind each of its doors and links each door to the
+  one that leads back. If the far side has no door back (an older room, or
+  another host that doesn't add them), the client adds one behind you, so
+  the door you came through is always still there.
+* **Promotion.** When your body crosses into another realm, that realm
+  becomes "where you are": its streets stream in around you, your live
+  connection moves to its host, and realms you can no longer reach are
+  released.
 
-v1 uses a short fade for cross-world doors. The plan for removing it is
-in §6, phase 3.
+The one deliberate exception is **H** (wake up at home): a short blink to
+your home world's spawn. It exists so nobody is stranded on an island.
 
 ---
 
@@ -252,7 +270,8 @@ host with thousands of rooms. Phase 4 replaces it.
       notifications
 - [x] Visitor logs per room and per world
 - [x] Claims, owner tools, portal policies, agent-usable HTTP API
-- [x] Cross-world and cross-host branch doors
+- [x] Cross-world and cross-host doors that are physically walkable both ways
+- [x] The whole client also runs with no server (an in-page host), for static hosting and previews
 
 ### Phase 1: agents as first-class builders
 - **MCP server** wrapping the HTTP API (`branches.walk`, `look`, `claim`,
@@ -286,11 +305,9 @@ host with thousands of rooms. Phase 4 replaces it.
   lights, doors) so a host needs no client code.
 - Sandboxed **WASM generators** for procedural worlds, fetched from the
   host.
-- **Live cross-world doors**: load the destination region into its own
-  space in the same scene (like pockets) and render through the door with
-  the same portal renderer. That removes the fade for Mario-to-Halo
-  transitions. **Avatar adapters** let each world restyle the body while
-  identity stays fixed.
+- **Avatar adapters**: let each world restyle the body while identity
+  stays fixed, so crossing from one art style into another changes how you
+  look, not who you are.
 - Rotated and scaled portal transforms (general 4×4, not only
   translation), and recursive door views.
 
@@ -312,6 +329,6 @@ host with thousands of rooms. Phase 4 replaces it.
   yet.
 - Visitor logs are unmoderated beyond length limits and a visit-entry rate
   limit.
-- Cross-world doors use a short fade; same-world house doors are fully
-  seamless.
+- Through a door you see the room on the far side; that room's own doors
+  show a glow until you step in (views are one level deep).
 - Everything for a host runs in one process with JSON snapshots.
