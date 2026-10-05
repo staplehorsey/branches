@@ -58,6 +58,7 @@ export const WORLDS = [
      "horizon": "#ffb08a",
      "top": "#4c3f86"
     },
+    "start": "liminal",
     "sun": {
      "azimuth": 2.4,
      "color": "#ffaa66",
@@ -65,8 +66,8 @@ export const WORLDS = [
      "intensity": 2.2
     },
     "terrain": {
-     "amp": 3.4,
-     "scale": 52
+     "amp": 0.0,
+     "scale": 52.0
     },
     "trees": "blossom",
     "trunk": "#5b3f3a",
@@ -143,6 +144,7 @@ export const WORLDS = [
      "horizon": "#e2ebe8",
      "top": "#9fb6bd"
     },
+    "start": "liminal",
     "sun": {
      "azimuth": 4.0,
      "color": "#f2f6ff",
@@ -150,8 +152,8 @@ export const WORLDS = [
      "intensity": 1.3
     },
     "terrain": {
-     "amp": 7.0,
-     "scale": 70
+     "amp": 0.0,
+     "scale": 70.0
     },
     "trees": "pine",
     "trunk": "#4a3a30",
@@ -228,6 +230,7 @@ export const WORLDS = [
      "horizon": "#2b3b6e",
      "top": "#070b26"
     },
+    "start": "liminal",
     "sun": {
      "azimuth": 1.2,
      "color": "#a8bbff",
@@ -235,8 +238,8 @@ export const WORLDS = [
      "intensity": 1.5
     },
     "terrain": {
-     "amp": 4.2,
-     "scale": 46
+     "amp": 0.0,
+     "scale": 46.0
     },
     "trees": "mushroom",
     "trunk": "#d9e4ff",
@@ -312,6 +315,7 @@ export const WORLDS = [
      "horizon": "#ffe7ef",
      "top": "#7fcaff"
     },
+    "start": "liminal",
     "sun": {
      "azimuth": 1.0,
      "color": "#ffffff",
@@ -319,8 +323,8 @@ export const WORLDS = [
      "intensity": 2.6
     },
     "terrain": {
-     "amp": 0.5,
-     "scale": 90
+     "amp": 0.0,
+     "scale": 90.0
     },
     "trees": "palm",
     "trunk": "#c9a27f",
@@ -399,6 +403,7 @@ export const WORLDS = [
      "horizon": "#f3f0dc",
      "top": "#6fb9ec"
     },
+    "start": "liminal",
     "sun": {
      "azimuth": 0.6,
      "color": "#fff1d2",
@@ -406,8 +411,8 @@ export const WORLDS = [
      "intensity": 2.4
     },
     "terrain": {
-     "amp": 2.6,
-     "scale": 64
+     "amp": 0.0,
+     "scale": 64.0
     },
     "trees": "round",
     "trunk": "#7a5a43",

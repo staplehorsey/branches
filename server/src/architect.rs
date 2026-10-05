@@ -644,9 +644,13 @@ fn apply(app: &Arc<App>, ctx: &PlanContext, plan: Plan, seed: u64) {
         push_log(&mut r.log, LogEntry { id: new_id(), kind: "note".into(), who: "the architect".into(), player: None, text: n, at: now });
     }
     let (x, z) = (r.x, r.z);
+    let built_name = r.chambers[idx as usize].name.clone();
     let investors: Vec<String> = r.investors.iter().filter(|(_, s)| **s >= 15.0).map(|(p, _)| p.clone()).collect();
     let summary = room_summary(r);
     let _ = chambers_before;
+    if new_chamber {
+        crate::residents::on_build(&mut uni, wid, x, z, idx, &built_name);
+    }
     if let Some(w) = uni.worlds.get_mut(wid) {
         w.builds_since_tag += 1;
     }

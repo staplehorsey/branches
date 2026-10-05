@@ -285,6 +285,10 @@ impl World {
 pub struct Universe {
     pub worlds: BTreeMap<String, World>,
     pub players: HashMap<String, Player>,
+    #[serde(default)]
+    pub residents: BTreeMap<String, crate::residents::Resident>,
+    #[serde(default)]
+    pub economy: crate::residents::Economy,
 }
 
 pub fn addr(x: i32, z: i32) -> String {

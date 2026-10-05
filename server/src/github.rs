@@ -35,6 +35,9 @@ pub struct Account {
     /// Why the last backup failed, shown in the app until one succeeds.
     #[serde(default)]
     pub push_error: Option<String>,
+    /// Your own page, once made.
+    #[serde(default)]
+    pub page: Option<String>,
 }
 
 fn file(root: &Path) -> PathBuf {
@@ -53,7 +56,7 @@ fn agent() -> ureq::Agent {
     ureq::Agent::config_builder().timeout_global(Some(std::time::Duration::from_secs(30))).build().into()
 }
 
-fn call(method: &str, url: &str, token: &str, body: Option<Value>) -> Result<Value, String> {
+pub(crate) fn call(method: &str, url: &str, token: &str, body: Option<Value>) -> Result<Value, String> {
     let a = agent();
     let auth = format!("Bearer {token}");
     let res = match (method, body) {
@@ -142,10 +145,24 @@ pub fn owner(full_name: &str) -> &str {
 
 /// Push the worlds repository (branch and version tags) to the fork.
 pub fn push(root: &Path, a: &Account) -> Result<(), String> {
-    let fork = a.fork.as_deref().ok_or("not forked yet")?;
     let repo = git2::Repository::open(root).map_err(|e| e.to_string())?;
     let head = repo.head().map_err(|e| e.to_string())?;
     let branch = head.shorthand().unwrap_or("master").to_string();
+    let mut specs = vec![format!("+refs/heads/{branch}:refs/heads/worlds")];
+    repo.tag_foreach(|_, name| {
+        if let Ok(n) = std::str::from_utf8(name) {
+            specs.push(format!("+{n}:{n}"));
+        }
+        true
+    })
+    .map_err(|e| e.to_string())?;
+    push_refs(root, a, &specs)
+}
+
+/// Push refs from the worlds repository to the fork.
+pub fn push_refs(root: &Path, a: &Account, specs: &[String]) -> Result<(), String> {
+    let fork = a.fork.as_deref().ok_or("not forked yet")?;
+    let repo = git2::Repository::open(root).map_err(|e| e.to_string())?;
     let mut remote = repo.remote_anonymous(&format!("https://github.com/{fork}.git")).map_err(|e| e.to_string())?;
     let mut cb = git2::RemoteCallbacks::new();
     let token = a.token.clone();
@@ -155,15 +172,7 @@ pub fn push(root: &Path, a: &Account) -> Result<(), String> {
     let mut opts = git2::PushOptions::new();
     opts.remote_callbacks(cb);
     opts.proxy_options(po);
-    let mut specs = vec![format!("+refs/heads/{branch}:refs/heads/worlds")];
-    repo.tag_foreach(|_, name| {
-        if let Ok(n) = std::str::from_utf8(name) {
-            specs.push(format!("+{n}:{n}"));
-        }
-        true
-    })
-    .map_err(|e| e.to_string())?;
-    remote.push(&specs, Some(&mut opts)).map_err(|e| e.to_string())
+    remote.push(specs, Some(&mut opts)).map_err(|e| e.to_string())
 }
 
 /// The same push with the git command line, when it is installed (Xcode's

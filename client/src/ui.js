@@ -314,6 +314,7 @@ const WHY = {
   book: ['Write in visitor books', 'Visitor books are kept by Branches for Mac. It saves your worlds on your computer and runs the architect that reads what you write.'],
   claim: ['Make a house yours', 'Claiming houses, opening doors and asking the architect for things happen in Branches for Mac.'],
   share: ['Share a house', 'Sharing puts a door to your house in the Commons, where everyone arrives. Branches for Mac keeps your houses and backs them up to your own fork on GitHub, so it needs the app and a GitHub account (free). It makes the fork for you.'],
+  residents: ['Residents', 'Residents are agents who live in your worlds: they remember, have goals, wander, and pay the architect to build what they want. They live in Branches for Mac, which runs them with your own agent (such as Claude Code).'],
   time: ['Keep this world growing', 'Right now everything lives in this browser tab. Branches for Mac keeps your worlds on your computer, saved in a git repository, and the architect keeps building while you are away.'],
 };
 
@@ -435,6 +436,106 @@ export async function appSettings(host, el) {
     await host.send('POST', '/api/app/quit', {}).catch(() => {});
     document.body.innerHTML = '<div style="display:grid;place-items:center;height:100%;font-family:Georgia,serif;font-style:italic;font-size:22px;color:#556">Branches is resting. Open the app to come back.</div>';
   };
+}
+
+// ------------------------------------------------------------ residents
+
+const coins = (c) => (Math.round(c * 10) / 10).toLocaleString();
+
+// Everyone who lives here, the treasury, and a way to bring someone new.
+export async function openResidents(host, { world, x, z }) {
+  const body = openPanel('<p class="sub">knocking on doors\u2026</p>');
+  let d;
+  try {
+    d = await host.get('/api/residents');
+  } catch (e) {
+    body.innerHTML = `<p class="err">${esc(e.message)}</p>`;
+    return;
+  }
+  const e = d.economy;
+  const per = d.tokens_per_coin;
+  body.innerHTML = `
+    <h2>Residents</h2>
+    <div class="sub">Agents who live here. Each remembers, has a goal, wanders, writes in visitor books, and pays the architect to build what it wants. When people admire or use what a resident commissioned, it is paid and can do more. Residents can pay each other for favours. Thinking uses your agent (the architect program, such as Claude Code); without one they get by on simple habits, for free.</div>
+    <h3>Treasury</h3>
+    <div class="sub">Coins are token spend: one coin is ${per.toLocaleString()} tokens of agent work. Residents only ever spend what you add here. <b>${coins(e.treasury)}</b> coins in the treasury; ${coins(e.added)} added in all; ${e.tokens.toLocaleString()} tokens spent thinking.</div>
+    <div class="row" style="margin-top:8px"><input id="fund-n" type="number" min="1" value="50" style="width:110px" /><button class="btn" id="fund">add coins</button></div>
+    <div id="fund-msg"></div>
+    <h3>Who lives here</h3>
+    <div class="log">${d.residents.map((r) => `
+      <div class="entry"><span style="color:${esc(r.color)}">\u25cf</span> <a href="#" data-res="${esc(r.id)}"><b>${esc(r.name)}</b></a> · ${coins(r.coins)} coins · ${esc(r.world)} ${r.room ? `inside ${esc(r.room)}` : `near ${r.cell.join(',')}`}
+        <div class="sub">${esc(r.goal || '')}${r.creations ? ` · commissioned ${r.creations}, earned ${coins(r.earned)}` : ''}${r.said ? ` · said \u201c${esc(r.said)}\u201d` : ''}</div></div>`).join('') || '<div class="sub">Nobody yet.</div>'}</div>
+    <h3>Bring someone to live here</h3>
+    <div class="form">
+      <input id="res-name" maxlength="40" placeholder="name (Moss, Ada, the Lamplighter\u2026)" />
+      <textarea id="res-persona" rows="2" maxlength="600" placeholder="who they are: a retired cartographer who collects stories about doors"></textarea>
+      <input id="res-goal" maxlength="300" placeholder="their goal: build a library of maps, start a garden club\u2026" />
+      <div class="row"><label class="sub">starting coins <input id="res-coins" type="number" min="0" value="20" style="width:90px" /></label><span class="sub">they move into ${esc(world)} at ${x},${z}</span></div>
+      <div class="btns"><button class="btn" id="res-spawn">move in</button></div>
+      <div id="res-msg"></div>
+    </div>`;
+  const reopen = () => openResidents(host, { world, x, z });
+  body.querySelectorAll('[data-res]').forEach((a) => (a.onclick = (ev) => (ev.preventDefault(), openResident(host, a.dataset.res))));
+  $('fund').onclick = async () => {
+    try {
+      await host.send('POST', '/api/residents/fund', { coins: Number($('fund-n').value) });
+      reopen();
+    } catch (err) {
+      $('fund-msg').innerHTML = `<span class="err">${esc(err.message)}</span>`;
+    }
+  };
+  $('res-spawn').onclick = async () => {
+    try {
+      await host.send('POST', '/api/residents', { name: $('res-name').value.trim(), persona: $('res-persona').value.trim(), goal: $('res-goal').value.trim(), coins: Number($('res-coins').value), world, x, z });
+      reopen();
+    } catch (err) {
+      $('res-msg').innerHTML = `<span class="err">${esc(err.message)}</span>`;
+    }
+  };
+}
+
+// One resident: talk to them, see what they remember and made.
+export async function openResident(host, id) {
+  const body = openPanel('<p class="sub">\u2026</p>');
+  let r;
+  try {
+    r = await host.get(`/api/residents/${encodeURIComponent(id)}`);
+  } catch (e) {
+    body.innerHTML = `<p class="err">${esc(e.message)}</p>`;
+    return;
+  }
+  const ago = (t) => {
+    const m = Math.round((Date.now() - t) / 60000);
+    return m < 1 ? 'just now' : m < 60 ? `${m}m ago` : m < 1440 ? `${Math.round(m / 60)}h ago` : `${Math.round(m / 1440)}d ago`;
+  };
+  body.innerHTML = `
+    <h2><span style="color:${esc(r.color)}">\u25cf</span> ${esc(r.name)}</h2>
+    <div class="sub">${esc(r.persona || 'a wanderer')}</div>
+    <div class="sub" style="margin-top:6px">Wants to: <i>${esc(r.goal || 'find out')}</i> · ${coins(r.coins)} coins · ${r.thoughts} thoughts (${(r.tokens || 0).toLocaleString()} tokens)</div>
+    ${r.said ? `<p class="reading" style="margin:10px 0">\u201c${esc(r.said)}\u201d</p>` : ''}
+    <div class="form">
+      <textarea id="tell-text" rows="2" maxlength="400" placeholder="say something to ${esc(r.name)}: a tip, a request, a story"></textarea>
+      <div class="btns"><button class="btn" id="tell">say it</button><button class="btn" id="think">think now</button><button class="btn" id="grant">give 10 coins</button><button class="btn" id="retire">ask them to move away</button></div>
+      <div id="tell-msg"></div>
+    </div>
+    ${r.offers?.length ? `<h3>Offers waiting</h3><div class="log">${r.offers.map((o) => `<div class="entry">${esc(o.from_name)} offers ${coins(o.coins)} coins for: ${esc(o.ask)}</div>`).join('')}</div>` : ''}
+    ${r.creations?.length ? `<h3>Commissioned</h3><div class="chips">${r.creations.map((c) => `<span class="chip">${esc(c.name)} · ${esc(c.world)} ${c.x},${c.z} · earned ${coins(c.earned)}</span>`).join('')}</div>` : ''}
+    ${r.commissions?.length ? `<h3>Waiting on the architect</h3><div class="chips">${r.commissions.map((c) => `<span class="chip">${esc(c.text)} · ${c.x},${c.z} · paid ${coins(c.paid)}</span>`).join('')}</div>` : ''}
+    <h3>Memories</h3>
+    <div class="log">${r.memories.slice().reverse().map((m) => `<div class="entry"><span class="sub">${ago(m.at)}</span> ${esc(m.text)}</div>`).join('')}</div>`;
+  const msg = (t, ok) => ($('tell-msg').innerHTML = `<span class="${ok ? 'ok' : 'err'}">${esc(t)}</span>`);
+  const act = (fn, done) => async () => {
+    try {
+      await fn();
+      done ? msg(done, true) : openResident(host, id);
+    } catch (e) {
+      msg(e.message);
+    }
+  };
+  $('tell').onclick = act(() => host.send('POST', `/api/residents/${id}/tell`, { text: $('tell-text').value.trim() }), `${r.name} will think about that.`);
+  $('think').onclick = act(() => host.send('POST', `/api/residents/${id}/think`, {}));
+  $('grant').onclick = act(() => host.send('POST', `/api/residents/${id}/grant`, { coins: 10 }));
+  $('retire').onclick = act(() => host.send('DELETE', `/api/residents/${id}`, {}), `${r.name} packed up. Their coins went back to the treasury.`);
 }
 
 // ------------------------------------------------------------ who builds
@@ -594,11 +695,28 @@ export async function openGithub(host, { then } = {}) {
       <h3>Share</h3>
       <p class="sub">A pull request to the main world adds doors to your worlds in the Commons. Anyone can walk in; only you can change them. To share one house, claimed or empty, open its visitor book (E) and choose <i>share this house</i>.</p>
       <div class="btns"><button class="btn" id="gh-share">share my worlds</button><button class="btn" id="gh-push">back up now</button></div>
+      <h3>Your own page</h3>
+      <p class="sub">A web address that opens your worlds, to send to anyone: they walk in from a browser or a headset, no app needed. Branches builds it on your fork with GitHub Pages.${s.page ? ` Yours: <a href="${esc(s.page)}" target="_blank" rel="noopener">${esc(s.page)}</a>` : ''}</p>
+      <div class="btns"><button class="btn" id="gh-page">${s.page ? 'update my page' : 'make my page'}</button>${s.share_link ? `<button class="btn" id="gh-copy">copy a link to my worlds</button>` : ''}</div>
       <h3>Changes from the main world</h3>
       <p class="sub">Bring in what has grown in the main world and keep your fork's code current. Houses both of you changed are merged by your agent when the architect is a program (such as Claude Code), otherwise by Branches, keeping what both sides added.</p>
       <div class="btns"><button class="btn" id="gh-sync">bring in changes</button><button class="btn" id="gh-restore">restore from my fork</button></div>
     `);
     $('gh-share').onclick = () => share(s);
+    $('gh-page').onclick = async () => {
+      msg('backing up and building your page\u2026', true);
+      try {
+        const r = await host.send('POST', '/api/app/github/pages', {});
+        connected({ ...s, page: r.url, share_link: r.share }, `Your page is at ${r.url} (GitHub takes a minute or two to put it up the first time).`);
+      } catch (e) {
+        msg(e.message);
+      }
+    };
+    $('gh-copy') &&
+      ($('gh-copy').onclick = () => {
+        navigator.clipboard?.writeText(s.page || s.share_link);
+        msg(`Copied: ${s.page || s.share_link}`, true);
+      });
     $('gh-push').onclick = async () => {
       msg('backing up\u2026', true);
       const r = await host.send('POST', '/api/app/github/push', {}).catch((e) => ({ error: e.message }));

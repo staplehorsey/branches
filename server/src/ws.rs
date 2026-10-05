@@ -145,7 +145,11 @@ async fn session(socket: WebSocket, app: Arc<App>, world: String) {
                 }
                 last_admire = Instant::now();
                 if let Some((x, z)) = parse_addr(&room) {
-                    let tags = architect::record_admire(&mut app.uni.lock().unwrap(), &world, x, z, ch, &player);
+                    let tags = {
+                        let mut uni = app.uni.lock().unwrap();
+                        crate::residents::reward(&mut uni, &world, x, z, Some(ch), crate::residents::REWARD_ADMIRE, "admired", &player);
+                        architect::record_admire(&mut uni, &world, x, z, ch, &player)
+                    };
                     app.touch();
                     app.send_direct(&player, &json!({ "t": "admired", "addr": room, "tags": tags }));
                 }
@@ -168,6 +172,10 @@ async fn session(socket: WebSocket, app: Arc<App>, world: String) {
                     continue;
                 }
                 let mut uni = app.uni.lock().unwrap();
+                let chamber = uni.room(&world, x, z).and_then(|r| r.things.iter().find(|t| t.id == id).map(|t| t.chamber));
+                if let Some(ch) = chamber {
+                    crate::residents::reward(&mut uni, &world, x, z, Some(ch), crate::residents::REWARD_USE, "enjoyed", &player);
+                }
                 if let Some(r) = uni.room_mut(&world, x, z) {
                     *r.touches.entry(id).or_default() += 1;
                     r.attention += 2.0;
@@ -256,6 +264,7 @@ fn on_move(app: &App, world: &str, player: &str, p: [f32; 3], ry: f32, room: Opt
         return;
     };
     architect::record_dwell(&mut uni, world, x, z, ch.unwrap_or(0), player, dt);
+    crate::residents::reward(&mut uni, world, x, z, ch, crate::residents::REWARD_DWELL_PER_MIN * dt / 60.0, "lingered in", player);
     if let Some(w) = uni.worlds.get_mut(world) {
         let h = w.heat.entry(addr(x, z)).or_default();
         h.inside += dt as f32;
@@ -304,9 +313,14 @@ pub async fn presence_loop(app: Arc<App>) {
         tick.tick().await;
         let snapshots: Vec<(String, serde_json::Value)> = {
             let pres = app.presence.lock().unwrap();
+            let uni = app.uni.lock().unwrap();
             pres.iter()
-                .filter(|(_, players)| players.len() > 1)
-                .map(|(w, players)| (w.clone(), json!({ "t": "peers", "list": players.values().map(peer_json).collect::<Vec<_>>() })))
+                .filter(|(w, players)| players.len() > 1 || (!players.is_empty() && uni.residents.values().any(|r| &r.world == *w)))
+                .map(|(w, players)| {
+                    let mut list: Vec<serde_json::Value> = players.values().map(peer_json).collect();
+                    list.extend(uni.residents.values().filter(|r| &r.world == w).map(crate::residents::peer));
+                    (w.clone(), json!({ "t": "peers", "list": list }))
+                })
                 .collect()
         };
         for (w, msg) in snapshots {

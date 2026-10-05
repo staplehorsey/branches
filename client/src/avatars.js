@@ -26,6 +26,7 @@ export class Others {
       o.seen = true;
     }
     o.room = p.room ?? null;
+    o.resident = !!p.resident;
     const v = p.v || null;
     if (v !== (o.vehicle?.userData.kind || null)) {
       o.vehicle?.removeFromParent();

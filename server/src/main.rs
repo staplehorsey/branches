@@ -11,7 +11,9 @@ mod genesis;
 mod github;
 mod model;
 mod nightshift;
+mod pages;
 mod procgen;
+mod residents;
 mod state;
 mod stories;
 mod store;
@@ -172,6 +174,18 @@ async fn main() {
                 })
                 .await
                 .unwrap_or(last);
+            }
+        });
+    }
+
+    // Residents walk, linger and think.
+    {
+        let app = app.clone();
+        tokio::spawn(async move {
+            let mut tick = tokio::time::interval(Duration::from_secs(1));
+            loop {
+                tick.tick().await;
+                residents::tick(&app, 1.0);
             }
         });
     }

@@ -625,8 +625,21 @@ function mailboxNear() {
 
 // What you could use right now: the nearest of the visitor book, the
 // mailbox, and the characters, notes and games in the room.
+// A resident within talking distance.
+function residentNear() {
+  let best = null, bd = 2.4;
+  for (const [id, o] of S.others.map) {
+    if (!o.resident) continue;
+    const d = o.g.position.distanceTo(player.pos);
+    if (d < bd) (best = { kind: 'resident', id, hint: `talk to ${o.name}` }), (bd = d);
+  }
+  return best;
+}
+
 function nearestUse() {
   const eye = player.eye;
+  const res = residentNear();
+  if (res) return res;
   if (S.inside) {
     let best = null, bd = Infinity;
     const gb = S.inside.built.guestbook.distanceTo(eye);
@@ -659,6 +672,7 @@ function interact() {
     return openLog(r, c.x, c.z);
   }
   if (u.kind === 'bike') return ride('bike');
+  if (u.kind === 'resident') return ui.openResident(r.host, u.id);
   if (u.kind === 'mybike') {
     unpark();
     return ride('bike');
@@ -874,6 +888,13 @@ function stowVehicle() {
   ui.hint('your bike is waiting outside');
 }
 
+function openResidents() {
+  const r = S.primary;
+  if (!S.app || r.host.git || r.origin === LOCAL_ORIGIN) return needsApp('residents');
+  const c = cellOf(player.pos.x, player.pos.z);
+  ui.openResidents(r.host, { world: r.manifest.id, x: S.inside ? S.inside.x : c.x, z: S.inside ? S.inside.z : c.z });
+}
+
 async function openMap() {
   const r = S.primary;
   const c = cellOf(player.pos.x, player.pos.z);
@@ -929,6 +950,7 @@ addEventListener('keydown', (e) => {
   if (e.code === 'KeyL') openWorlds();
   if (e.code === 'KeyN') openInbox();
   if (e.code === 'KeyH') wake();
+  if (e.code === 'KeyR') openResidents();
   if (e.code === 'KeyM') openMap();
   if (e.code === 'KeyQ') ride('scooter');
 });
@@ -1158,7 +1180,15 @@ async function boot() {
   resize();
   const params = new URLSearchParams(location.search);
   S.home = await findHome(params);
-  const start = params.get('at') || (location.pathname.startsWith('/w/') ? location.pathname : '/w/the-lush/0,0');
+  // Someone's own page (made by Branches for Mac): site.json says whose
+  // worlds this page opens.
+  let site = null;
+  if (S.home === LOCAL_ORIGIN && !params.has('at') && !params.has('offline')) {
+    site = await fetch('site.json', { signal: AbortSignal.timeout(2500) })
+      .then((r) => (r.ok ? r.json() : null))
+      .catch(() => null);
+  }
+  const start = params.get('at') || (site?.home ? `${site.home}/w/the-lush/0,0` : location.pathname.startsWith('/w/') ? location.pathname : '/w/the-lush/0,0');
   const me = identity();
   $('name').value = me.name;
   $('color').value = me.color;
@@ -1170,7 +1200,7 @@ async function boot() {
       manifest = await arrive('/w/the-lush/0,0');
     }
     $('intro-world').textContent = manifest.name;
-    $('intro-tagline').textContent = manifest.tagline;
+    $('intro-tagline').textContent = site?.owner ? `${site.owner}'s worlds. ${manifest.tagline}` : manifest.tagline;
   } catch (e) {
     $('intro-world').textContent = 'No world here';
     $('intro-tagline').textContent = e.message;

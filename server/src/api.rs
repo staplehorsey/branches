@@ -48,8 +48,15 @@ pub fn router() -> Router<Arc<App>> {
         .route("/api/app/github/poll", post(github_poll))
         .route("/api/app/github/share", post(github_share))
         .route("/api/app/github/push", post(github_push))
+        .route("/api/app/github/pages", post(github_pages))
         .route("/api/app/sync", post(sync))
         .route("/api/app/agent/check", post(agent_check))
+        .route("/api/residents", get(residents_list).post(resident_spawn))
+        .route("/api/residents/fund", post(residents_fund))
+        .route("/api/residents/{id}", get(resident_get).delete(resident_retire))
+        .route("/api/residents/{id}/grant", post(resident_grant))
+        .route("/api/residents/{id}/tell", post(resident_tell))
+        .route("/api/residents/{id}/think", post(resident_think))
         .route("/api/worlds/{w}/log", get(world_log).post(post_world_log))
         .route("/api/worlds/{w}/rooms/{x}/{z}", get(room).patch(patch_room))
         .route("/api/worlds/{w}/rooms/{x}/{z}/log", post(post_room_log))
@@ -688,6 +695,8 @@ async fn github_status(State(app): AppState) -> Json<Value> {
         "fork": a.as_ref().and_then(|a| a.fork.clone()),
         "shared": a.as_ref().and_then(|a| a.shared.clone()),
         "push_error": a.as_ref().and_then(|a| a.push_error.clone()),
+        "page": a.as_ref().and_then(|a| a.page.clone()),
+        "share_link": a.as_ref().and_then(|a| a.fork.as_deref().map(crate::pages::share_link)),
         "last_push": a.as_ref().map(|a| a.last_push),
         "device": crate::github::client_id().is_some(),
     }))
@@ -837,6 +846,29 @@ async fn agent_check(State(app): AppState, headers: HeaderMap, Json(b): Json<Che
     }))
 }
 
+/// Your own page on GitHub Pages: an entry point to your worlds to share.
+async fn github_pages(State(app): AppState, headers: HeaderMap) -> Res {
+    app_only(&app, &headers)?;
+    let out = tokio::task::spawn_blocking(move || -> Result<Value, String> {
+        let root = app.store.root.clone();
+        let mut a = crate::github::load(&root).ok_or("connect GitHub first")?;
+        // The page reads your worlds from the fork, so back up first.
+        {
+            let uni = app.uni.lock().unwrap();
+            app.store.save(&uni).map_err(|e| e.to_string())?;
+            app.store.commit("Back up").map_err(|e| e.to_string())?;
+        }
+        crate::github::push_patiently(&root, &a)?;
+        let (url, share) = crate::pages::publish(&root, &app.cfg.client_dir, &a)?;
+        a.page = Some(url.clone());
+        crate::github::save(&root, &a);
+        Ok(json!({ "url": url, "share": share }))
+    })
+    .await
+    .map_err(|e| err(StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+    out.map(Json).map_err(|e| err(StatusCode::BAD_GATEWAY, e))
+}
+
 /// Back up now.
 async fn github_push(State(app): AppState, headers: HeaderMap) -> Res {
     app_only(&app, &headers)?;
@@ -908,4 +940,161 @@ async fn night_run(State(app): AppState, headers: HeaderMap) -> Res {
         Some(title) => Ok(Json(json!({ "started": title }))),
         None => Err(err(StatusCode::CONFLICT, "a project is already being built")),
     }
+}
+
+// ------------------------------------------------------------ residents
+
+fn resident_summary(r: &crate::residents::Resident) -> Value {
+    json!({
+        "id": r.id, "name": r.name, "color": r.color, "persona": r.persona, "goal": r.goal,
+        "world": r.world, "room": r.room, "cell": r.cell(), "coins": r.coins, "tokens": r.tokens,
+        "thoughts": r.thoughts, "said": r.said, "creations": r.creations.len(),
+        "earned": r.creations.iter().map(|c| c.earned).sum::<f64>().abs(),
+        "memory": r.memories.last().map(|m| m.text.clone()),
+    })
+}
+
+async fn residents_list(State(app): AppState) -> Json<Value> {
+    let uni = app.uni.lock().unwrap();
+    let e = &uni.economy;
+    Json(json!({
+        "tokens_per_coin": crate::residents::TOKENS_PER_COIN,
+        "economy": { "treasury": e.treasury, "added": e.added, "tokens": e.tokens, "ledger": e.ledger.iter().rev().take(40).collect::<Vec<_>>() },
+        "residents": uni.residents.values().map(resident_summary).collect::<Vec<_>>(),
+        "thinking": app.residents_thinking.load(std::sync::atomic::Ordering::Relaxed),
+    }))
+}
+
+async fn resident_get(State(app): AppState, Path(id): Path<String>) -> Res {
+    let uni = app.uni.lock().unwrap();
+    let r = uni.residents.get(&id).ok_or_else(|| err(StatusCode::NOT_FOUND, "no such resident"))?;
+    let mut v = serde_json::to_value(r).unwrap_or_default();
+    v["cell"] = json!(r.cell());
+    Ok(Json(v))
+}
+
+#[derive(Deserialize)]
+struct SpawnBody {
+    #[serde(flatten)]
+    creds: Creds,
+    name: String,
+    #[serde(default)]
+    persona: String,
+    #[serde(default)]
+    goal: String,
+    world: String,
+    #[serde(default)]
+    x: i32,
+    #[serde(default)]
+    z: i32,
+    #[serde(default)]
+    coins: Option<f64>,
+}
+
+/// Bring a resident to life at an address, with coins from the treasury.
+async fn resident_spawn(State(app): AppState, headers: HeaderMap, Json(b): Json<SpawnBody>) -> Res {
+    app_only(&app, &headers)?;
+    let name = clean(&b.name, 40)?;
+    let mut uni = app.uni.lock().unwrap();
+    if uni.residents.len() >= 24 {
+        return Err(err(StatusCode::CONFLICT, "the worlds already have 24 residents"));
+    }
+    let by = match who(&app, &uni, &headers, &b.creds) {
+        Ok(Who::Player(p, _)) => Some(p),
+        _ => None,
+    };
+    let coins = b.coins.unwrap_or(20.0);
+    let r = crate::residents::spawn(&mut uni, &name, &b.persona, &b.goal, &b.world, (b.x, b.z), coins, by).map_err(|e| err(StatusCode::BAD_REQUEST, e))?;
+    drop(uni);
+    app.note_commit(format!("{} moved into {} at {},{}", r.name, b.world, b.x, b.z));
+    app.touch();
+    Ok(Json(resident_summary(&r)))
+}
+
+#[derive(Deserialize)]
+struct CoinsBody {
+    coins: f64,
+}
+
+/// Add coins to the treasury: what residents may spend on thinking and building.
+async fn residents_fund(State(app): AppState, headers: HeaderMap, Json(b): Json<CoinsBody>) -> Res {
+    app_only(&app, &headers)?;
+    if !(b.coins.is_finite() && b.coins > 0.0 && b.coins <= 100_000.0) {
+        return Err(err(StatusCode::BAD_REQUEST, "add between 0 and 100,000 coins"));
+    }
+    let mut uni = app.uni.lock().unwrap();
+    uni.economy.treasury = ((uni.economy.treasury + b.coins) * 100.0).round() / 100.0;
+    uni.economy.added += b.coins;
+    uni.economy.record("you", "treasury", b.coins, "added to the treasury");
+    let t = uni.economy.treasury;
+    drop(uni);
+    app.note_commit(format!("Added {} coins to the residents' treasury", b.coins));
+    app.touch();
+    Ok(Json(json!({ "treasury": t })))
+}
+
+async fn resident_grant(State(app): AppState, headers: HeaderMap, Path(id): Path<String>, Json(b): Json<CoinsBody>) -> Res {
+    app_only(&app, &headers)?;
+    let mut uni = app.uni.lock().unwrap();
+    if !uni.residents.contains_key(&id) {
+        return Err(err(StatusCode::NOT_FOUND, "no such resident"));
+    }
+    let coins = (b.coins.max(0.0) * 100.0).round() / 100.0;
+    if coins <= 0.0 || coins > uni.economy.treasury {
+        return Err(err(StatusCode::BAD_REQUEST, format!("the treasury has {:.2} coins", uni.economy.treasury)));
+    }
+    uni.economy.treasury -= coins;
+    let r = uni.residents.get_mut(&id).unwrap();
+    r.coins += coins;
+    r.remember(format!("I was given {coins} coins."));
+    let name = r.name.clone();
+    uni.economy.record("treasury", &id, coins, format!("a gift to {name}"));
+    app.touch();
+    Ok(Json(json!({ "ok": true })))
+}
+
+#[derive(Deserialize)]
+struct TellBody {
+    #[serde(flatten)]
+    creds: Creds,
+    text: String,
+}
+
+/// Say something to a resident: they remember it, and think about it soon.
+async fn resident_tell(State(app): AppState, headers: HeaderMap, Path(id): Path<String>, Json(b): Json<TellBody>) -> Res {
+    let text = clean(&b.text, 400)?;
+    let mut uni = app.uni.lock().unwrap();
+    let name = match who(&app, &uni, &headers, &b.creds) {
+        Ok(Who::Player(_, n)) => n,
+        _ => "someone".into(),
+    };
+    let r = uni.residents.get_mut(&id).ok_or_else(|| err(StatusCode::NOT_FOUND, "no such resident"))?;
+    r.remember(format!("{name} told me: \u{201c}{text}\u{201d}"));
+    // Think about it within the next few seconds.
+    r.last_thought = 0;
+    app.touch();
+    Ok(Json(json!({ "ok": true })))
+}
+
+async fn resident_think(State(app): AppState, headers: HeaderMap, Path(id): Path<String>) -> Res {
+    app_only(&app, &headers)?;
+    if app.residents_thinking.swap(true, std::sync::atomic::Ordering::Relaxed) {
+        return Err(err(StatusCode::CONFLICT, "someone is already thinking"));
+    }
+    let a2 = app.clone();
+    let _ = tokio::task::spawn_blocking(move || crate::residents::think_now(&a2, &id)).await;
+    app.residents_thinking.store(false, std::sync::atomic::Ordering::Relaxed);
+    Ok(Json(json!({ "ok": true })))
+}
+
+async fn resident_retire(State(app): AppState, headers: HeaderMap, Path(id): Path<String>) -> Res {
+    app_only(&app, &headers)?;
+    let mut uni = app.uni.lock().unwrap();
+    let r = uni.residents.remove(&id).ok_or_else(|| err(StatusCode::NOT_FOUND, "no such resident"))?;
+    uni.economy.treasury += r.coins;
+    uni.economy.record(&id, "treasury", r.coins, format!("{} moved away", r.name));
+    drop(uni);
+    app.note_commit(format!("{} moved away", r.name));
+    app.touch();
+    Ok(Json(json!({ "ok": true })))
 }

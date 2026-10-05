@@ -107,6 +107,16 @@ impl Store {
         if let Some(players) = read_json(&self.root.join(".branches/players.json")) {
             uni.players = players;
         }
+        if let Ok(entries) = std::fs::read_dir(self.root.join("residents")) {
+            for e in entries.flatten() {
+                let path = e.path();
+                if path.file_name().is_some_and(|n| n == "economy.json") {
+                    uni.economy = read_json(&path).unwrap_or_default();
+                } else if let Some(r) = read_json::<crate::residents::Resident>(&path) {
+                    uni.residents.insert(r.id.clone(), r);
+                }
+            }
+        }
         uni
     }
 
@@ -168,6 +178,25 @@ impl Store {
             changed |= self.put(self.world_dir(&w.manifest.id).join("index.json"), &rooms)?;
         }
         self.put(self.root.join(".branches/players.json"), &uni.players)?;
+        // Residents: one file each (memories, wallet, what they made), and the ledger.
+        let dir = self.root.join("residents");
+        if !uni.residents.is_empty() || dir.exists() {
+            for r in uni.residents.values() {
+                changed |= self.put(dir.join(format!("{}.json", r.id)), r)?;
+            }
+            changed |= self.put(dir.join("economy.json"), &uni.economy)?;
+            if let Ok(entries) = std::fs::read_dir(&dir) {
+                for e in entries.flatten() {
+                    let name = e.file_name().to_string_lossy().to_string();
+                    let gone = name.starts_with("res-") && name.ends_with(".json") && !uni.residents.contains_key(name.trim_end_matches(".json"));
+                    if gone {
+                        let _ = std::fs::remove_file(e.path());
+                        self.written.lock().unwrap().remove(&e.path());
+                        changed = true;
+                    }
+                }
+            }
+        }
         Ok(changed)
     }
 
@@ -175,8 +204,8 @@ impl Store {
     pub fn commit(&self, message: &str) -> Result<Option<git2::Oid>, git2::Error> {
         let repo = self.repo.lock().unwrap();
         let mut index = repo.index()?;
-        index.add_all(["worlds", ".gitignore", "README.md"], IndexAddOption::DEFAULT, None)?;
-        index.update_all(["worlds"], None)?;
+        index.add_all(["worlds", "residents", ".gitignore", "README.md"], IndexAddOption::DEFAULT, None)?;
+        index.update_all(["worlds", "residents"], None)?;
         index.write()?;
         let tree_id = index.write_tree()?;
         let parent = repo.head().ok().and_then(|h| h.peel_to_commit().ok());

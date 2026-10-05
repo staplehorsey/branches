@@ -85,6 +85,7 @@ pub struct App {
     pub last_night: Mutex<Option<std::time::Instant>>,
     pub night_running: AtomicBool,
     pub syncing: AtomicBool,
+    pub residents_thinking: AtomicBool,
     /// When the app asked who should build (0: not yet).
     pub ai_asked_at: std::sync::atomic::AtomicU64,
 }
@@ -131,6 +132,7 @@ impl App {
             last_night: Mutex::new(None),
             night_running: AtomicBool::new(false),
             syncing: AtomicBool::new(false),
+            residents_thinking: AtomicBool::new(false),
             ai_asked_at: std::sync::atomic::AtomicU64::new(0),
         })
     }
