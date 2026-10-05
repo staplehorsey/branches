@@ -73,12 +73,19 @@ export class Player {
     this.walkPhase = 0;
 
     dom.addEventListener('click', () => {
-      if (this.enabled && document.pointerLockElement !== dom) dom.requestPointerLock?.();
+      if (this.enabled && document.pointerLockElement !== dom) this.lock();
     });
-    document.addEventListener('mousemove', (e) => {
-      if (document.pointerLockElement !== dom) return;
-      this.yaw -= e.movementX * 0.0022;
-      this.pitch = Math.max(-1.45, Math.min(1.45, this.pitch - e.movementY * 0.0022));
+    // Where pointer lock is unavailable (embedded pages), drag to look.
+    let dragging = null;
+    dom.addEventListener('pointerdown', (e) => (dragging = [e.clientX, e.clientY]));
+    addEventListener('pointerup', () => (dragging = null));
+    document.addEventListener('pointermove', (e) => {
+      if (document.pointerLockElement === dom) {
+        this.look(e.movementX, e.movementY);
+      } else if (dragging) {
+        this.look((e.clientX - dragging[0]) * 1.6, (e.clientY - dragging[1]) * 1.6);
+        dragging = [e.clientX, e.clientY];
+      }
     });
     addEventListener('keydown', (e) => {
       if (isTyping(e)) return;
@@ -87,6 +94,18 @@ export class Player {
     addEventListener('keyup', (e) => this.keys.delete(e.code));
     addEventListener('blur', () => this.keys.clear());
     this.touch = { x: 0, y: 0, active: false };
+  }
+
+  look(dx, dy) {
+    this.yaw -= dx * 0.0022;
+    this.pitch = Math.max(-1.45, Math.min(1.45, this.pitch - dy * 0.0022));
+  }
+
+  lock() {
+    try {
+      const p = this.dom.requestPointerLock?.();
+      p?.catch?.(() => {});
+    } catch {}
   }
 
   setAvatar(color, name) {
@@ -108,9 +127,15 @@ export class Player {
     this.pitch = 0;
   }
 
-  translate(offset) {
-    this.pos.add(offset);
-    this.floorY += offset.y;
+  // Carry the body through a door: position, heading and momentum.
+  carry(M) {
+    const dy = M.elements[13];
+    this.pos.applyMatrix4(M);
+    const rot = new THREE.Matrix3().setFromMatrix4(M);
+    this.vel.applyMatrix3(rot);
+    const f = new THREE.Vector3(-Math.sin(this.yaw), 0, -Math.cos(this.yaw)).applyMatrix3(rot);
+    this.yaw = Math.atan2(-f.x, -f.z);
+    this.floorY += dy;
   }
 
   update(dt, colliders) {

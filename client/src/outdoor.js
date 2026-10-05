@@ -206,8 +206,11 @@ function makeGrassMaterial() {
 }
 
 export class Outdoor {
-  constructor(root, manifest) {
+  // `base` lifts the whole world: several worlds share one scene, stacked.
+  constructor(root, manifest, base = 0) {
     this.root = root;
+    this.base = base;
+    root.position.y = base;
     this.biome = manifest.generator.params;
     this.seed = manifest.seed >>> 0;
     this.cells = new Map();
@@ -307,7 +310,7 @@ export class Outdoor {
 
   // Called before each render from a camera standing outdoors.
   follow(cam) {
-    this.sky.position.copy(cam);
+    this.sky.position.set(cam.x, cam.y - this.base, cam.z);
   }
 
   update(player, dt) {
@@ -378,7 +381,7 @@ export class Outdoor {
     const glow = new Batch();
     const shadow = new Batch();
     const colliders = [];
-    const col = (x0, z0, x1, z1) => colliders.push(aabb(ox + x0, oz + z0, ox + x1, oz + z1, -5, 20));
+    const col = (x0, z0, x1, z1) => colliders.push(aabb(ox + x0, oz + z0, ox + x1, oz + z1, this.base - 5, this.base + 20));
     const H = CELL / 2;
 
     // House.

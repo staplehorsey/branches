@@ -8,6 +8,7 @@ export class Others {
     this.root = root;
     this.selfId = selfId;
     this.map = new Map();
+    this.offsetY = 0;
   }
   upsert(p) {
     if (p.id === this.selfId) return;
@@ -19,7 +20,7 @@ export class Others {
       this.map.set(p.id, o);
     }
     if (p.p) {
-      o.target.set(p.p[0], p.p[1], p.p[2]);
+      o.target.set(p.p[0], p.p[1] + this.offsetY, p.p[2]);
       o.ry = p.ry || 0;
       if (!o.seen) o.g.position.copy(o.target);
       o.seen = true;

@@ -84,7 +84,7 @@ function entryHtml(e) {
 }
 
 // The visitor log for one address, plus claim and owner tools.
-export async function openRoomPanel({ host, world, x, z, onTravel, themes }) {
+export async function openRoomPanel({ host, world, x, z, themes }) {
   const me = identity();
   const body = openPanel('<p class="sub">opening the visitor log…</p>');
   let room;
@@ -127,7 +127,7 @@ export async function openRoomPanel({ host, world, x, z, onTravel, themes }) {
     ${mine ? ownerTools(room, themes) : ''}
   `;
   const msg = (id, text, ok) => ($(id).innerHTML = `<span class="${ok ? 'ok' : 'err'}">${esc(text)}</span>`);
-  const reopen = () => openRoomPanel({ host, world, x, z, onTravel, themes });
+  const reopen = () => openRoomPanel({ host, world, x, z, themes });
 
   body.querySelectorAll('[data-kind]').forEach((b) => {
     b.onclick = async () => {
@@ -223,7 +223,7 @@ function ownerTools(room, themes) {
   `;
 }
 
-export async function openWorldsPanel({ host, currentWorld, onTravel }) {
+export async function openWorldsPanel({ host, currentWorld }) {
   const body = openPanel('<p class="sub">listening for worlds…</p>');
   let worlds = [];
   try {
@@ -234,31 +234,24 @@ export async function openWorldsPanel({ host, currentWorld, onTravel }) {
   }
   const me = identity();
   body.innerHTML = `
-    <h2>Worlds on this host</h2>
-    <div class="sub">${esc(host.origin)} · doors in houses lead between them, and anywhere else people link</div>
+    <h2>Worlds nearby</h2>
+    <div class="sub">There are no shortcuts: every world is somewhere you can walk to. Each world's first house (0,0) has a door to every other one, and doors hide in houses everywhere.</div>
     <div class="worlds" style="margin-top:14px">${worlds
       .map(
-        (w) => `<div class="world"><div><div class="name">${esc(w.name)}${w.id === currentWorld ? ' · here' : ''}</div><div class="meta">${esc(w.tagline)}</div><div class="meta">${w.online} here now · ${w.rooms_grown} rooms grown · doors ${esc(w.portal_policy.mode)}</div></div><button class="btn" data-go="${esc(w.id)}">go</button></div>`,
+        (w) => `<div class="world"><div><div class="name">${esc(w.name)}${w.id === currentWorld ? ' · you are here' : ''}</div><div class="meta">${esc(w.tagline)}</div><div class="meta">${w.online} here now · ${w.rooms_grown} rooms grown · doors out: ${esc(w.portal_policy.mode)}</div></div></div>`,
       )
       .join('')}</div>
-    <h3>Visit another host</h3>
-    <div class="row"><input id="remote" placeholder="https://friend.example/w/their-world/0,0" /><button class="btn" id="remote-go">go</button></div>
     <h3>You</h3>
     <div class="row"><input id="me-name" maxlength="24" value="${esc(me.name)}" /><input id="me-color" type="color" value="${esc(me.color)}" /><button class="btn" id="me-save">save</button></div>
-    <div class="sub">takes effect next time you cross a door</div>
+    <div class="sub">Lost? Press H to close your eyes and wake up at home.</div>
   `;
-  body.querySelectorAll('[data-go]').forEach((b) => (b.onclick = () => (closePanel(), onTravel(`/w/${b.dataset.go}/0,0`))));
-  $('remote-go').onclick = () => {
-    const v = $('remote').value.trim();
-    if (v) closePanel(), onTravel(v);
-  };
   $('me-save').onclick = () => {
     saveIdentity({ ...me, name: $('me-name').value.trim() || me.name, color: $('me-color').value });
     closePanel();
   };
 }
 
-export async function openInbox({ host, onTravel, onRead }) {
+export async function openInbox({ host, onRead }) {
   const me = identity();
   const body = openPanel('<p class="sub">…</p>');
   let data;
@@ -272,9 +265,8 @@ export async function openInbox({ host, onTravel, onRead }) {
   body.innerHTML = `
     <h2>While you were wandering</h2>
     <div class="sub">places you spent time in, growing without you</div>
-    <div class="log" style="margin-top:12px;max-height:340px">${data.inbox.map((n) => `<div class="entry ${n.read ? '' : 'growth'}">❀ ${esc(n.text)} <span class="when">${ago(n.at)}</span> <a href="#" data-go="/w/${esc(n.world)}/${n.x},${n.z}">go</a></div>`).join('') || '<div class="sub">Nothing yet. Linger somewhere.</div>'}</div>
+    <div class="log" style="margin-top:12px;max-height:340px">${data.inbox.map((n) => `<div class="entry ${n.read ? '' : 'growth'}">❀ ${esc(n.text)} <span class="when">${ago(n.at)}</span> <span class="when">${esc(n.world)} · ${n.x},${n.z}</span></div>`).join('') || '<div class="sub">Nothing yet. Linger somewhere.</div>'}</div>
     ${prefs.length ? `<h3>What the architect thinks you like</h3><div class="chips">${prefs.map(([t]) => `<span class="chip">${esc(t)}</span>`).join('')}</div>` : ''}
   `;
-  body.querySelectorAll('[data-go]').forEach((a) => (a.onclick = (e) => (e.preventDefault(), closePanel(), onTravel(a.dataset.go))));
   host.send('POST', `/api/players/${me.player}/inbox/read`, {}).then(onRead).catch(() => {});
 }

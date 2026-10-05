@@ -152,7 +152,7 @@ export function buildInterior({ room, origin, biome, frontier = true }) {
     const left = [], right = [];
     doors.slice(0, 6).forEach((p, k) => {
       const side = k % 2 === 0 ? left : right;
-      const z = c.z1 - 2.2 - Math.floor(k / 2) * 2.6;
+      const z = c.z1 - 1.8 - Math.floor(k / 2) * 2.2;
       if (z - BRANCH_W / 2 < c.z0 + 0.6) return;
       side.push({ p, z });
     });
@@ -162,23 +162,23 @@ export function buildInterior({ room, origin, biome, frontier = true }) {
       for (const d of list) {
         branchDoors.push({
           portal: d.p,
-          local: new THREE.Vector3(x, BRANCH_H / 2, d.z),
+          sealed: !!d.p.sealed,
           pos: new THREE.Vector3(origin.x + x, origin.y + BRANCH_H / 2, origin.z + d.z),
           normal: new THREE.Vector3(nx, 0, 0),
           w: BRANCH_W,
           h: BRANCH_H,
           chamber: i,
         });
-        const shimmer = branchSurface(d.p.target);
-        shimmer.scale.set(0.4, BRANCH_H, BRANCH_W);
-        shimmer.position.set(x - nx * 0.2, BRANCH_H / 2, d.z);
-        group.add(shimmer);
-        branchDoors[branchDoors.length - 1].mesh = shimmer;
-        anims.push((t) => (shimmer.material.uniforms.uTime.value = t));
-        lights.push({ pos: new THREE.Vector3(origin.x + x + nx * 0.8, origin.y + 1.5, origin.z + d.z), color: shimmer.material.uniforms.a.value, intensity: 0.6 });
-        const tag = label(`→ ${d.p.label}`, { size: 0.26 });
+        if (d.p.sealed) {
+          // A one-way door: seen from this side, it does not open.
+          solid.put(G.box, shade(th.trim, -0.15), x - nx * 0.06, BRANCH_H / 2, d.z, { sx: 0.08, sy: BRANCH_H, sz: BRANCH_W });
+          glow.put(G.ballSmooth, '#d9b36a', x + nx * 0.02, 1.05, d.z + 0.45, { sx: 0.08, sy: 0.08, sz: 0.08 });
+          addCollider(x - 0.15, d.z - BRANCH_W / 2, x + 0.15, d.z + BRANCH_W / 2);
+        }
+        const tag = label(d.p.sealed ? `${d.p.label} \u00b7 sealed` : `\u2192 ${d.p.label}`, { size: 0.26 });
         tag.position.set(x + nx * 0.3, BRANCH_H + 0.45, d.z);
         group.add(tag);
+        lights.push({ pos: new THREE.Vector3(origin.x + x + nx * 0.8, origin.y + 1.6, origin.z + d.z), color: new THREE.Color(th.glow), intensity: 0.5 });
       }
     }
 
@@ -310,37 +310,6 @@ export function buildInterior({ room, origin, biome, frontier = true }) {
       return 0;
     },
   };
-}
-
-// The surface of a door to another world: a slow, bright swirl.
-function branchSurface(target) {
-  const h = hashTag(target);
-  const a = new THREE.Color().setHSL(((h >>> 0) % 360) / 360, 0.75, 0.7);
-  const b = new THREE.Color().setHSL(((h >>> 9) % 360) / 360, 0.6, 0.85);
-  const mat = new THREE.ShaderMaterial({
-    side: THREE.DoubleSide,
-    uniforms: { uTime: { value: 0 }, a: { value: a }, b: { value: b } },
-    vertexShader: 'varying vec3 vP; void main(){ vP = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
-    fragmentShader: `uniform float uTime; uniform vec3 a, b; varying vec3 vP;
-      void main(){
-        vec2 p = vP.zy * vec2(1.0, 2.0);
-        float r = length(p);
-        float ang = atan(p.y, p.x);
-        float s = sin(ang * 3.0 + r * 9.0 - uTime * 1.5) * 0.5 + 0.5;
-        vec3 c = mix(a, b, s) + vec3(1.0) * smoothstep(0.35, 0.0, r) * 0.6;
-        gl_FragColor = vec4(c, 1.0);
-        #include <colorspace_fragment>
-      }`,
-  });
-  return new THREE.Mesh(G.box, mat);
-}
-
-// Once the destination's look is known, the door takes on its sky.
-export function tintBranch(door, sky) {
-  const u = door.mesh?.material.uniforms;
-  if (!u || !sky) return;
-  u.a.value.set(sky.horizon);
-  u.b.value.set(sky.top);
 }
 
 function hashTag(tag) {

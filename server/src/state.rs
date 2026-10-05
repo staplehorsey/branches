@@ -115,12 +115,8 @@ impl Universe {
         }
     }
 
-    pub fn others(&self, world: &str) -> Vec<(String, String)> {
-        self.worlds
-            .values()
-            .filter(|w| w.manifest.id != world)
-            .map(|w| (w.manifest.id.clone(), w.manifest.name.clone()))
-            .collect()
+    pub fn others(&self, world: &str) -> Vec<WorldManifest> {
+        self.worlds.values().filter(|w| w.manifest.id != world).map(|w| w.manifest.clone()).collect()
     }
 
     /// Stored room or the deterministic default.

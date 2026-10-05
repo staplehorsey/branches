@@ -77,6 +77,9 @@ pub struct Portal {
     pub label: String,
     pub by: String,
     pub at: u64,
+    /// One-way: the door is visible from this side but cannot be opened.
+    #[serde(default)]
+    pub sealed: bool,
 }
 
 /// Something the architect (or an agent) built inside a chamber.

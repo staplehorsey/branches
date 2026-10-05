@@ -282,9 +282,19 @@ pub fn builtin_worlds() -> Vec<WorldManifest> {
     ]
 }
 
+fn str_hash(s: &str) -> u64 {
+    s.bytes().fold(0xcbf2_9ce4_8422_2325u64, |h, b| (h ^ b as u64).wrapping_mul(0x100_0000_01b3))
+}
+
 /// Build the room nobody has touched yet. The starter worlds are pre-wired
 /// with a sparse web of doors so the graph exists before anyone builds.
-pub fn default_room(world: &WorldManifest, others: &[(String, String)], x: i32, z: i32) -> Room {
+///
+/// Every generator door is one half of a physical pair: if house (x,z) in
+/// world A has a door to world B, then house (x,z) in B has the door back,
+/// and each world's spawn house is joined to every other spawn house. A
+/// world that is closed to outbound doors still receives them, but its
+/// side of each pair is sealed: you can walk in, not out.
+pub fn default_room(world: &WorldManifest, others: &[WorldManifest], x: i32, z: i32) -> Room {
     let seed = (hash(world.seed, x, z, 1) & 0xffff_ffff) as u32;
     let theme = &THEMES[(hash(world.seed, x, z, 2) % THEMES.len() as u64) as usize];
     let mut rng = Rng::new(seed as u64);
@@ -297,46 +307,36 @@ pub fn default_room(world: &WorldManifest, others: &[(String, String)], x: i32, 
         at: 0,
     }];
 
+    let policy = &world.portal_policy;
+    let sealed = policy.mode == PolicyMode::Closed || (policy.mode == PolicyMode::Allowlist && !policy.allow_local);
+    let my_spawn = parse_addr(&world.spawn);
     let mut portals = Vec::new();
-    let is_spawn = parse_addr(&world.spawn) == Some((x, z));
-    if is_spawn && world.portal_policy.mode != PolicyMode::Closed {
-        // The spawn house is a hub: its entry hall opens onto every other world.
-        for (i, (target_id, target_name)) in others.iter().take(6).enumerate() {
-            let hh = hash(world.seed, i as i32, 0, 0x4B1D);
-            let (tx, tz) = (((hh >> 16) % 9) as i32 - 4, ((hh >> 32) % 9) as i32 - 4);
-            portals.push(Portal {
-                id: format!("hub-{target_id}"),
-                slot: 0,
-                target: format!("/w/{target_id}/{tx},{tz}"),
-                label: target_name.clone(),
-                by: "generator".into(),
-                at: 0,
-            });
-        }
-    } else if world.portal_policy.mode != PolicyMode::Closed && !others.is_empty() {
-        let h = hash(world.seed, x, z, 0xB0B);
-        // Roughly one house in five has a door in its entry hall that leads to
-        // another world; a few more reveal one once they have grown a chamber.
-        for (slot, hit) in [(0u32, h % 5 == 0), (1u32, h % 7 == 3), (2u32, h % 6 == 1)] {
-            if !hit {
+    for o in others {
+        let their_spawn = parse_addr(&o.spawn);
+        let (target, slot) = if my_spawn == Some((x, z)) {
+            let Some((tx, tz)) = their_spawn else { continue };
+            ((tx, tz), 0)
+        } else {
+            if their_spawn == Some((x, z)) {
                 continue;
             }
-            let hh = splitmix(h ^ slot as u64);
-            let (target_id, target_name) = &others[(hh % others.len() as u64) as usize];
-            if world.portal_policy.mode == PolicyMode::Allowlist && !world.portal_policy.allow_local {
+            let (a, b) = if world.id < o.id { (&world.id, &o.id) } else { (&o.id, &world.id) };
+            let pair = splitmix(str_hash(a) ^ splitmix(str_hash(b)));
+            let h = hash((pair & 0xffff_ffff) as u32, x, z, 0xB0B);
+            if h % 9 != 0 {
                 continue;
             }
-            let tx = ((hh >> 16) % 25) as i32 - 12;
-            let tz = ((hh >> 32) % 25) as i32 - 12;
-            portals.push(Portal {
-                id: format!("d{slot}-{:x}", hh & 0xffff),
-                slot,
-                target: format!("/w/{target_id}/{tx},{tz}"),
-                label: target_name.clone(),
-                by: "generator".into(),
-                at: 0,
-            });
-        }
+            ((x, z), ((h >> 8) % 3) as u32)
+        };
+        portals.push(Portal {
+            id: format!("pair-{}", o.id),
+            slot,
+            target: format!("/w/{}/{},{}", o.id, target.0, target.1),
+            label: o.name.clone(),
+            by: "generator".into(),
+            at: 0,
+            sealed,
+        });
     }
 
     let mut weights = BTreeMap::new();
@@ -366,8 +366,8 @@ pub fn default_room(world: &WorldManifest, others: &[(String, String)], x: i32, 
 mod tests {
     use super::*;
 
-    fn others(skip: &str) -> Vec<(String, String)> {
-        builtin_worlds().into_iter().filter(|w| w.id != skip).map(|w| (w.id, w.name)).collect()
+    fn others(skip: &str) -> Vec<WorldManifest> {
+        builtin_worlds().into_iter().filter(|w| w.id != skip).collect()
     }
 
     #[test]
@@ -379,15 +379,36 @@ mod tests {
     }
 
     #[test]
-    fn spawn_is_a_hub_except_on_islands() {
+    fn spawn_is_a_hub_and_islands_are_sealed() {
         for w in builtin_worlds() {
             let r = default_room(&w, &others(&w.id), 0, 0);
-            if w.portal_policy.mode == PolicyMode::Closed {
-                assert!(r.portals.is_empty(), "{} is an island", w.id);
-            } else {
-                assert_eq!(r.portals.len(), 4, "{} hub", w.id);
+            assert_eq!(r.portals.len(), 4, "{} hub", w.id);
+            let island = w.portal_policy.mode == PolicyMode::Closed;
+            assert!(r.portals.iter().all(|p| p.sealed == island));
+        }
+    }
+
+    #[test]
+    fn every_door_has_a_door_back() {
+        let worlds = builtin_worlds();
+        let mut doors = 0;
+        for w in &worlds {
+            for x in -6..6 {
+                for z in -6..6 {
+                    for p in default_room(w, &others(&w.id), x, z).portals {
+                        doors += 1;
+                        let rest = p.target.strip_prefix("/w/").unwrap();
+                        let (tw, addr) = rest.split_once('/').unwrap();
+                        let (tx, tz) = parse_addr(addr).unwrap();
+                        let t = worlds.iter().find(|m| m.id == tw).unwrap();
+                        let back = default_room(t, &others(tw), tx, tz);
+                        let want = format!("/w/{}/{},{}", w.id, x, z);
+                        assert!(back.portals.iter().any(|b| b.target == want), "{} {x},{z} -> {}", w.id, p.target);
+                    }
+                }
             }
         }
+        assert!(doors > 40);
     }
 
     #[test]

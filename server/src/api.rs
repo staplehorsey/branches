@@ -313,6 +313,14 @@ async fn patch_room(State(app): AppState, Path((w, x, z)): Path<(String, i32, i3
     Ok(Json(json!({ "ok": true })))
 }
 
+/// `/w/<world>/<x>,<z>` on this host.
+fn local_target(target: &str) -> Option<(String, i32, i32)> {
+    let rest = target.strip_prefix("/w/")?;
+    let (w, a) = rest.split_once('/')?;
+    let (x, z) = parse_addr(a)?;
+    Some((w.to_string(), x, z))
+}
+
 fn host_of(target: &str) -> Option<String> {
     let rest = target.strip_prefix("https://").or_else(|| target.strip_prefix("http://"))?;
     let host = rest.split('/').next()?.to_lowercase();
@@ -330,7 +338,7 @@ fn check_portal(policy: &PortalPolicy, room: &Room, target: &str) -> Result<(), 
     if policy.mode == PolicyMode::Closed {
         return deny("this world is closed to new outbound portals");
     }
-    let built = room.portals.iter().filter(|p| p.by != "generator").count() as u32;
+    let built = room.portals.iter().filter(|p| p.by != "generator" && p.by != "return").count() as u32;
     if built >= policy.max_per_room {
         return deny("this room has reached the world's portal limit");
     }
@@ -388,12 +396,32 @@ async fn add_portal(State(app): AppState, Path((w, x, z)): Path<(String, i32, i3
         Who::Admin => "host".into(),
     };
     let slot = b.slot.unwrap_or(0).min(room.growth());
-    let portal = Portal { id: new_id(), slot, target: target.clone(), label: label.clone(), by: by.clone(), at: now_ms() };
+    let portal = Portal { id: new_id(), slot, target: target.clone(), label: label.clone(), by: by.clone(), at: now_ms(), sealed: false };
     room.portals.push(portal.clone());
     push_log(&mut room.log, LogEntry { id: new_id(), kind: "portal".into(), who: by, player: None, text: format!("opened a door to {label} ({target})"), at: now_ms() });
+    // Doors are physical: a local destination gets the door back in its
+    // entry hall (sealed if that world is closed to doors out).
+    let back = local_target(&target).and_then(|(tw, tx, tz)| {
+        let name = uni.worlds[&w].manifest.name.clone();
+        let mode = uni.worlds.get(&tw)?.manifest.portal_policy.mode;
+        let r = uni.room_mut(&tw, tx, tz)?;
+        r.portals.push(Portal {
+            id: format!("ret-{}", portal.id),
+            slot: 0,
+            target: format!("/w/{w}/{x},{z}"),
+            label: name,
+            by: "return".into(),
+            at: now_ms(),
+            sealed: mode == PolicyMode::Closed,
+        });
+        Some((tw, addr(tx, tz)))
+    });
     app.touch();
     drop(uni);
     app.broadcast(&w, &json!({ "t": "room", "addr": addr(x, z), "rebuild": true }));
+    if let Some((tw, a)) = back {
+        app.broadcast(&tw, &json!({ "t": "room", "addr": a, "rebuild": true }));
+    }
     Ok(Json(json!({ "ok": true, "portal": portal })))
 }
 
@@ -404,14 +432,20 @@ async fn remove_portal(State(app): AppState, Path((w, x, z, id)): Path<(String, 
     let who = who(&app, &uni, &headers, &creds)?;
     let room = uni.room_mut(&w, x, z).unwrap();
     require_owner(&who, room)?;
-    let before = room.portals.len();
-    room.portals.retain(|p| p.id != id);
-    if room.portals.len() == before {
+    let Some(gone) = room.portals.iter().position(|p| p.id == id).map(|i| room.portals.remove(i)) else {
         return Err(err(StatusCode::NOT_FOUND, "no such portal"));
-    }
+    };
+    let back = local_target(&gone.target).and_then(|(tw, tx, tz)| {
+        let r = uni.worlds.get_mut(&tw)?.rooms.get_mut(&addr(tx, tz))?;
+        r.portals.retain(|p| p.id != format!("ret-{id}"));
+        Some((tw, addr(tx, tz)))
+    });
     app.touch();
     drop(uni);
     app.broadcast(&w, &json!({ "t": "room", "addr": addr(x, z), "rebuild": true }));
+    if let Some((tw, a)) = back {
+        app.broadcast(&tw, &json!({ "t": "room", "addr": a, "rebuild": true }));
+    }
     Ok(Json(json!({ "ok": true })))
 }
 
