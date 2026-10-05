@@ -1,0 +1,48 @@
+{
+  "x": 25,
+  "z": 1,
+  "seed": 1794321614,
+  "theme": "vapor-mall",
+  "chambers": [
+    {
+      "name": "Entry Hall",
+      "tag": "neon",
+      "seed": 1794321614,
+      "by": "generator",
+      "at": 0
+    }
+  ],
+  "features": [],
+  "portals": [],
+  "log": [
+    {
+      "id": "24fffa8f47e3",
+      "kind": "visit",
+      "who": "drift-57",
+      "player": "94b402ce6e6a1d1b",
+      "text": "stopped by",
+      "at": 1791235207009
+    }
+  ],
+  "claim": null,
+  "attention": 5.923544920000001,
+  "weights": {
+    "art": 1.1308087,
+    "neon": 1.1495217,
+    "plants": 1.1528614
+  },
+  "investors": {
+    "94b402ce6e6a1d1b": 5.923544920000001
+  },
+  "building": null,
+  "last_visit": {
+    "94b402ce6e6a1d1b": 1791235207009
+  },
+  "things": [],
+  "looks": {
+    "theme:neon": 1.9,
+    "theme:plants": 0.9
+  },
+  "touches": {},
+  "replunged": false
+}

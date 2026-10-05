@@ -116,7 +116,42 @@
   },
   "23,1": {
     "inside": 0.0,
-    "outside": 0.8363666,
+    "outside": 11.726275,
+    "visits": 0
+  },
+  "23,2": {
+    "inside": 0.0,
+    "outside": 5.3566265,
+    "visits": 0
+  },
+  "24,1": {
+    "inside": 4.460221,
+    "outside": 6.5643764,
+    "visits": 1
+  },
+  "24,2": {
+    "inside": 0.0,
+    "outside": 3.1922524,
+    "visits": 0
+  },
+  "25,1": {
+    "inside": 5.9235444,
+    "outside": 5.1710134,
+    "visits": 1
+  },
+  "25,2": {
+    "inside": 0.0,
+    "outside": 7.4963875,
+    "visits": 0
+  },
+  "26,2": {
+    "inside": 0.0,
+    "outside": 73.31518,
+    "visits": 0
+  },
+  "26,3": {
+    "inside": 0.0,
+    "outside": 2.6466134,
     "visits": 0
   },
   "3,1": {
