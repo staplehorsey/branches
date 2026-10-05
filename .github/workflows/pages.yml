@@ -3,7 +3,7 @@
 name: Pages
 on:
   push:
-    branches: [main]
+    branches: [main, claude/vibrant-galileo-l8gmdx]
   workflow_dispatch:
 permissions:
   contents: read
