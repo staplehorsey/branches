@@ -1,0 +1,27 @@
+[
+  {
+    "hub": true,
+    "id": "dusk-orchard",
+    "name": "Dusk Orchard"
+  },
+  {
+    "hub": true,
+    "id": "fog-pines",
+    "name": "Fog Pines"
+  },
+  {
+    "hub": true,
+    "id": "moonlit-meadow",
+    "name": "Moonlit Meadow"
+  },
+  {
+    "hub": true,
+    "id": "salt-flat-noon",
+    "name": "Salt Flat Noon"
+  },
+  {
+    "hub": true,
+    "id": "the-lush",
+    "name": "The Lush"
+  }
+]

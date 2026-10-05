@@ -1,0 +1,87 @@
+{
+  "id": "the-lush",
+  "name": "The Lush",
+  "tagline": "An endless suburb, overgrown and kind. Every house is the same until you go inside.",
+  "seed": 492443617,
+  "generator": {
+    "kind": "liminal-houses@1",
+    "params": {
+      "flowers": [
+        "#ff8fb1",
+        "#ffd36e",
+        "#ffffff",
+        "#b78cff",
+        "#ff9e6b"
+      ],
+      "fog": {
+        "color": "#dcebd9",
+        "far": 150,
+        "near": 30
+      },
+      "foliage": [
+        "#3e9b4f",
+        "#5fbf5a",
+        "#2f7d45",
+        "#78c95e"
+      ],
+      "grass": {
+        "base": "#2f7a32",
+        "density": 1.0,
+        "height": 0.55,
+        "tip": "#b8e46c"
+      },
+      "ground": "#4a8a3c",
+      "hedge": "#2f7a3d",
+      "hemi": {
+        "ground": "#4f7a3c",
+        "intensity": 1.1,
+        "sky": "#cfe9ff"
+      },
+      "house": {
+        "door": "#f4b9c1",
+        "roof": "#86b3a2",
+        "trim": "#ffffff",
+        "wall": "#e7efe4",
+        "window": "#fff0c2"
+      },
+      "lamp": "#fff0c0",
+      "motes": "#fffbe0",
+      "night": false,
+      "path": "#efe6d2",
+      "places": {
+        "arch": 0.12,
+        "cave": 0.08,
+        "house": 0.7,
+        "tower": 0.1
+      },
+      "ponds": 0.25,
+      "sky": {
+        "bottom": "#dfeedd",
+        "horizon": "#f3f0dc",
+        "top": "#6fb9ec"
+      },
+      "sun": {
+        "azimuth": 0.6,
+        "color": "#fff1d2",
+        "elevation": 0.9,
+        "intensity": 2.4
+      },
+      "terrain": {
+        "amp": 2.6,
+        "scale": 64
+      },
+      "trees": "round",
+      "trunk": "#7a5a43",
+      "water": "#79d3cc"
+    }
+  },
+  "portal_policy": {
+    "mode": "open",
+    "max_per_room": 4,
+    "allow_hosts": [],
+    "allow_local": true
+  },
+  "architect": "reference-heuristic@1",
+  "spawn": "0,0",
+  "hub": true
+}

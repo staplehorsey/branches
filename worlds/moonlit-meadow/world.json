@@ -1,0 +1,85 @@
+{
+  "id": "moonlit-meadow",
+  "name": "Moonlit Meadow",
+  "tagline": "A night that stays. Glowing mushrooms, fireflies, and every window lit for you.",
+  "seed": 805769559,
+  "generator": {
+    "kind": "liminal-houses@1",
+    "params": {
+      "flowers": [
+        "#7ef0ff",
+        "#c39bff",
+        "#fff3a8"
+      ],
+      "fog": {
+        "color": "#18214a",
+        "far": 95,
+        "near": 14
+      },
+      "foliage": [
+        "#6ff0ff",
+        "#c39bff",
+        "#ff9be0",
+        "#9bffcf"
+      ],
+      "grass": {
+        "base": "#0f2a24",
+        "density": 0.9,
+        "height": 0.5,
+        "tip": "#3f8a76"
+      },
+      "ground": "#10291f",
+      "hedge": "#163a33",
+      "hemi": {
+        "ground": "#1a3040",
+        "intensity": 1.5,
+        "sky": "#6a7ac8"
+      },
+      "house": {
+        "door": "#ffd27a",
+        "roof": "#2a3052",
+        "trim": "#e6ecff",
+        "wall": "#c3cbe6",
+        "window": "#ffcd76"
+      },
+      "lamp": "#ffd27a",
+      "motes": "#d8ff7a",
+      "night": true,
+      "path": "#3a4470",
+      "places": {
+        "arch": 0.15,
+        "cave": 0.3,
+        "house": 0.45,
+        "tower": 0.1
+      },
+      "ponds": 0.3,
+      "sky": {
+        "bottom": "#141c40",
+        "horizon": "#2b3b6e",
+        "top": "#070b26"
+      },
+      "sun": {
+        "azimuth": 1.2,
+        "color": "#a8bbff",
+        "elevation": 0.8,
+        "intensity": 1.5
+      },
+      "terrain": {
+        "amp": 4.2,
+        "scale": 46
+      },
+      "trees": "mushroom",
+      "trunk": "#d9e4ff",
+      "water": "#2b4f96"
+    }
+  },
+  "portal_policy": {
+    "mode": "allowlist",
+    "max_per_room": 2,
+    "allow_hosts": [],
+    "allow_local": true
+  },
+  "architect": "reference-heuristic@1",
+  "spawn": "0,0",
+  "hub": true
+}

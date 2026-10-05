@@ -1,0 +1,86 @@
+{
+  "id": "dusk-orchard",
+  "name": "Dusk Orchard",
+  "tagline": "Blossom streets at the golden minute before evening that never ends.",
+  "seed": 231017085,
+  "generator": {
+    "kind": "liminal-houses@1",
+    "params": {
+      "flowers": [
+        "#ffe08a",
+        "#ff9e7a",
+        "#ffffff",
+        "#ffb3d1"
+      ],
+      "fog": {
+        "color": "#e8a697",
+        "far": 120,
+        "near": 22
+      },
+      "foliage": [
+        "#ffc4d8",
+        "#ffd9e6",
+        "#f6a6c1",
+        "#ffe3ef"
+      ],
+      "grass": {
+        "base": "#5a7040",
+        "density": 0.8,
+        "height": 0.45,
+        "tip": "#e8c47a"
+      },
+      "ground": "#5a6b3c",
+      "hedge": "#4a6136",
+      "hemi": {
+        "ground": "#8a6a4a",
+        "intensity": 1.6,
+        "sky": "#d6c4ff"
+      },
+      "house": {
+        "door": "#ffc87a",
+        "roof": "#6a4c86",
+        "trim": "#fff3e6",
+        "wall": "#dcc6ea",
+        "window": "#ffb35c"
+      },
+      "lamp": "#ffb35c",
+      "motes": "#ffd6ae",
+      "night": false,
+      "path": "#f2d2bd",
+      "places": {
+        "arch": 0.1,
+        "cave": 0.05,
+        "house": 0.6,
+        "tower": 0.25
+      },
+      "ponds": 0.15,
+      "sky": {
+        "bottom": "#f2a596",
+        "horizon": "#ffb08a",
+        "top": "#4c3f86"
+      },
+      "sun": {
+        "azimuth": 2.4,
+        "color": "#ffaa66",
+        "elevation": 0.14,
+        "intensity": 2.2
+      },
+      "terrain": {
+        "amp": 3.4,
+        "scale": 52
+      },
+      "trees": "blossom",
+      "trunk": "#5b3f3a",
+      "water": "#b39be0"
+    }
+  },
+  "portal_policy": {
+    "mode": "open",
+    "max_per_room": 3,
+    "allow_hosts": [],
+    "allow_local": true
+  },
+  "architect": "reference-heuristic@1",
+  "spawn": "0,0",
+  "hub": true
+}
