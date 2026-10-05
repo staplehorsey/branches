@@ -2,6 +2,7 @@
 // HTTP + websocket protocol; the client can hop between hosts freely.
 
 import { LOCAL_ORIGIN, localHost, LocalLive } from './localhost.js';
+import { GitHost, isGit } from './githost.js';
 
 const KEY = 'branches.identity.v1';
 
@@ -43,7 +44,8 @@ export { LOCAL_ORIGIN };
 export class Host {
   constructor(origin) {
     this.origin = origin.replace(/\/$/, '');
-    this.local = this.origin === LOCAL_ORIGIN ? localHost() : null;
+    this.local = this.origin === LOCAL_ORIGIN ? localHost() : isGit(this.origin) ? new GitHost(this.origin) : null;
+    this.git = isGit(this.origin);
   }
   url(path) {
     return this.origin + path;
@@ -94,6 +96,7 @@ export class Live {
   }
   connect() {
     if (this.closed) return;
+    if (this.host.git) return; // worlds read from GitHub have no live layer (yet)
     if (this.host.local) {
       this.ws = null;
       this.fake = new LocalLive(this.world, this.handlers);

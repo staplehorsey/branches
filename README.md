@@ -1,95 +1,73 @@
 # Branches
 
-An endless, tranquil, multiplayer web world made of worlds joined by doors.
+An endless, tranquil world of identical liminal houses whose insides grow.
+Walk into any house with no loading, no cut. Linger, and the **architect**
+builds more: new chambers, characters with something to say, story pages
+scattered across houses, little games. What it builds follows what you look
+at, use, ask for in the visitor book, and mark as *more of this*. Doors lead
+to other worlds, and you walk through them for real. Wander far enough and
+new worlds grow from the shape of your path.
 
-It starts in **The Lush**: an overgrown suburb of identical houses that goes
-on forever. Every house looks the same from the street. Walk through any
-front door, with no loading and no cut, and you're inside one of twelve
-themed interiors. Stay a while and the **architect** starts building more
-house behind the misty archway at the back. What it builds depends on what
-you linger in, what you ask for in the visitor log, and what you mark as
-*more of this*. When a place you spent time in grows, you get a
-notification.
+## Play
 
-Some doors lead to other worlds: Dusk Orchard, Fog Pines, Moonlit Meadow,
-and the island Salt Flat Noon. There are no loading screens: through a door
-you see the room on the other side, you walk through, and the door you came
-through is behind you. A door can also lead to another host
-entirely. Anyone can run a host, claim addresses, and let their own agents
-grow them.
+**On a Mac (recommended):** download
+[Branches for Mac](https://github.com/staplehorsey/branches/releases/download/mac-latest/Branches-mac.zip),
+unzip it, drag **Branches** to Applications, then right-click → **Open**
+the first time (it isn't notarized yet). It opens in your browser at
+`http://localhost:7878`. Your worlds are saved in
+`~/Library/Application Support/Branches` as a git repository: every build is
+a commit, and every few builds a version.
 
-See **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** for the primitives,
-protocol, architect, federation model and roadmap.
+**In a browser:** https://staplehorsey.github.io/branches/ runs the worlds
+in the page (single player, saved in the browser). When you want visitor
+books, the architect and saving, it walks you through getting the app.
 
-## Run it
-
-```sh
-cd server
-cargo run --release
-# open http://localhost:8080
-```
-
-| env | default | meaning |
-|---|---|---|
-| `PORT` | `8080` | listen port |
-| `DATA_DIR` | `data` | where `universe.json` snapshots go |
-| `CLIENT_DIR` | `client` or `../client` | static client files |
-| `ARCHITECT_PACE` | `40` | seconds of attention the first growth costs (try `8` to watch it build) |
-| `ADMIN_KEY` | none | bearer key with owner rights everywhere on this host |
-
-Open two browser windows to see each other. Every address is a URL:
-`/w/the-lush/3,-2`.
-
-**No server?** Open `client/index.html` from any static file host (or add
-`?offline` to the URL) and the worlds run inside the page, single-player,
-saved in your browser. `scripts/build-page.sh <dir>` packages that as a
-self-contained page. `scripts/export-offline.sh` refreshes the page's copy
-of the world list from a running host.
+**In a headset:** open the web page or the app in the Quest browser and
+press **enter in VR**.
 
 ## Controls
 
 **WASD** walk · **shift** faster · **space** hop · **mouse** look (click to
-capture) · **V** first/third person · **E** visitor log (at the lectern
-inside, or the mailbox outside) · **F** more of this · **enter** chat ·
-**L** worlds · **N** notifications · **H** wake up at home. If pointer lock isn't available, drag to look. On touch screens, use the
-stick to walk and drag to look.
+capture, or drag) · **E** talk, read, play, ride a bike, visitor book ·
+**F** more of this · **Q** scooter · **M** map · **V** first/third person ·
+**enter** chat · **L** worlds and settings · **N** notifications · **H**
+wake up at home.
 
-## VR (Quest 3 and other WebXR headsets)
+In VR: left stick walk (click to go faster), right stick turn, **A** use,
+**B** more of this, **Y** leave VR. A card on your left wrist shows where
+you are.
 
-Open the page in the headset's browser over HTTPS and press **enter in VR**
-(or **Enter VR** at the top right). Left stick walks (click it to go
-faster), right stick turns in 30° steps, and walking around your real room
-moves you too. **A** reads the visitor log at a lectern, **B** is *more of
-this*, and **Y** leaves VR (the headset's own menu button also works). A
-card on your left wrist shows where you are.
+## In the app
 
-Headsets need the page to be top-level, not inside another site's frame.
-`.github/workflows/pages.yml` publishes a standalone build to GitHub Pages
-(enable Pages with **Source: GitHub Actions** once); any static HTTPS host
-works too: `scripts/build-page.sh <dir> --standalone`.
+Open **L** (worlds), then the settings at the bottom:
 
-## Let an agent build
+* **Architect:** the built-in one, or any program. `claude -p` makes Claude
+  Code the architect: it gets a description of the house and what visitors
+  want, and prints a JSON plan. Quick sketches always use the built-in
+  architect; your program gets the rooms people linger in.
+* **Night shift:** while nobody is playing, inside hours you choose, an
+  agent builds something bigger, such as a zoo tycoon or a go-kart track.
+  The default is `claude -p --permission-mode acceptEdits`, run in a folder
+  of its own. Games asked for in visitor books come first. Finished games
+  open as attraction booths in a well-loved house. **Build something now**
+  starts one immediately.
+* **GitHub: back up and share.** It forks this repository and keeps your
+  worlds on the fork's `worlds` branch. If you choose to share, it opens a
+  pull request that puts a door to your worlds in the Commons, the house
+  just west of The Lush's spawn.
 
-Claim an address from its visitor log, then copy your token from the
-owner tools. Your agent can use the same HTTP API the client does:
-
-```sh
-TOKEN=<player>:<secret>
-H=http://localhost:8080/api/worlds/the-lush/rooms/3/-2
-
-curl -s $H | jq '.leaning, .chambers[].name'                 # look
-curl -s -XPOST $H/log -H "authorization: Bearer $TOKEN" \
-  -H 'content-type: application/json' \
-  -d '{"kind":"request","text":"a quiet pool with koi"}'      # ask the architect
-curl -s -XPOST $H/features -H "authorization: Bearer $TOKEN" \
-  -H 'content-type: application/json' -d '{"tag":"water"}'    # build directly
-curl -s -XPOST $H/portals -H "authorization: Bearer $TOKEN" \
-  -H 'content-type: application/json' \
-  -d '{"target":"https://friend.example/w/their-world/0,0","label":"a friend","slot":0}'
-```
-
-## Tests
+## Build from source
 
 ```sh
+cd server && cargo run --release -- --app   # the app, at http://localhost:7878
+cd server && cargo run --release            # a plain host, at :8080
 cd server && cargo test
 ```
+
+`scripts/build-page.sh <dir> [--standalone]` packages the browser version.
+`scripts/export-offline.sh` refreshes its copy of the starter worlds from a
+running host.
+
+See **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** for how it all works
+and where it's going next: meeting people nearby, neighbourhoods of about
+Dunbar's number, and cities that grow.

@@ -1,334 +1,234 @@
 # Branches architecture
 
-Branches is an endless, multiplayer web world made of many smaller worlds
-joined by doors. Anyone can host a world, grow it with their own agents, and
-link it into the graph. This repo holds the **reference host** (Rust) and
-the **reference client** (three.js), plus the first five starter worlds.
-
-Think of it like Minecraft servers stitched together by doorways. You walk
-out of a pastel suburb, through a door in a velvet theatre, and into
-someone else's fog forest. You stay the same person the whole way.
+Branches is an endless, tranquil world made of many worlds joined by doors.
+You play it on your own computer (Branches for Mac), in a browser, or in a
+headset. Your worlds live in a git repository you own, so you can back them
+up, share them and fork other people's. An architect (built in, or an agent
+such as Claude Code) grows them from how people actually play.
 
 ```
-              ┌──────────────── the graph ────────────────┐
-              │                                           │
-   host A     │  the-lush ──door──▶ dusk-orchard          │     host B
- (this repo)  │     │  ▲               │                  │  (anyone's)
-              │     │  └──door──── fog-pines              │
-              │     └──door──────────────────────────────────▶ their-world
-              │  salt-flat-noon  (island: doors in, none out)            │
-              └───────────────────────────────────────────┘
+ browser / headset                 Branches for Mac (localhost:7878)        GitHub
+ ─────────────────                 ─────────────────────────────────        ──────
+ three.js client  ── HTTP + ws ──▶ Rust server ── git ──▶ worlds repo ──push──▶ your fork
+   realms, doors,                    architect (heuristic | command)            (worlds branch)
+   things, gaze, map                 night shift (agent, long projects)            │
+        │                            story kit, genesis, evolution                 │ PR
+        └─ no app? an in-page host                                                 ▼
+           runs the same worlds                                       staplehorsey/branches
+           (single player, browser storage)                           universe.json → the Commons
 ```
 
 ---
 
 ## 1. Primitives
 
-There are only a few primitives, and everything else is built from them.
-Hosts may implement them however they like, as long as they speak the
-protocol in §4.
+| Primitive | What it is |
+|---|---|
+| **Address** | A place: `/w/<world>/<x>,<z>`, on a host (`http://localhost:7878`), in the page (`local://branches`), or in a git repository (`gh://<owner>/<repo>@<branch>`). |
+| **World** | A manifest: name, seed, biome (`generator.params`), door policy, spawn, `hub` flag, and, for grown worlds, the parent and the path signature that made them. |
+| **Room** | The house at an address: chambers, features, **things**, doors, visitor book, gaze and use counts, learned weights. |
+| **Thing** | Something with a story: a character, a note or story page, a game (lanterns, bells, the cat), or an attraction. Free-form JSON, so architects can invent new kinds; unknown kinds still render. |
+| **Door** | A graph edge. Doors come in physical pairs, and walking through one carries your body to the other side. |
+| **Player** | The one forced primitive: id, name, colour, body, transform, momentum, vehicle. The same in every world, on screen or in a headset. |
+| **Architect** | Turns attention into building. Built in, or any program that reads a prompt and prints a JSON plan. |
+| **Version** | A git tag per world (`worlds/<id>/v0.N.0`), cut every few builds. |
 
-| Primitive | What it is | Where it lives |
-|---|---|---|
-| **Address** | A place: `https://host/w/<world>/<x>,<z>`. Every place is a URL. | URL routing, client + server |
-| **World** | A manifest: name, seed, generator (`kind` + `params`), portal policy, architect id, spawn. | `WorldManifest` in `server/src/model.rs` |
-| **Room** | The state at one address: chambers, features, doors, visitor log, claim, learned weights. | `Room` in `model.rs` |
-| **Door** | A graph edge whose target is an address. *Seamless* doors keep you in the same space; *branch* doors hand you to another world. | `Portal` (server), `DoorPortal` + branch doors (client) |
-| **Player** | The one forced primitive: id, name, color, body, transform, velocity. It is identical in every world. | `Player` (server), `client/src/player.js` |
-| **Visitor log** | An append-only log per room and per world: visits, notes, requests, growth. | `LogEntry` |
-| **Architect** | An agent that turns attention and requests into growth. Pluggable. | `Architect` trait in `server/src/architect.rs` |
-| **Policy** | Limits on growing the graph outward, set at world level and tightened per address. | `PortalPolicy`, `OutboundRule` |
+Untouched houses are never stored; they are generated from `(world seed, x, z)`
+by the same algorithm on every client and host (`server/src/procgen.rs`,
+ported exactly to `client/src/procgen.js`, checked over 3,145 rooms). That
+is what lets a door stored in one place pair with a house generated
+somewhere else.
 
-Untouched rooms are not stored. They are synthesised deterministically from
-`(world seed, x, z)`, which makes every world infinite at zero storage
-cost. A room is only materialised once something happens to it: a visit, a
-note, a claim, or growth.
+## 2. One physical space
 
----
+There are no loading screens and no menu teleports.
 
-## 2. The entry world: `liminal-houses@1`
+* **Pockets.** A house's interior lives directly below it. The front door
+  and the pocket door are a linked pair.
+* **Realms.** Several worlds are loaded into the same scene at once, stacked
+  1,500 m apart. Only one space is drawn per render pass.
+* **Doors are frames.** Linking door A to door B gives
+  `A.M = B.frame · rotY(π) · A.frame⁻¹`. The renderer draws B's side through
+  A's opening from a virtual camera, once per eye in a headset. Crossing the
+  opening applies `M` to your body.
+* **Pairs.** Generator doors are symmetric: house (x,z) in world A links to
+  house (x,z) in world B, and spawn houses link to each other. Doors into a
+  closed world are sealed on the far side (one way in). Owner-made doors get
+  a door back. A remote world that doesn't list a door back gets one added
+  behind you.
+* **H** (wake up at home) is the single deliberate exception.
 
-The first generator is an endless grid of **identical houses** in a lush,
-quiet suburb. Each house sits at the centre of a 24 m cell. Houses all
-look the same from the street. Inside, each has a theme picked from the
-room seed: Poolrooms, Moss Library, Cloud Nursery, Sunset Terrarium, Night
-Aquarium, Vapor Mall, Tea Garden, Fern Cathedral, Arcade After Hours,
-Snowglobe Den, Citrus Kitchen, and Velvet Theatre.
+## 3. Worlds in git
 
-The five starter worlds share the generator but differ in mood (`params`):
+Branches for Mac keeps everything in a git repository at
+`~/Library/Application Support/Branches`:
 
-| World | Mood | Doors out |
-|---|---|---|
-| The Lush | bright suburb, round trees, ponds | open, 4 per room |
-| Dusk Orchard | endless golden hour, blossom trees | open, 3 |
-| Fog Pines | white houses, pines, 20 m of fog | open, 3 |
-| Salt Flat Noon | pink salt, palms, mirage | **closed**: an island you can only reach |
-| Moonlit Meadow | night, glowing mushrooms, fireflies | allowlist: this host only |
-
-Each world's spawn house is a hub: its entry hall has a door to every
-other world, except on islands.
-
-### Seamless doors (the pocket trick)
-
-A house's interior lives in a **pocket** directly below it, at
-`y = pocketY(x, z)`. That gives 25 stacked levels, so neighbouring pockets
-never collide. The front door and the pocket's door are related by a
-**pure vertical translation**. That makes them a portal pair:
-
-* **Rendering**: the client draws the scene a second time from a virtual
-  camera (the real camera shifted by the door offset) into a render target.
-  It clips everything in front of the far door with a clipping plane. The
-  doorway samples that texture in screen space, so you see the real
-  interior from the street, and the real street from inside. The two
-  nearest doors render live; farther ones show a glow. See
-  `client/src/portals.js`.
-* **Crossing**: when your eye crosses the door plane inside its rectangle,
-  you are translated by the same offset. There is no fade, no load, no cut.
-* **Spaces**: each render pass shows only one space (outdoors, or one
-  pocket) and swaps fog, background and lights to match. That is also why
-  interiors cost nothing while you are outside.
-
-Interiors can be **larger than the house**. They grow as a chain of
-chambers going away from the front door, each one built by the architect.
-The last chamber always ends at a misty **frontier** archway where the
-next chamber will appear.
-
-### Branch doors: one physical space
-
-The requirement is that everything feels like real life: no loading
-screens, no fades, no menus that move you. Every world is somewhere you can
-walk to, and every door has another side.
-
-* **Doors come in pairs.** If house (x,z) in world A has a door to world
-  B, then house (x,z) in B has the door back. Each world's spawn house is
-  joined door-to-door with every other spawn house. When an owner opens a
-  door to a local address, the host adds the door back in that house's
-  entry hall. A door into a closed world (an island) is real, but its far
-  side is **sealed**: you can walk in, not out.
-* **Realms.** The client loads several worlds into one scene at once,
-  each stacked 1,500 m above the last, far beyond the camera's reach. Only
-  one space is drawn per render pass, so they never see each other.
-* **Live views at any angle.** A door is a frame: an origin at the centre
-  of the opening and a facing. Linking door A to door B gives
-  `A.M = B.frame · rotY(π) · A.frame⁻¹`, which maps a side-wall door in
-  one world onto an entry-hall door in another, at any heading. The portal
-  renderer draws the far room through the opening using that transform,
-  and crossing the opening applies it to your body: position, heading and
-  momentum.
-* **Pairing on approach.** When you enter a room, the client loads the
-  world and the house behind each of its doors and links each door to the
-  one that leads back. If the far side has no door back (an older room, or
-  another host that doesn't add them), the client adds one behind you, so
-  the door you came through is always still there.
-* **Promotion.** When your body crosses into another realm, that realm
-  becomes "where you are": its streets stream in around you, your live
-  connection moves to its host, and realms you can no longer reach are
-  released.
-
-The one deliberate exception is **H** (wake up at home): a short blink to
-your home world's spawn. It exists so nobody is stranded on an island.
-
----
-
-## 3. The architect
-
-The architect is an asynchronous builder. It runs on the host (one tick per
-second) and never blocks a player.
-
-```
-attention ──┐        ┌─▶ build starts (room.building = {ready_at})
-requests ───┼─▶ room ┤          … 12–45 s later …
-admiration ─┘        └─▶ plan() → new chamber + features → notify investors
+```text
+worlds/index.json                 world list (for readers on GitHub)
+worlds/<id>/world.json            manifest, biome included
+worlds/<id>/index.json            stored houses, one line each
+worlds/<id>/rooms/<x>,<z>.json    chambers, features, things, doors,
+                                  visitor book, gaze and use counts
+worlds/<id>/heat.json             seconds inside / outside and visits per cell
+worlds/<id>/versions.json         tags, newest first
+worlds/<id>/paths.json            recent path signatures
+worlds/<id>/log.json              the world's guestbook
+worlds/<id>/attractions/<slug>/   night-shift games: BRIEF.md, index.html, meta.json
+.branches/                        private, never committed: players, settings, GitHub token
 ```
 
-**Signals**
+Every build is a commit whose message says what was built and by whom.
+Visits, visitor books and heat are committed every couple of minutes. Every
+three builds a world is tagged, Go-submodule style:
+`worlds/the-lush/v0.3.0`.
 
-* **Dwell.** The server measures it from the live position stream: each
-  second a player spends in chamber *c* adds attention to the room. It also
-  reinforces the tags of that chamber, both in the room's weights and in
-  the player's own taste profile.
-* **Admiration** (`F`: "more of this") is a strong explicit signal for the
-  current chamber's tags.
-* **Requests** in the visitor log ("more water please, a pool with fish")
-  are mined for tag keywords. Fresh requests are honoured directly half
-  of the time.
+### Version bands
 
-**Growth.** When a room's attention passes
-`pace × (1 + 0.6 × growth)`, a build starts. When it finishes, the
-`Architect::plan()` implementation picks the new chamber's tag, name,
-features and occasional touches to older chambers. It does this from a
-**desire** distribution that blends the room's learned weights (55%) with
-the taste profiles of the players who invested time there, weighted by
-how long each stayed (45%). It also leaves a little novelty in.
+At distance `d` from spawn a house shows the version a fraction
+`d/(d + R)` of the way back through history (R = 6 houses). Each new tag
+makes every place a little newer, while the far edge keeps reaching older
+versions. Far bands are drawn with the biome as it was. When the architect
+builds on a house seen at an older version, that version is **re-plunged**:
+it becomes the house's present, keeping the visitor book and everything
+learned.
 
-**Notifications.** Everyone who invested at least 15 s in a room gets an
-inbox entry when it grows. It is pushed live to any session they have
-open, and stored otherwise.
+### Evolving biomes and new worlds
 
-**Pluggability.** `Architect` is a trait with one method,
-`plan(&PlanContext, seed) -> Plan`. The reference `Heuristic` architect is
-deterministic and free. A Claude-backed architect (see phase 1) implements
-the same trait and can return the same `Plan`, plus generated names and
-descriptions. Owners' own agents can also build directly through the HTTP
-API (`POST …/features`), alongside the host's architect.
+* Before each tag, a world's biome drifts a little (`genesis::evolve`),
+  steered by how people move through it. Far bands show older biomes.
+* **Path-born worlds.** Clients send a path signature (turning per metre,
+  straightness, speed, revisiting, heading). After 36 fresh cells of
+  exploration, a new world is born from the blended signatures and the
+  parent biome: winding and lingering paths make close, foggy, overgrown
+  places, while straight, hurried ones make open, sparse ones. A door pair
+  joins the house you were walking past to the new world's first house.
+* **Terrain and places.** Rolling value-noise terrain with level pads. Each
+  address is a house, tower, cave or stone arch, by the biome's `places`
+  mix. All share the same door, so portals work identically.
 
----
-
-## 4. Protocol (`branches/0.1`)
-
-Everything is JSON over HTTP, plus one websocket per player per world. CORS
-is open, because clients are expected to hop between hosts.
-
-### Discovery
-* `GET /.well-known/branches.json`: protocol version, generators, worlds,
-  endpoint templates.
-* `GET /api/worlds`: worlds with tagline, online count, rooms grown, policy.
-* `GET /api/worlds/{w}`: the world manifest.
-* `GET /api/graph`: the host's view of the graph (worlds = nodes,
-  stored doors = edges).
-
-### Places
-* `GET /api/worlds/{w}/chunk?x0&z0&x1&z1`: room summaries for streaming
-  (max 625 cells).
-* `GET /api/worlds/{w}/rooms/{x}/{z}`: the full room (chambers, features,
-  doors, log, claim, growth progress, the architect's leaning, top
-  investors).
-
-### Acting
-Auth is `Authorization: Bearer <player_id>:<secret>`, or `player`/`secret`
-in the JSON body. A host admin can use `Bearer <ADMIN_KEY>`.
-
-* `POST …/rooms/{x}/{z}/log` `{kind: note|request|praise, text}`
-* `POST …/rooms/{x}/{z}/claim` `{title}`: at most 3 claims per player per
-  world.
-* `PATCH …/rooms/{x}/{z}` `{title?, theme?, outbound?}`: owner only.
-* `POST …/rooms/{x}/{z}/portals` `{target, label, slot}`: owner only,
-  checked against policy.
-* `DELETE …/rooms/{x}/{z}/portals/{id}`
-* `POST …/rooms/{x}/{z}/features` `{tag, chamber?}`: owner's agent builds
-  directly.
-* `GET|POST /api/worlds/{w}/log`: the world-level guestbook.
-* `GET /api/players/{id}/inbox?secret=` and
-  `POST /api/players/{id}/inbox/read`
-
-### Live: `GET /ws/{world}`
-Client → host: `hello {player, secret, name, color}` (first),
-`move {p, ry, room, ch}` (~10 Hz), `chat {text}`, `admire {room, ch}`.
-
-Host → client: `welcome {you, peers, unread}`, `join`, `leave`,
-`peers {list}` (10 Hz), `chat`, `room {addr, summary, grew?, rebuild?}`,
-`log {addr, entry}`, `notify {n}`, `admired {tags}`.
-
-### Policy rules
-* World `portal_policy`: `open | allowlist | closed`, plus `max_per_room`,
-  `allow_hosts` and `allow_local`. Generator-placed doors don't count
-  toward the limit.
-* An address owner's `outbound` rule (`closed`, `max`, `allow_hosts`) can
-  only **tighten** the world's policy, never loosen it.
-* A `closed` world is an island: reachable, never leading out. A world
-  with no doors pointing in is unreachable except by direct URL. Both are
-  legitimate shapes in the graph.
-
----
-
-## 5. Code map
+## 4. The architect
 
 ```
-server/                 Rust (axum + tokio), one binary
-  src/main.rs           config, routes, background loops, snapshot persistence
-  src/model.rs          primitives (serde types)
-  src/procgen.rs        hashing, themes and tags, starter worlds, default rooms
-  src/state.rs          shared state, room views, hubs for the live layer
-  src/architect.rs      Architect trait, reference heuristic, learning, build tick
-  src/api.rs            HTTP federation surface + policy checks
-  src/ws.rs             presence, chat, dwell accounting, notifications
-client/                 static ES modules, no build step, vendored three.js
-  src/main.js           spaces, world loading, travel, input, loop
-  src/portals.js        DoorPortal + render-to-texture portal renderer
-  src/outdoor.js        streamed suburb: houses, hedges, trees, grass, sky
-  src/interior.js       chamber chain, walls with doorways, frontier, branch doors
-  src/features.js       one builder per architect tag, themed
-  src/themes.js         the 12 interior themes and procedural surfaces
-  src/player.js         the player primitive: body, controls, collisions, camera
-  src/avatars.js        everyone else
-  src/net.js / ui.js    hosts, identity, live socket; HUD and panels
+dwell ─┐
+gaze ──┤                 ┌─▶ build timer (sketch 5–13 s, normal 12–30 s, rich 20–45 s)
+use ───┼─▶ room attention┤
+admire ┤                 └─▶ plan (off the main loop) ─▶ apply ─▶ commit ─▶ notify
+asks ──┘
 ```
 
-Persistence in v1 is the whole universe snapshotted to
-`DATA_DIR/universe.json` every 10 s and on shutdown. That is fine for one
-host with thousands of rooms. Phase 4 replaces it.
+* **Signals.** These are dwell per chamber, gaze (seconds the view rests on
+  each feature or thing, by id), use (talking, reading, playing, finishing a
+  game), "more of this", and visitor-book requests (mined for tags and
+  passed verbatim to creative architects).
+* **Budget from pace.** A world's average seconds per house visit sets the
+  budget. Under 25 s gets **sketch** builds: cheap, sooner, built in. Over
+  90 s gets **rich** builds: the configured agent, more features and things,
+  and detail on what is there. Near spawn, well-loved houses alternate a
+  new chamber with a detail pass.
+* **Providers.** `heuristic` is built in. `command` runs any program with
+  the prompt on stdin and expects a JSON plan on stdout: `claude -p` makes
+  Claude Code the architect, and a local-model wrapper or script works the
+  same way. The plan shape is in `architect::prompt`; replies are parsed
+  leniently.
+* **Story kit** (`server/src/stories.rs`). A cast of characters whose last
+  lines point to other characters and worlds, story threads whose pages
+  scatter across houses in order, and small games. Creative architects can
+  continue these or invent their own.
+* **Night shift** (`server/src/nightshift.rs`, off by default). Inside hours
+  you choose, after a quiet period, the app picks a project: a game asked
+  for in a visitor book, or the next idea (zoo tycoon, go-kart track, train
+  set…). It writes a brief and runs your agent in that project's folder for
+  up to N minutes. The resulting self-contained `index.html` opens in-world
+  as an attraction booth in the most lingered-in house.
 
----
+## 5. Onboarding
 
-## 6. Roadmap
+Each step appears only when it's needed:
 
-### Phase 0: the entry world *(this commit)*
-- [x] Reference host with five starter worlds and a federation-ready API
-- [x] Endless identical houses with 12 themed interiors; seamless doors
-- [x] Multiplayer by default: presence, avatars, chat
-- [x] Async architect that learns from dwell, admiration and requests;
-      notifications
-- [x] Visitor logs per room and per world
-- [x] Claims, owner tools, portal policies, agent-usable HTTP API
-- [x] Cross-world and cross-host doors that are physically walkable both ways
-- [x] The whole client also runs with no server (an in-page host), for static hosting and previews
+1. **Open the web page and play.** No account; worlds run in the page.
+2. **Write in a visitor book or claim a house.** One card explains that
+   this needs Branches for Mac, with a download link and a *connect* button.
+   After about eight minutes of play, a gentle corner card offers the same.
+3. **Connect.** The page checks for the app on `localhost:7878`, imports
+   what grew in the browser, remembers the app, and continues there. Later
+   visits to the web page go to the app automatically.
+4. **In the app, Connect GitHub.** It reuses the GitHub CLI's login if you
+   have one, else device sign-in (when the build has an OAuth app id), else
+   a pasted token. It forks `staplehorsey/branches` and keeps your worlds on
+   the fork's `worlds` branch, tags included.
+5. **Share?** A pull request adds your worlds to `universe.json`. Once
+   merged, a door to them appears in **the Commons** (the house west of The
+   Lush's spawn). Anyone can walk in; it reads straight from your repository
+   (`client/src/githost.js`). Only you can change them.
 
-### Phase 1: agents as first-class builders
-- **MCP server** wrapping the HTTP API (`branches.walk`, `look`, `claim`,
-  `open_door`, `build`, `read_log`), so anyone's agent can tend their
-  addresses.
-- **Scoped agent tokens** separate from the player secret, revocable and
-  limited per address.
-- **Claude architect**: implement `Architect` with an LLM call that gets
-  the room, desire and recent requests, and returns a `Plan` with names,
-  descriptions and new feature *recipes* (parameterised primitives), not
-  only existing tags. Run it from a job queue so slow generations stay
-  async.
-- **Architect marketplace per world**: the world manifest names its
-  architect, and owners can choose per address.
+## 6. Code map
 
-### Phase 2: real federation
-- **Passport identity**: ed25519 keypairs instead of trust-on-first-use
-  secrets, so you are provably the same player on every host. The player
-  primitive carries a signed `{id, name, body}`.
-- **Door handshake**: a host can accept, reject or rate-limit inbound
-  links. Edges can be one-way or mutual. Signed portal records stop people
-  forging edges.
-- **Discovery**: crawl `/.well-known/branches.json` along edges to build a
-  public map of the graph, finding islands and hubs. Visitor logs become
-  the social layer for "who else shows up".
-- **Safety**: moderation hooks for logs and names, host blocklists, and
-  per-host rate limits.
+```
+server/src/
+  main.rs        app mode, routes, persistence + commit + tag loop, night-shift tick
+  model.rs       primitives
+  procgen.rs     hashing, themes, starter worlds, default rooms
+  state.rs       shared state, settings, version bands, re-plunge, room views
+  store.rs       the git repository: load, save, commit, tag, read at tag
+  architect.rs   budgets, signals, heuristic and command architects, apply
+  stories.rs     the story kit
+  genesis.rs     path-born worlds, biome evolution, colour
+  nightshift.rs  long projects by an agent while nobody plays
+  github.rs      connect, fork, push, share
+  api.rs / ws.rs HTTP and live layer
+client/src/
+  main.js        realms, spaces, doors, interaction, onboarding, loop
+  portals.js     frame-linked doors, per-eye render-to-texture
+  outdoor.js     terrain, places, version-band biomes, bikes, sky
+  interior.js    chambers, things, gaze boxes
+  things.js      characters, notes, games, attractions
+  play.js        gaze, path signatures, exploration, tones
+  xr.js          WebXR (Quest 3): rig, sticks, wrist card
+  procgen.js     exact port of the generator
+  localhost.js   the in-page host; githost.js: worlds read from GitHub
+macos/           Branches.app launcher, Info.plist, icon
+.github/workflows/mac.yml    universal app, rolling mac-latest release
+.github/workflows/pages.yml  the web version on GitHub Pages
+```
 
-### Phase 3: many generators, truly seamless
-- `scene-json@1`: a declarative world format (primitives, materials,
-  lights, doors) so a host needs no client code.
-- Sandboxed **WASM generators** for procedural worlds, fetched from the
-  host.
-- **Avatar adapters**: let each world restyle the body while identity
-  stays fixed, so crossing from one art style into another changes how you
-  look, not who you are.
-- Rotated and scaled portal transforms (general 4×4, not only
-  translation), and recursive door views.
+## 7. Next: meeting people, neighbourhoods, cities
 
-### Phase 4: scale
-- SQLite/Postgres storage per host; rooms sharded by world.
-- An interest-managed live layer (presence by region rather than by world),
-  with horizontal scaling behind a sticky load balancer.
-- Generated assets (meshes, textures, audio) stored in a CDN, produced by
-  async jobs and referenced from features.
-- Server-validated movement (speed and collision checks) so dwell, the
-  architect's main signal, cannot be farmed.
+This is the direction for the social layer: people meet organically, in
+groups small enough to know each other, and density grows into cities over
+time. None of it is built yet; it needs a small shared matchmaking service,
+the first piece of hosted infrastructure.
 
----
+1. **Opt-in location, coarse only.** Location is shared as a coarse
+   geohash cell (around 20–40 km), never coordinates, and only when you
+   choose. It decides where in the shared world you arrive: people who are
+   near each other in life spawn near each other.
+2. **Neighbourhoods of about Dunbar's number.** The shared world is
+   partitioned into neighbourhoods, each sized for about 150 active people.
+   A neighbourhood splits when it outgrows that and merges when it thins.
+   Assignment prefers your geohash, then people you have played with.
+   Everyone starts at uniform density.
+3. **Invitations, safely.** You can leave a request on someone's door or
+   in their visitor book to explore together. Nothing connects until they
+   accept. On acceptance, the two apps connect peer to peer (WebRTC; the
+   matchmaker only introduces them) and share presence in the same worlds.
+   Blocking and leaving are one click; requests are rate-limited.
+4. **Migration and building up.** You can move your home address toward
+   where your friends are. Claimed houses can grow upward: floors, then
+   your own designed home, with the same door contract at street level.
+   Busy neighbourhoods accumulate height and density. Quiet ones stay
+   suburban. Cities form where people choose to be, not where they are put.
+5. **Scale.** The matchmaker holds only neighbourhood membership and
+   pending invitations. World state stays in each player's git repository,
+   and live presence goes peer to peer. That keeps the hosted part small
+   as the platform grows.
 
-## 7. Known v1 limitations
-- Identity is trust-on-first-use per host (`player id + secret` in
-  localStorage).
-- Dwell is measured from client-reported positions. Speed is not validated
-  yet.
-- Visitor logs are unmoderated beyond length limits and a visit-entry rate
-  limit.
-- Through a door you see the room on the far side; that room's own doors
-  show a glow until you step in (views are one level deep).
-- Everything for a host runs in one process with JSON snapshots.
+## 8. Known limits
+
+* Worlds read from GitHub (the Commons) are read-only and have no live
+  presence yet.
+* Version bands draw older biomes outdoors and older rooms indoors. Biome
+  terrain amplitude is taken from the present version so the land stays
+  continuous.
+* The app is ad-hoc signed, not notarized: right-click → Open the first
+  time.
+* Movement is reported by clients and not yet validated.

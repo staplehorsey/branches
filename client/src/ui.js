@@ -355,19 +355,51 @@ export async function appSettings(host, el) {
       <div class="btns"><button class="btn" id="arch-save">save</button></div>
       <div id="arch-msg"></div>
     </div>
+    <h3>Night shift</h3>
+    <div class="form">
+      <label class="sub"><input type="checkbox" id="night-on" ${s.settings.night?.enabled ? 'checked' : ''}/> while nobody is playing, let an agent build something bigger: a whole game, like a zoo tycoon or a go-kart track</label>
+      <input id="night-cmd" value="${esc(s.settings.night?.command || 'claude -p --permission-mode acceptEdits')}" />
+      <div class="row"><label class="sub">from <input id="night-from" type="number" min="0" max="23" style="width:64px" value="${s.settings.night?.start_hour ?? 1}" />h to <input id="night-to" type="number" min="0" max="23" style="width:64px" value="${s.settings.night?.end_hour ?? 7}" />h, after <input id="night-idle" type="number" min="1" max="240" style="width:64px" value="${s.settings.night?.idle_minutes ?? 20}" /> quiet minutes, up to <input id="night-max" type="number" min="10" max="600" style="width:70px" value="${s.settings.night?.max_minutes ?? 120}" /> minutes each</label></div>
+      <div class="sub">It works in its own folder in your worlds repository and opens what it makes as an attraction in a well-loved house. Games asked for in visitor books come first. ${s.night_running ? '<b>Building something right now.</b>' : ''} ${s.night_built?.length ? `Built so far: ${esc(s.night_built.join(', '))}.` : ''}</div>
+      <div class="btns"><button class="btn" id="night-now">build something now</button></div>
+      <div id="night-msg"></div>
+    </div>
     <h3>Your worlds</h3>
     <div class="sub">Saved as a git repository in <code>${esc(s.data_dir)}</code></div>
-    <div class="btns" style="margin-top:8px"><button class="btn" id="app-quit">quit Branches</button></div>
+    <div class="btns" style="margin-top:8px"><button class="btn" id="app-github">GitHub: back up and share</button><button class="btn" id="app-quit">quit Branches</button></div>
   `;
   $('arch-save').onclick = async () => {
     const architect = el.querySelector('input[name=arch]:checked').value;
     try {
-      await host.send('POST', '/api/app/settings', { architect, command: $('arch-cmd').value.trim() });
+      await host.send('POST', '/api/app/settings', { architect, command: $('arch-cmd').value.trim(), night: nightValues() });
       $('arch-msg').innerHTML = '<span class="ok">saved</span>';
     } catch (e) {
       $('arch-msg').innerHTML = `<span class="err">${esc(e.message)}</span>`;
     }
   };
+  const nightValues = () => ({
+    enabled: $('night-on').checked,
+    command: $('night-cmd').value.trim(),
+    start_hour: Number($('night-from').value),
+    end_hour: Number($('night-to').value),
+    idle_minutes: Number($('night-idle').value),
+    max_minutes: Number($('night-max').value),
+  });
+  const saveNight = async () => {
+    const architect = el.querySelector('input[name=arch]:checked').value;
+    await host.send('POST', '/api/app/settings', { architect, command: $('arch-cmd').value.trim(), night: nightValues() });
+  };
+  for (const id of ['night-on', 'night-cmd', 'night-from', 'night-to', 'night-idle', 'night-max']) $(id).onchange = () => saveNight().catch(() => {});
+  $('night-now').onclick = async () => {
+    try {
+      await saveNight();
+      const r = await host.send('POST', '/api/app/night/run', {});
+      $('night-msg').innerHTML = `<span class="ok">Started: ${esc(r.started)}. It will appear as an attraction when it's done.</span>`;
+    } catch (e) {
+      $('night-msg').innerHTML = `<span class="err">${esc(e.message)}</span>`;
+    }
+  };
+  $('app-github').onclick = () => openGithub(host);
   $('app-quit').onclick = async () => {
     await host.send('POST', '/api/app/quit', {}).catch(() => {});
     document.body.innerHTML = '<div style="display:grid;place-items:center;height:100%;font-family:Georgia,serif;font-style:italic;font-size:22px;color:#556">Branches is resting. Open the app to come back.</div>';
@@ -448,4 +480,108 @@ export function openMap({ worldName, center, yaw, explored, heat, rooms, version
   ctx.closePath();
   ctx.fill();
   ctx.restore();
+}
+
+// ------------------------------------------------------------ GitHub
+
+// Back up and share, one step at a time, nothing required.
+export async function openGithub(host) {
+  const body = openPanel('<p class="sub">checking GitHub\u2026</p>');
+  let st;
+  try {
+    st = await host.get('/api/app/github');
+  } catch (e) {
+    body.innerHTML = `<p class="err">${esc(e.message)}</p>`;
+    return;
+  }
+  const render = (inner) => (body.innerHTML = `<h2>Your worlds on GitHub</h2>${inner}<div id="gh-msg" style="margin-top:10px"></div>`);
+  const msg = (t, ok) => ($('gh-msg').innerHTML = `<span class="${ok ? 'ok' : 'err'}">${esc(t)}</span>`);
+  const connected = (s) => {
+    render(`
+      <p class="sub" style="font-size:14px;line-height:1.5">Signed in as <b>${esc(s.login)}</b>. Your worlds are backed up to the <code>worlds</code> branch of <a href="https://github.com/${esc(s.fork)}/tree/worlds" target="_blank" rel="noopener">${esc(s.fork)}</a>, versions included, and stay up to date as the architect builds.</p>
+      ${s.shared ? `<p class="sub">Shared: <a href="${esc(s.shared)}" target="_blank" rel="noopener">your pull request</a>. Once it's merged, a door to your worlds appears in the Commons, the house just west of The Lush's spawn.</p>` : `
+      <h3>Share them?</h3>
+      <p class="sub">This opens a pull request to the main world that adds a door to your worlds in the Commons. Anyone can then walk in. Only you can change them.</p>
+      <div class="btns"><button class="btn" id="gh-share">share my worlds</button><button class="btn" id="gh-keep">keep them to myself</button></div>`}
+    `);
+    $('gh-keep') && ($('gh-keep').onclick = closePanel);
+    $('gh-share') &&
+      ($('gh-share').onclick = async () => {
+        msg('opening a pull request\u2026', true);
+        try {
+          const r = await host.send('POST', '/api/app/github/share', {});
+          connected({ ...s, shared: r.url });
+        } catch (e) {
+          msg(e.message);
+        }
+      });
+  };
+  const connect = async (extra = {}) => {
+    msg('connecting\u2026', true);
+    try {
+      const r = await host.send('POST', '/api/app/github/connect', extra);
+      if (r.connected) return connected(r);
+      if (r.device) return device(r.device);
+      if (r.needs_token) return askToken();
+    } catch (e) {
+      msg(e.message);
+    }
+  };
+  const device = (d) => {
+    render(`<p class="sub" style="font-size:14px">Go to <a href="${esc(d.verification_uri)}" target="_blank" rel="noopener">${esc(d.verification_uri)}</a> and enter</p><p style="font-size:30px;letter-spacing:0.2em;font-family:ui-monospace,monospace">${esc(d.user_code)}</p><p class="sub">This page continues on its own once you approve.</p>`);
+    const poll = async () => {
+      try {
+        const r = await host.send('POST', '/api/app/github/poll', { device_code: d.device_code });
+        if (r.connected) return connected(r);
+      } catch (e) {
+        return msg(e.message);
+      }
+      setTimeout(poll, (d.interval || 5) * 1000);
+    };
+    setTimeout(poll, (d.interval || 5) * 1000);
+  };
+  const askToken = () => {
+    render(`
+      <p class="sub" style="font-size:14px;line-height:1.5">Create a token GitHub can use for this app (it only needs <b>public_repo</b>), then paste it here. It stays on this Mac.</p>
+      <p><a class="btn primary-link" href="https://github.com/settings/tokens/new?scopes=public_repo&description=Branches%20for%20Mac" target="_blank" rel="noopener">create a token on GitHub</a></p>
+      <div class="row"><input id="gh-token" placeholder="ghp_\u2026" /><button class="btn" id="gh-use">connect</button></div>
+      <p class="sub">Tip: if you use the GitHub command line tool (<code>gh auth login</code>), Branches signs in with it automatically.</p>`);
+    $('gh-use').onclick = () => connect({ token: $('gh-token').value });
+  };
+  if (st.connected) return connected(st);
+  render(`
+    <p class="sub" style="font-size:14px;line-height:1.5">Your worlds are already saved on this Mac. Connecting GitHub backs them up to your own fork of the main world, keeps every version, and lets you share them when you want to.</p>
+    <div class="btns"><button class="btn" id="gh-go">connect GitHub</button><button class="btn" id="gh-later">later</button></div>`);
+  $('gh-go').onclick = () => connect();
+  $('gh-later').onclick = closePanel;
+}
+
+// ------------------------------------------------------------ attractions
+
+export function openGame(title, html, controls) {
+  document.exitPointerLock?.();
+  const el = document.createElement('div');
+  el.id = 'game';
+  el.innerHTML = `<div class="game-bar"><b>${esc(title)}</b>${controls ? `<span class="sub">${esc(controls)}</span>` : ''}<button class="btn" id="game-close">back to the world (Esc)</button></div>`;
+  const frame = document.createElement('iframe');
+  frame.setAttribute('sandbox', 'allow-scripts allow-pointer-lock');
+  // Escape inside the game still brings you back to the world.
+  frame.srcdoc = html + `<script>addEventListener('keydown',(e)=>{if(e.key==='Escape')parent.postMessage('branches-close-game','*')},true)<\/script>`;
+  el.append(frame);
+  document.body.append(el);
+  const close = () => {
+    el.remove();
+    removeEventListener('keydown', onKey, true);
+    removeEventListener('message', onMsg);
+  };
+  const onKey = (e) => e.code === 'Escape' && close();
+  const onMsg = (e) => e.source === frame.contentWindow && e.data === 'branches-close-game' && close();
+  addEventListener('keydown', onKey, true);
+  addEventListener('message', onMsg);
+  el.querySelector('#game-close').onclick = close;
+  setTimeout(() => frame.focus(), 50);
+}
+
+export function isGameOpen() {
+  return !!document.getElementById('game');
 }

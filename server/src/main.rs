@@ -7,7 +7,9 @@
 mod api;
 mod architect;
 mod genesis;
+mod github;
 mod model;
+mod nightshift;
 mod procgen;
 mod state;
 mod stories;
@@ -65,7 +67,21 @@ fn persist(app: &Arc<App>, last_commit: &mut std::time::Instant) {
     }
     let message = if notes.is_empty() { "Visits, visitor books and heat".to_string() } else { notes.join("\n") };
     match app.store.commit(&message) {
-        Ok(Some(_)) => *last_commit = std::time::Instant::now(),
+        Ok(Some(_)) => {
+            *last_commit = std::time::Instant::now();
+            // Connected to GitHub: keep the fork's worlds branch current.
+            if let Some(mut a) = github::load(&app.store.root) {
+                if a.fork.is_some() && model::now_ms().saturating_sub(a.last_push) > 120_000 {
+                    match github::push(&app.store.root, &a) {
+                        Ok(()) => {
+                            a.last_push = model::now_ms();
+                            github::save(&app.store.root, &a);
+                        }
+                        Err(e) => tracing::warn!("push to {:?} failed: {e}", a.fork),
+                    }
+                }
+            }
+        }
         Ok(None) => {}
         Err(e) => tracing::error!("commit failed: {e}"),
     }
@@ -156,11 +172,25 @@ async fn main() {
         });
     }
 
+    // The night shift checks every minute whether it may start.
+    {
+        let app = app.clone();
+        tokio::spawn(async move {
+            let mut tick = tokio::time::interval(Duration::from_secs(60));
+            loop {
+                tick.tick().await;
+                nightshift::start(&app, false);
+            }
+        });
+    }
+
     // Every address is a URL: /w/<world>/<x>,<z> serves the client.
     let index = ServeFile::new(client.join("index.html"));
     let router = Router::new()
         .merge(api::router())
         .route("/ws/{world}", get(ws::upgrade))
+        // Files kept with the worlds (attractions built on the night shift).
+        .nest_service("/files/worlds", ServeDir::new(app.store.root.join("worlds")))
         .nest_service("/w", index.clone())
         .fallback_service(ServeDir::new(&client).fallback(index))
         .layer(CorsLayer::permissive())

@@ -42,6 +42,11 @@ pub fn router() -> Router<Arc<App>> {
         .route("/api/app/settings", get(get_settings).post(put_settings))
         .route("/api/app/import", post(import))
         .route("/api/app/quit", post(quit))
+        .route("/api/app/night/run", post(night_run))
+        .route("/api/app/github", get(github_status))
+        .route("/api/app/github/connect", post(github_connect))
+        .route("/api/app/github/poll", post(github_poll))
+        .route("/api/app/github/share", post(github_share))
         .route("/api/worlds/{w}/log", get(world_log).post(post_world_log))
         .route("/api/worlds/{w}/rooms/{x}/{z}", get(room).patch(patch_room))
         .route("/api/worlds/{w}/rooms/{x}/{z}/log", post(post_room_log))
@@ -580,7 +585,13 @@ mod tests {
 // ------------------------------------------------------------ the desktop app
 
 async fn get_settings(State(app): AppState) -> Json<Value> {
-    Json(json!({ "app": app.cfg.app, "settings": *app.settings.lock().unwrap(), "data_dir": app.store.root }))
+    Json(json!({
+        "app": app.cfg.app,
+        "settings": *app.settings.lock().unwrap(),
+        "data_dir": app.store.root,
+        "night_running": app.night_running.load(std::sync::atomic::Ordering::Relaxed),
+        "night_built": crate::nightshift::built(&app),
+    }))
 }
 
 /// Settings choose a command the app will run, so only the app's own page
@@ -650,4 +661,114 @@ async fn import(State(app): AppState, Json(b): Json<ImportBody>) -> Res {
         app.touch();
     }
     Ok(Json(json!({ "ok": true, "rooms": added })))
+}
+
+// ------------------------------------------------------------ GitHub
+
+fn app_only(app: &App, headers: &HeaderMap) -> Result<(), ApiError> {
+    if !app.cfg.app || !same_origin(app, headers) {
+        return Err(err(StatusCode::FORBIDDEN, "only the app's own page can do that"));
+    }
+    Ok(())
+}
+
+async fn github_status(State(app): AppState) -> Json<Value> {
+    let root = app.store.root.clone();
+    let a = crate::github::load(&root);
+    Json(json!({
+        "connected": a.is_some(),
+        "login": a.as_ref().map(|a| a.login.clone()),
+        "fork": a.as_ref().and_then(|a| a.fork.clone()),
+        "shared": a.as_ref().and_then(|a| a.shared.clone()),
+        "device": crate::github::client_id().is_some(),
+    }))
+}
+
+#[derive(Deserialize, Default)]
+struct ConnectBody {
+    #[serde(default)]
+    token: Option<String>,
+    #[serde(default)]
+    device_code: Option<String>,
+}
+
+/// Sign in with a token, fork, push. Shared by every way of connecting.
+fn finish_connect(root: &std::path::Path, token: String) -> Result<Value, String> {
+    let login = crate::github::whoami(&token)?;
+    let fork = crate::github::fork(&token)?;
+    let mut a = crate::github::Account { token, login: login.clone(), fork: Some(fork.clone()), shared: None, last_push: 0 };
+    if let Some(old) = crate::github::load(root) {
+        a.shared = old.shared;
+    }
+    crate::github::save(root, &a);
+    // GitHub can take a moment to create a fork; a failed first push is retried later.
+    let pushed = crate::github::push(root, &a).is_ok();
+    if pushed {
+        a.last_push = now_ms();
+        crate::github::save(root, &a);
+    }
+    Ok(json!({ "connected": true, "login": login, "fork": fork, "pushed": pushed }))
+}
+
+async fn github_connect(State(app): AppState, headers: HeaderMap, body: Option<Json<ConnectBody>>) -> Res {
+    app_only(&app, &headers)?;
+    let token = body.and_then(|b| b.0.token).map(|t| t.trim().to_string()).filter(|t| !t.is_empty());
+    let root = app.store.root.clone();
+    let out = tokio::task::spawn_blocking(move || -> Result<Value, String> {
+        if let Some(t) = token.or_else(crate::github::gh_cli_token) {
+            return finish_connect(&root, t);
+        }
+        if crate::github::client_id().is_some() {
+            return Ok(json!({ "device": crate::github::device_start()? }));
+        }
+        Ok(json!({ "needs_token": true }))
+    })
+    .await
+    .map_err(|e| err(StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+    out.map(Json).map_err(|e| err(StatusCode::BAD_GATEWAY, e))
+}
+
+async fn github_poll(State(app): AppState, headers: HeaderMap, Json(b): Json<ConnectBody>) -> Res {
+    app_only(&app, &headers)?;
+    let code = b.device_code.ok_or_else(|| err(StatusCode::BAD_REQUEST, "device_code required"))?;
+    let root = app.store.root.clone();
+    let out = tokio::task::spawn_blocking(move || match crate::github::device_poll(&code)? {
+        Some(token) => finish_connect(&root, token),
+        None => Ok(json!({ "waiting": true })),
+    })
+    .await
+    .map_err(|e| err(StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+    out.map(Json).map_err(|e| err(StatusCode::BAD_GATEWAY, e))
+}
+
+async fn github_share(State(app): AppState, headers: HeaderMap) -> Res {
+    app_only(&app, &headers)?;
+    let root = app.store.root.clone();
+    let mut a = crate::github::load(&root).ok_or_else(|| err(StatusCode::BAD_REQUEST, "connect GitHub first"))?;
+    let worlds: Vec<(String, String)> = {
+        let uni = app.uni.lock().unwrap();
+        uni.worlds.values().filter(|w| w.rooms.values().any(|r| r.growth() > 0) || !w.manifest.hub).map(|w| (w.manifest.id.clone(), w.manifest.name.clone())).collect()
+    };
+    if worlds.is_empty() {
+        return Err(err(StatusCode::BAD_REQUEST, "nothing has grown yet: linger somewhere first"));
+    }
+    let out = tokio::task::spawn_blocking(move || -> Result<Value, String> {
+        let _ = crate::github::push(&root, &a);
+        let url = crate::github::share(&a, &worlds)?;
+        a.shared = Some(url.clone());
+        crate::github::save(&root, &a);
+        Ok(json!({ "url": url }))
+    })
+    .await
+    .map_err(|e| err(StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+    out.map(Json).map_err(|e| err(StatusCode::BAD_GATEWAY, e))
+}
+
+/// "Build something now": start a night-shift project immediately.
+async fn night_run(State(app): AppState, headers: HeaderMap) -> Res {
+    app_only(&app, &headers)?;
+    match crate::nightshift::start(&app, true) {
+        Some(title) => Ok(Json(json!({ "started": title }))),
+        None => Err(err(StatusCode::CONFLICT, "a project is already being built")),
+    }
 }

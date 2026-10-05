@@ -95,6 +95,10 @@ function resolve(target, origin) {
   if (target.startsWith(LOCAL_ORIGIN + '/')) {
     origin = LOCAL_ORIGIN;
     path = target.slice(LOCAL_ORIGIN.length);
+  } else if (target.startsWith('gh://')) {
+    const i = target.indexOf('/w/');
+    origin = target.slice(0, i);
+    path = target.slice(i);
   } else if (/^https?:\/\//.test(target)) {
     const u = new URL(target);
     origin = u.origin;
@@ -251,8 +255,22 @@ function signature(room) {
   return [room.theme, room.chambers.length, room.features.length, room.portals.map((p) => p.id + p.sealed).join(','), !!room.building].join(':');
 }
 
+// The Commons: the house just west of The Lush's spawn holds a door to
+// every world people have shared (listed in the main universe.json).
+const COMMONS = { world: 'the-lush', addr: '-1,0' };
+let commons = [];
+fetch('https://raw.githubusercontent.com/staplehorsey/branches/HEAD/universe.json')
+  .then((r) => (r.ok ? r.json() : null))
+  .then((u) => {
+    commons = (u?.shared || []).flatMap((e) =>
+      (e.worlds || []).map((w) => ({ id: `commons-${e.owner}-${w.id}`, slot: 0, target: `gh://${e.repo}@${e.branch || 'worlds'}/w/${w.id}/0,0`, label: `${w.name} (${e.owner})`, by: 'commons', at: 0 })),
+    );
+    for (const r of S.realms.values()) if (r.manifest.id === COMMONS.world && r.interiors.has(COMMONS.addr)) loadInterior(r, -1, 0, true);
+  })
+  .catch(() => {});
+
 function withInjected(r, x, z, room) {
-  const extra = r.inject.get(`${x},${z}`) || [];
+  const extra = [...(r.inject.get(`${x},${z}`) || []), ...(r.manifest.id === COMMONS.world && `${x},${z}` === COMMONS.addr && !r.host.git ? commons.slice(0, 6) : [])];
   const missing = extra.filter((p) => !room.portals.some((q) => q.id === p.id || sameAddress(q.target, r.origin, p.target, r.origin)));
   return missing.length ? { ...room, portals: [...room.portals, ...missing] } : room;
 }
@@ -458,6 +476,10 @@ function setUrl(x, z) {
   }
   const path = `/w/${encodeURIComponent(r.manifest.id)}/${x},${z}`;
   const url = r.origin === location.origin ? path : `${location.pathname.startsWith('/w/') ? '/' : location.pathname}?at=${encodeURIComponent(r.origin + path)}`;
+  if (r.host.git) {
+    $('address').textContent = `${r.host.local.owner}'s ${r.manifest.name} \u00b7 ${x},${z}`;
+    return;
+  }
   try {
     if (location.protocol.startsWith('http') && location.pathname + location.search !== url) history.replaceState(null, '', url);
   } catch {}
@@ -630,6 +652,22 @@ const thingApi = {
     if (done) ui.toast('The room remembers', done);
   },
   tone,
+  // Open a night-shift game full screen, sandboxed, over the world.
+  async play(title, path, controls) {
+    if (!path) return;
+    if (xr.active) {
+      vrNote = { text: `${title}: take off the headset to play this one.`, until: performance.now() + 8000 };
+      return;
+    }
+    const host = S.inside?.realm.host;
+    let html;
+    try {
+      html = host?.git ? await host.local.text(path) : await (await fetch(`${S.inside.realm.origin === LOCAL_ORIGIN ? '' : S.inside.realm.origin}/files/${path}`)).text();
+    } catch (e) {
+      return ui.toast('That game will not start', e.message);
+    }
+    ui.openGame(title, html, controls);
+  },
 };
 
 function labelBubble(text) {
@@ -762,7 +800,7 @@ addEventListener('keydown', (e) => {
     }
     return;
   }
-  if (isTyping(e) || ui.isPanelOpen()) return;
+  if (isTyping(e) || ui.isPanelOpen() || ui.isGameOpen()) return;
   if (e.code === 'KeyE') interact();
   if (e.code === 'KeyF') admire();
   if (e.code === 'KeyV') player.thirdPerson = !player.thirdPerson;
@@ -843,7 +881,7 @@ function step(dt) {
   t += dt;
   time.value = t;
 
-  player.enabled = S.started && !S.waking && (xr.active || (!ui.isPanelOpen() && document.activeElement !== chatInput));
+  player.enabled = S.started && !S.waking && !ui.isGameOpen() && (xr.active || (!ui.isPanelOpen() && document.activeElement !== chatInput));
   if (xr.active) xr.beforeUpdate();
   const before = player.eye;
   const space = spaceOf(before);
@@ -979,7 +1017,10 @@ function welcomeToApp() {
     if (localStorage.getItem('branches.app-welcomed')) return;
     localStorage.setItem('branches.app-welcomed', '1');
   } catch {}
-  ui.nudge('Welcome to Branches for Mac', 'Your worlds now live on this computer, saved as a git repository: every build is a commit, every few builds a version. Visitor books are open; the architect is listening.', [['lovely', null]]);
+  ui.nudge('Welcome to Branches for Mac', 'Your worlds now live on this computer, saved as a git repository: every build is a commit, every few builds a version. Visitor books are open; the architect is listening.', [
+    ['back up to GitHub', () => ui.openGithub(S.primary.host)],
+    ['lovely', null],
+  ]);
 }
 
 async function boot() {

@@ -23,6 +23,12 @@ function keep(key, value) {
   } catch {}
 }
 
+// Things should never vanish for want of room: try the preferred kind of
+// spot, then anywhere on the floor, a corner, and finally anywhere at all.
+function place(ctx, kind, w, d) {
+  return ctx.spot(kind, w, d) || ctx.spot('floor', w, d) || ctx.spot('corner', w, d) || ctx.spot('floor', w * 0.7, d * 0.7) || ctx.spot('floor', w, d, { soft: true });
+}
+
 function mat(color, opts = {}) {
   return new THREE.MeshStandardMaterial({ color, roughness: 0.7, ...opts });
 }
@@ -84,7 +90,7 @@ function character(t, ctx, out) {
   const d = t.data || {};
   const look = d.look || {};
   const r = new Rand(t.seed >>> 0);
-  const s = ctx.spot('floor', 0.9, 0.9);
+  const s = place(ctx, 'floor', 0.9, 0.9);
   if (!s) return;
   const g = new THREE.Group();
   const coat = look.coat || r.pick(ctx.th.accent);
@@ -138,7 +144,7 @@ function character(t, ctx, out) {
 
 function note(t, ctx, out) {
   const d = t.data || {};
-  const s = ctx.spot('wall', 0.7, 0.4);
+  const s = place(ctx, 'wall', 0.7, 0.4);
   if (!s) return;
   const f = ctx.frame(s);
   f.put(ctx.solid, G.box, ctx.th.trim, 0, 0.45, 0, { sx: 0.35, sy: 0.9, sz: 0.3 });
@@ -170,7 +176,7 @@ function lanterns(t, ctx, out) {
   const lit = new Set(store(key, []));
   const glass = [];
   for (let i = 0; i < n; i++) {
-    const s = ctx.spot(i % 2 ? 'corner' : 'floor', 0.5, 0.5);
+    const s = place(ctx, i % 2 ? 'corner' : 'floor', 0.5, 0.5);
     if (!s) continue;
     const post = new THREE.Mesh(G.cyl, mat('#2a2a2a', { metalness: 0.4 }));
     post.scale.set(0.05, 1.1, 0.05);
@@ -209,7 +215,7 @@ function lanterns(t, ctx, out) {
 function bells(t, ctx, out) {
   const d = t.data || {};
   const order = Array.isArray(d.order) && d.order.length ? d.order : ['middle', 'high', 'low'];
-  const s = ctx.spot('wall', 2.0, 0.5);
+  const s = place(ctx, 'wall', 2.0, 0.5);
   if (!s) return;
   const f = ctx.frame(s);
   f.put(ctx.solid, G.box, ctx.th.trim, -0.9, 1.1, 0, { sx: 0.08, sy: 2.2, sz: 0.08 });
@@ -313,9 +319,47 @@ function cat(t, ctx, out) {
   out.push(item);
 }
 
+// A game built on the night shift: a glowing booth you step up to.
+function attraction(t, ctx, out) {
+  const d = t.data || {};
+  const s = place(ctx, 'wall', 1.6, 1.0);
+  if (!s) return;
+  const f = ctx.frame(s);
+  const accent = ctx.th.accent[0];
+  f.put(ctx.solid, G.box, '#1e1b2a', 0, 1.0, -0.1, { sx: 1.4, sy: 2.0, sz: 0.8 });
+  f.put(ctx.glow, G.box, accent, 0, 2.1, 0.2, { sx: 1.5, sy: 0.32, sz: 0.2 });
+  f.put(ctx.glow, G.box, '#bfe8ff', 0, 1.35, 0.31, { sx: 1.0, sy: 0.7, sz: 0.02 });
+  f.put(ctx.solid, G.box, shadeHex(accent), 0, 0.9, 0.42, { sx: 1.2, sy: 0.08, sz: 0.4, rx: -0.3 });
+  for (const sx of [-0.25, 0.25]) f.put(ctx.glow, G.cyl, sx < 0 ? '#ff6a8a' : '#6affc8', sx, 0.96, 0.46, { sx: 0.1, sy: 0.04, sz: 0.1 });
+  const title = d.title || 'A game';
+  const tag = label(title, { size: 0.24 });
+  tag.position.copy(f.world(0, 2.6, 0.2)).sub(ctx.originV);
+  ctx.group.add(tag);
+  const p = f.world(0, 1.6, 0.9);
+  ctx.light(p.x - ctx.originV.x, p.y - ctx.originV.y, p.z - ctx.originV.z, accent, 0.8);
+  ctx.collide(s, 1.4, 0.9);
+  out.push({
+    id: t.id,
+    kind: 'attraction',
+    pos: f.world(0, 1.2, 0.6),
+    radius: 2.2,
+    hint: `play ${title}`,
+    use(api) {
+      api.play(title, d.path, d.controls);
+      api.touch(t.id);
+    },
+  });
+}
+
+function shadeHex(hex) {
+  const c = new THREE.Color(hex);
+  c.multiplyScalar(0.6);
+  return '#' + c.getHexString();
+}
+
 function curious(t, ctx, out) {
   const d = t.data || {};
-  const s = ctx.spot('floor', 0.8, 0.8);
+  const s = place(ctx, 'floor', 0.8, 0.8);
   if (!s) return;
   const m = new THREE.Mesh(G.octa, new THREE.MeshStandardMaterial({ color: ctx.th.glow, emissive: new THREE.Color(ctx.th.glow), emissiveIntensity: 0.8 }));
   m.scale.setScalar(0.5);
@@ -339,7 +383,7 @@ function curious(t, ctx, out) {
   });
 }
 
-const KINDS = { character, note, lanterns, bells, cat };
+const KINDS = { character, note, lanterns, bells, cat, attraction };
 
 export function buildThing(t, ctx, out) {
   (KINDS[t.kind] || curious)(t, ctx, out);

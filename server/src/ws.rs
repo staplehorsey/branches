@@ -206,6 +206,7 @@ fn on_move(app: &App, world: &str, player: &str, p: [f32; 3], ry: f32, room: Opt
     if !p.iter().all(|v| v.is_finite()) || !ry.is_finite() {
         return;
     }
+    *app.last_activity.lock().unwrap() = Instant::now();
     let (dt, entered, left) = {
         let mut pres = app.presence.lock().unwrap();
         let Some(me) = pres.get_mut(world).and_then(|w| w.get_mut(player)) else { return };

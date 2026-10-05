@@ -151,6 +151,14 @@ impl Store {
             let meta: BTreeMap<&str, f64> = [("builds_since_tag", w.builds_since_tag as f64), ("fresh_cells", w.fresh_cells as f64), ("pace", w.pace as f64)].into();
             changed |= self.put(dir.join(".meta.json"), &meta)?;
         }
+        // Small indexes so a browser can read a world straight from GitHub
+        // with a couple of requests.
+        let worlds: Vec<serde_json::Value> = uni.worlds.values().map(|w| serde_json::json!({ "id": w.manifest.id, "name": w.manifest.name, "hub": w.manifest.hub })).collect();
+        changed |= self.put(self.root.join("worlds/index.json"), &worlds)?;
+        for w in uni.worlds.values() {
+            let rooms: Vec<serde_json::Value> = w.rooms.values().map(|r| serde_json::json!([r.x, r.z, r.growth(), r.theme, r.claim.as_ref().map(|c| c.title.clone())])).collect();
+            changed |= self.put(self.world_dir(&w.manifest.id).join("index.json"), &rooms)?;
+        }
         self.put(self.root.join(".branches/players.json"), &uni.players)?;
         Ok(changed)
     }

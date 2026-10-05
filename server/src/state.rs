@@ -81,6 +81,9 @@ pub struct App {
     pub settings: Mutex<Settings>,
     pub in_flight: Mutex<HashSet<String>>,
     pub commit_notes: Mutex<Vec<String>>,
+    pub last_activity: Mutex<std::time::Instant>,
+    pub last_night: Mutex<Option<std::time::Instant>>,
+    pub night_running: AtomicBool,
 }
 
 /// Who builds. `heuristic` is built in; `command` hands a prompt to any
@@ -89,11 +92,13 @@ pub struct App {
 pub struct Settings {
     pub architect: String,
     pub command: String,
+    #[serde(default)]
+    pub night: crate::nightshift::Night,
 }
 
 impl Default for Settings {
     fn default() -> Self {
-        Settings { architect: "heuristic".into(), command: "claude -p".into() }
+        Settings { architect: "heuristic".into(), command: "claude -p".into(), night: Default::default() }
     }
 }
 
@@ -116,6 +121,9 @@ impl App {
             settings: Mutex::new(settings),
             in_flight: Mutex::new(HashSet::new()),
             commit_notes: Mutex::new(Vec::new()),
+            last_activity: Mutex::new(std::time::Instant::now()),
+            last_night: Mutex::new(None),
+            night_running: AtomicBool::new(false),
         })
     }
 
