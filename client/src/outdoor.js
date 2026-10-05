@@ -5,11 +5,44 @@ import { Batch, G, aabb, canvasTexture, softDot, label, disposeTree } from './ge
 import { Rand, hash32 } from './rng.js';
 import { CELL, HOUSE_W, HOUSE_D, WALL_H, DOOR_W, DOOR_H } from './layout.js';
 import { shade } from './themes.js';
+import { makeVehicle } from './player.js';
 
 export const time = { value: 0 };
 
 const RADIUS = 4; // cells of props around the player
 const GRASS_RADIUS = 2;
+
+function smooth(t) {
+  return t * t * (3 - 2 * t);
+}
+
+// Smooth value noise in [-1, 1].
+function vnoise(seed, x, z) {
+  const xi = Math.floor(x), zi = Math.floor(z);
+  const u = smooth(x - xi), v = smooth(z - zi);
+  const h = (a, b) => hash32(seed, a, b, 91) / 4294967296;
+  const a = h(xi, zi) + (h(xi + 1, zi) - h(xi, zi)) * u;
+  const b = h(xi, zi + 1) + (h(xi + 1, zi + 1) - h(xi, zi + 1)) * u;
+  return (a + (b - a) * v) * 2 - 1;
+}
+
+// Shifts every placement of a batch up by a terrain height.
+function lifted(batch, heightAt) {
+  return {
+    put(geo, color, x, y, z, opts) {
+      return batch.put(geo, color, x, y + heightAt(x, z), z, opts);
+    },
+    add: (...a) => batch.add(...a),
+  };
+}
+function raised(batch, dy) {
+  return {
+    put(geo, color, x, y, z, opts) {
+      return batch.put(geo, color, x, y + dy, z, opts);
+    },
+    add: (...a) => batch.add(...a),
+  };
+}
 
 function gableRoof(b) {
   // Ridge along x. Built from triangles so it can be merged into the batch.
@@ -82,19 +115,115 @@ function buildHouse(biome) {
   win(W + 0.03, 1.6, 0, Math.PI / 2);
   win(-2.5, 1.6, -D - 0.03, 0);
   win(2.5, 1.6, -D - 0.03, 0);
-  // Mailbox at the end of the walk.
-  solid.put(G.box, trim, 1.4, 0.55, CELL / 2 - 2.1, { sx: 0.1, sy: 1.1, sz: 0.1 });
-  solid.put(G.box, h.door, 1.4, 1.15, CELL / 2 - 2.1, { sx: 0.3, sy: 0.3, sz: 0.5 });
   const colliders = [
     [-W, -D, W, -D + T],
     [-W, -D, -W + T, D],
     [W - T, -D, W, D],
     [-W, D - T - 0.05, -DOOR_W / 2, D + 0.1],
     [DOOR_W / 2, D - T - 0.05, W, D + 0.1],
-    [1.25, CELL / 2 - 2.35, 1.55, CELL / 2 - 1.85],
   ];
-  return { solid: solid.build(), glow: glow.build(), colliders };
+  return { solid: solid.build(), glow: glow.build(), colliders, top: WALL_H + 2.9 };
 }
+
+// Every place has its door in the same spot (centre front, facing +z), so
+// the pocket below and the portals work the same for all of them.
+const DZ = HOUSE_D / 2;
+
+function doorGlow(glow, biome) {
+  glow.put(G.box, biome.house.window, 0, DOOR_H / 2, DZ - 0.6, { sx: DOOR_W, sy: DOOR_H, sz: 0.05 });
+}
+
+// A narrow tower: tall, a conical roof, slit windows.
+function buildTower(biome) {
+  const h = biome.house;
+  const solid = new Batch();
+  const glow = new Batch();
+  const W = 3.2, back = -2.4, T = 0.25, HT = 8.5;
+  const zc = (DZ + back) / 2, depth = DZ - back;
+  solid.put(G.box, h.wall, 0, HT / 2, back + T / 2, { sx: W * 2, sy: HT, sz: T });
+  solid.put(G.box, h.wall, -W + T / 2, HT / 2, zc, { sx: T, sy: HT, sz: depth });
+  solid.put(G.box, h.wall, W - T / 2, HT / 2, zc, { sx: T, sy: HT, sz: depth });
+  const side = W - DOOR_W / 2;
+  solid.put(G.box, h.wall, -(DOOR_W / 2 + side / 2), HT / 2, DZ - T / 2, { sx: side, sy: HT, sz: T });
+  solid.put(G.box, h.wall, DOOR_W / 2 + side / 2, HT / 2, DZ - T / 2, { sx: side, sy: HT, sz: T });
+  solid.put(G.box, h.wall, 0, (HT + DOOR_H) / 2, DZ - T / 2, { sx: DOOR_W, sy: HT - DOOR_H, sz: T });
+  solid.put(G.box, shade(h.wall, -0.25), 0, 0.15, zc, { sx: W * 2 + 0.3, sy: 0.3, sz: depth + 0.3 });
+  solid.put(G.cone, h.roof, 0, HT + 1.9, zc, { sx: W * 2.9, sy: 3.8, sz: depth * 1.45, ry: Math.PI / 4 });
+  for (let k = 0; k < 3; k++) {
+    for (const sx of [-1, 1]) glow.put(G.box, h.window, sx * 1.6, 3.2 + k * 2, DZ + 0.03, { sx: 0.35, sy: 1.1, sz: 0.04 });
+    glow.put(G.box, h.window, -W - 0.03, 3.2 + k * 2, zc, { sx: 0.04, sy: 1.1, sz: 0.35 });
+    glow.put(G.box, h.window, W + 0.03, 3.2 + k * 2, zc, { sx: 0.04, sy: 1.1, sz: 0.35 });
+  }
+  for (const sx of [-1, 1]) solid.put(G.box, h.trim, sx * (DOOR_W / 2 + 0.07), DOOR_H / 2, DZ + 0.04, { sx: 0.14, sy: DOOR_H, sz: 0.1 });
+  solid.put(G.box, h.trim, 0, DOOR_H + 0.08, DZ + 0.04, { sx: DOOR_W + 0.3, sy: 0.16, sz: 0.12 });
+  solid.put(G.box, biome.path, 0, 0.1, DZ + 0.6, { sx: 2.2, sy: 0.2, sz: 1.2 });
+  glow.put(G.ballSmooth, biome.lamp, 0.95, DOOR_H + 0.2, DZ + 0.15, { sx: 0.16, sy: 0.22, sz: 0.16 });
+  doorGlow(glow, biome);
+  const colliders = [
+    [-W, back, W, back + T],
+    [-W, back, -W + T, DZ],
+    [W - T, back, W, DZ],
+    [-W, DZ - T - 0.05, -DOOR_W / 2, DZ + 0.1],
+    [DOOR_W / 2, DZ - T - 0.05, W, DZ + 0.1],
+  ];
+  return { solid: solid.build(), glow: glow.build(), colliders, top: HT + 4.2 };
+}
+
+// A hill with a door in its face: mossy stones, a lintel, warm light.
+function buildCave(biome) {
+  const solid = new Batch();
+  const glow = new Batch();
+  const stone = shade(biome.path, -0.28);
+  const moss = biome.hedge;
+  const r = new Rand(4242);
+  for (let k = 0; k < 9; k++) {
+    const x = r.range(-4.5, 4.5), z = r.range(-5, 1.5);
+    const sx = r.range(4, 7), sy = r.range(3, 5.5), sz = r.range(4, 6);
+    solid.put(G.ball, k % 3 ? moss : stone, x, sy * 0.25, z, { sx, sy, sz, ry: r.range(0, 3) });
+  }
+  // The rock face around the door.
+  for (const sx of [-1, 1]) {
+    solid.put(G.ball, stone, sx * 1.6, 1.4, DZ - 0.2, { sx: 2.2, sy: 3.4, sz: 1.4 });
+    solid.put(G.ball, stone, sx * 3.6, 1.0, DZ - 0.8, { sx: 3.2, sy: 2.8, sz: 2.4 });
+  }
+  solid.put(G.box, stone, 0, DOOR_H + 0.35, DZ - 0.05, { sx: DOOR_W + 1.4, sy: 0.7, sz: 0.9 });
+  for (const sx of [-1, 1]) solid.put(G.box, shade(stone, 0.06), sx * (DOOR_W / 2 + 0.2), DOOR_H / 2, DZ - 0.05, { sx: 0.4, sy: DOOR_H, sz: 0.9 });
+  solid.put(G.box, biome.path, 0, 0.08, DZ + 0.6, { sx: 2.4, sy: 0.16, sz: 1.2 });
+  for (const sx of [-1, 1]) glow.put(G.ballSmooth, biome.lamp, sx * 1.4, 0.5, DZ + 0.5, { sx: 0.2, sy: 0.26, sz: 0.2 });
+  doorGlow(glow, biome);
+  const colliders = [
+    [-6.5, -7, -DOOR_W / 2, DZ + 0.1],
+    [DOOR_W / 2, -7, 6.5, DZ + 0.1],
+    [-DOOR_W / 2, -7, DOOR_W / 2, DZ - 0.75],
+  ];
+  return { solid: solid.build(), glow: glow.build(), colliders, top: 5.2 };
+}
+
+// A freestanding stone arch on a little plaza: the door is all there is.
+function buildArch(biome) {
+  const solid = new Batch();
+  const glow = new Batch();
+  const stone = shade(biome.house.trim, -0.12);
+  solid.put(G.cyl, shade(biome.path, -0.05), 0, 0.06, DZ - 1, { sx: 7, sy: 0.12, sz: 6 });
+  for (const sx of [-1, 1]) {
+    solid.put(G.box, stone, sx * (DOOR_W / 2 + 0.3), (DOOR_H + 0.5) / 2, DZ - 0.25, { sx: 0.6, sy: DOOR_H + 0.5, sz: 0.6 });
+    solid.put(G.box, shade(stone, -0.1), sx * (DOOR_W / 2 + 0.3), 0.15, DZ - 0.25, { sx: 0.8, sy: 0.3, sz: 0.8 });
+    solid.put(G.box, stone, sx * 3.2, 1.2, DZ - 2.6, { sx: 0.7, sy: 2.4, sz: 0.5, ry: sx * 0.3 });
+  }
+  solid.put(G.box, stone, 0, DOOR_H + 0.55, DZ - 0.25, { sx: DOOR_W + 1.4, sy: 0.5, sz: 0.7 });
+  solid.put(G.box, shade(stone, 0.08), 0, DOOR_H + 0.9, DZ - 0.25, { sx: DOOR_W + 0.6, sy: 0.2, sz: 0.5 });
+  glow.put(G.octa, biome.lamp, 0, DOOR_H + 1.3, DZ - 0.25, { sx: 0.3, sy: 0.45, sz: 0.3 });
+  doorGlow(glow, biome);
+  const colliders = [
+    [-DOOR_W / 2 - 0.6, DZ - 0.55, -DOOR_W / 2, DZ + 0.05],
+    [DOOR_W / 2, DZ - 0.55, DOOR_W / 2 + 0.6, DZ + 0.05],
+    // Behind the doorway: you can only go through it from the front.
+    [-DOOR_W / 2, DZ - 0.75, DOOR_W / 2, DZ - 0.6],
+  ];
+  return { solid: solid.build(), glow: glow.build(), colliders, top: DOOR_H + 2.2 };
+}
+
+const PLACES = { house: buildHouse, tower: buildTower, cave: buildCave, arch: buildArch };
 
 function tree(b, glow, biome, r, x, z, scale = 1) {
   const f = biome.foliage;
@@ -205,65 +334,130 @@ function makeGrassMaterial() {
   return m;
 }
 
+const parseAddr = (s) => {
+  const m = /^\s*(-?\d+)\s*,\s*(-?\d+)\s*$/.exec(s || '');
+  return m ? [Number(m[1]), Number(m[2])] : [0, 0];
+};
+
 export class Outdoor {
   // `base` lifts the whole world: several worlds share one scene, stacked.
+  // `manifest._versions` (newest first) and `_ring` let far bands of the
+  // world show the biome as it was at older versions.
   constructor(root, manifest, base = 0) {
     this.root = root;
     this.base = base;
     root.position.y = base;
+    this.manifest = manifest;
     this.biome = manifest.generator.params;
     this.seed = manifest.seed >>> 0;
+    this.spawn = parseAddr(manifest.spawn);
+    this.ring = manifest._ring || 6;
+    this.bands = [this.biome, ...(manifest._versions || []).map((v) => (v.biome && v.biome.sky ? v.biome : this.biome))];
+    const t = this.biome.terrain || {};
+    this.amp = t.amp ?? 2;
+    this.scale = t.scale ?? 60;
+    this.pads = new Map();
     this.cells = new Map();
     this.summaries = new Map();
-    this.house = buildHouse(this.biome);
+    this.places = new Map();
+    this.grassGeos = new Map();
+    this.racks = new Map();
     this.solidMat = new THREE.MeshLambertMaterial({ vertexColors: true, flatShading: true });
+    this.groundMat = new THREE.MeshLambertMaterial({ vertexColors: true });
     this.glowMat = new THREE.MeshBasicMaterial({ vertexColors: true });
-    this.shadowMat = new THREE.MeshBasicMaterial({ color: '#000000', transparent: true, opacity: 0.18, depthWrite: false });
-    this.grassGeo = makeGrassGeometry(this.biome);
+    this.shadowMat = new THREE.MeshBasicMaterial({ color: '#000000', transparent: true, opacity: 0.16, depthWrite: false });
     this.grassMat = makeGrassMaterial();
     this.waterMat = new THREE.MeshStandardMaterial({ color: this.biome.water, emissive: new THREE.Color(this.biome.water), emissiveIntensity: this.biome.night ? 0.5 : 0.15, roughness: 0.05, metalness: 0.2 });
-    for (const m of [this.solidMat, this.glowMat, this.shadowMat, this.grassMat, this.waterMat]) m.userData.shared = true;
+    for (const m of [this.solidMat, this.groundMat, this.glowMat, this.shadowMat, this.grassMat, this.waterMat]) m.userData.shared = true;
     this.queue = [];
     this.center = null;
-    this.buildGround();
+    this.band = 0;
+    this.buildUnderlay();
     this.buildSky();
     this.buildMotes();
   }
 
-  buildGround() {
+  // ------------------------------------------------------------ terrain
+
+  rawHeight(x, z) {
+    if (this.amp <= 0) return 0;
+    const s = this.scale;
+    const n = vnoise(this.seed, x / s, z / s) + 0.45 * vnoise(this.seed + 1, (x / s) * 2.3, (z / s) * 2.3) + 0.18 * vnoise(this.seed + 2, (x / s) * 5.1, (z / s) * 5.1);
+    return (this.amp * n) / 1.63;
+  }
+
+  // Each place sits on a level pad; the land eases into it.
+  padAt(cx, cz) {
+    const k = `${cx},${cz}`;
+    if (!this.pads.has(k)) this.pads.set(k, Math.round(this.rawHeight(cx * CELL, cz * CELL) * 20) / 20);
+    return this.pads.get(k);
+  }
+
+  heightAt(x, z) {
+    const cx = Math.round(x / CELL), cz = Math.round(z / CELL);
+    const lx = x - cx * CELL, lz = z - cz * CELL;
+    const pad = this.padAt(cx, cz);
+    const dx = Math.max(0, Math.abs(lx) - 6.5), dz = Math.max(0, lz > 0 ? lz - 10 : -lz - 7);
+    const k = smooth(Math.min(1, Math.hypot(dx, dz) / 4));
+    return pad + (this.rawHeight(x, z) - pad) * k;
+  }
+
+  // ------------------------------------------------------------ versions
+
+  bandOf(cx, cz) {
+    const n = this.bands.length;
+    if (n === 1) return 0;
+    const d = Math.max(Math.abs(cx - this.spawn[0]), Math.abs(cz - this.spawn[1]));
+    return Math.min(n - 1, Math.floor((n * d) / (d + this.ring)));
+  }
+
+  biomeAt(cx, cz) {
+    return this.bands[this.bandOf(cx, cz)];
+  }
+
+  placeOf(cx, cz, biome) {
+    const w = biome.places || { house: 1 };
+    const kinds = Object.keys(PLACES).filter((k) => (w[k] || 0) > 0);
+    if (!kinds.length) return 'house';
+    const total = kinds.reduce((s2, k) => s2 + w[k], 0);
+    let roll = (hash32(this.seed, cx, cz, 515) / 4294967296) * total;
+    for (const k of kinds) if ((roll -= w[k]) <= 0) return k;
+    return kinds[0];
+  }
+
+  place(band, kind) {
+    const key = `${band}:${kind}`;
+    if (!this.places.has(key)) {
+      const p = PLACES[kind](this.bands[band]);
+      for (const g of [p.solid, p.glow]) if (g) g.userData.shared = true;
+      this.places.set(key, p);
+    }
+    return this.places.get(key);
+  }
+
+  // ------------------------------------------------------------ sky & air
+
+  buildUnderlay() {
     const b = this.biome;
-    const tex = canvasTexture(256, (ctx, s) => {
-      ctx.fillStyle = b.ground;
-      ctx.fillRect(0, 0, s, s);
-      const r = new Rand(1);
-      for (let i = 0; i < 2500; i++) {
-        ctx.fillStyle = r.chance(0.5) ? shade(b.ground, 0.06) : shade(b.ground, -0.06);
-        ctx.globalAlpha = 0.5;
-        ctx.fillRect(r.range(0, s), r.range(0, s), 3, 3);
-      }
-    });
-    tex.repeat.set(120, 120);
-    this.ground = new THREE.Mesh(new THREE.PlaneGeometry(CELL * 30, CELL * 30), new THREE.MeshLambertMaterial({ map: tex }));
+    this.ground = new THREE.Mesh(new THREE.PlaneGeometry(CELL * 30, CELL * 30), new THREE.MeshLambertMaterial({ color: shade(b.ground, -0.08) }));
     this.ground.rotation.x = -Math.PI / 2;
+    this.ground.position.y = -this.amp - 0.6;
     this.root.add(this.ground);
   }
 
   buildSky() {
-    const s = this.biome.sky;
-    const sun = this.biome.sun;
-    const dir = new THREE.Vector3(Math.cos(sun.azimuth) * Math.cos(sun.elevation), Math.sin(sun.elevation), Math.sin(sun.azimuth) * Math.cos(sun.elevation));
-    this.sunDir = dir;
+    this.sunDir = new THREE.Vector3();
     const mat = new THREE.ShaderMaterial({
       side: THREE.BackSide,
       depthWrite: false,
       fog: false,
       uniforms: {
-        top: { value: new THREE.Color(s.top) },
-        horizon: { value: new THREE.Color(s.horizon) },
-        bottom: { value: new THREE.Color(s.bottom) },
-        sunDir: { value: dir },
-        sunColor: { value: new THREE.Color(sun.color) },
-        night: { value: this.biome.night ? 1 : 0 },
+        top: { value: new THREE.Color() },
+        horizon: { value: new THREE.Color() },
+        bottom: { value: new THREE.Color() },
+        sunDir: { value: this.sunDir },
+        sunColor: { value: new THREE.Color() },
+        night: { value: 0 },
         uTime: time,
       },
       vertexShader: 'varying vec3 vDir; void main(){ vDir = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
@@ -289,6 +483,23 @@ export class Outdoor {
     this.sky.frustumCulled = false;
     this.sky.renderOrder = -1;
     this.root.add(this.sky);
+    this.setSky(this.biome);
+  }
+
+  // The sky, light and air of whichever version band you are standing in.
+  setSky(b) {
+    this.biome = b;
+    const u = this.sky.material.uniforms;
+    u.top.value.set(b.sky.top);
+    u.horizon.value.set(b.sky.horizon);
+    u.bottom.value.set(b.sky.bottom);
+    u.sunColor.value.set(b.sun.color);
+    u.night.value = b.night ? 1 : 0;
+    this.sunDir.set(Math.cos(b.sun.azimuth) * Math.cos(b.sun.elevation), Math.sin(b.sun.elevation), Math.sin(b.sun.azimuth) * Math.cos(b.sun.elevation));
+    if (this.motes) {
+      this.motes.material.color.set(b.motes);
+      this.motes.material.size = b.night ? 0.16 : 0.07;
+    }
   }
 
   buildMotes() {
@@ -315,17 +526,26 @@ export class Outdoor {
 
   update(player, dt) {
     const cx = Math.round(player.x / CELL), cz = Math.round(player.z / CELL);
-    this.ground.position.set(cx * CELL, 0, cz * CELL);
+    this.ground.position.x = cx * CELL;
+    this.ground.position.z = cz * CELL;
+    const band = this.bandOf(cx, cz);
+    if (band !== this.band) {
+      this.band = band;
+      this.setSky(this.bands[band]);
+    }
     const a = this.motes.geometry.attributes.position.array;
     const t = time.value;
+    const py = player.y - this.base;
     for (let i = 0; i < a.length; i += 3) {
       a[i] += Math.sin(t * 0.3 + i) * dt * 0.3;
       a[i + 1] += Math.sin(t * 0.5 + i * 0.7) * dt * 0.15;
-      let dx = a[i] - player.x, dz = a[i + 2] - player.z;
+      const dx = a[i] - player.x, dz = a[i + 2] - player.z;
       if (dx > 30) a[i] -= 60;
       if (dx < -30) a[i] += 60;
       if (dz > 30) a[i + 2] -= 60;
       if (dz < -30) a[i + 2] += 60;
+      if (a[i + 1] - py > 9) a[i + 1] -= 9;
+      if (a[i + 1] - py < -1) a[i + 1] += 9;
     }
     this.motes.geometry.attributes.position.needsUpdate = true;
     if (this.biome.night) this.motes.material.opacity = 0.65 + Math.sin(t * 2.3) * 0.3;
@@ -344,8 +564,13 @@ export class Outdoor {
         const [x, z] = k.split(',').map(Number);
         if (Math.max(Math.abs(x - cx), Math.abs(z - cz)) > RADIUS + 1) {
           this.root.remove(cell.group);
+          if (cell.grass) {
+            this.root.remove(cell.grass);
+            cell.grass.dispose();
+          }
           disposeTree(cell.group);
           this.cells.delete(k);
+          this.racks.delete(k);
         } else {
           this.setGrass(cell, Math.max(Math.abs(x - cx), Math.abs(z - cz)) <= GRASS_RADIUS);
         }
@@ -371,33 +596,76 @@ export class Outdoor {
     return this.queue.length;
   }
 
+  // ------------------------------------------------------------ cells
+
+  groundMesh(cx, cz, b) {
+    const H = CELL / 2, N = 32;
+    const g = new THREE.PlaneGeometry(CELL, CELL, N, N);
+    g.rotateX(-Math.PI / 2);
+    const pos = g.attributes.position;
+    const col = new Float32Array(pos.count * 3);
+    const grass = new THREE.Color(b.ground), path = new THREE.Color(b.path), edge = new THREE.Color(shade(b.path, -0.04));
+    const r = new Rand(hash32(this.seed, cx, cz, 12));
+    const c = new THREE.Color();
+    for (let i = 0; i < pos.count; i++) {
+      const lx = pos.getX(i), lz = pos.getZ(i);
+      pos.setY(i, this.heightAt(cx * CELL + lx, cz * CELL + lz));
+      const street = Math.abs(lx) > H - 1.5 || Math.abs(lz) > H - 1.5;
+      const walk = Math.abs(lx) < 0.7 && lz > HOUSE_D / 2 + 0.8 && lz < H - 1.5;
+      if (street) c.copy(Math.abs(lx) > H - 1.5 && Math.abs(lz) > H - 1.5 ? edge : path);
+      else if (walk) c.copy(path);
+      else c.copy(grass).offsetHSL(0, 0, r.range(-0.03, 0.03));
+      col[i * 3] = c.r;
+      col[i * 3 + 1] = c.g;
+      col[i * 3 + 2] = c.b;
+    }
+    g.setAttribute('color', new THREE.BufferAttribute(col, 3));
+    g.computeVertexNormals();
+    return new THREE.Mesh(g, this.groundMat);
+  }
+
   buildCell(cx, cz) {
-    const b = this.biome;
+    const band = this.bandOf(cx, cz);
+    const b = this.bands[band];
     const r = new Rand(hash32(this.seed, cx, cz, 77));
     const group = new THREE.Group();
     const ox = cx * CELL, oz = cz * CELL;
     group.position.set(ox, 0, oz);
-    const solid = new Batch();
-    const glow = new Batch();
-    const shadow = new Batch();
+    const solidB = new Batch();
+    const glowB = new Batch();
+    const shadowB = new Batch();
+    const h = (lx, lz) => this.heightAt(ox + lx, oz + lz);
+    const solid = lifted(solidB, h);
+    const glow = lifted(glowB, h);
+    const shadow = lifted(shadowB, (x, z) => h(x, z) + 0.02);
     const colliders = [];
-    const col = (x0, z0, x1, z1) => colliders.push(aabb(ox + x0, oz + z0, ox + x1, oz + z1, this.base - 5, this.base + 20));
+    const col = (x0, z0, x1, z1) => colliders.push(aabb(ox + x0, oz + z0, ox + x1, oz + z1, this.base - 30, this.base + 60));
     const H = CELL / 2;
+    const pad = this.padAt(cx, cz);
 
-    // House.
-    const house = new THREE.Mesh(this.house.solid, this.solidMat);
-    const houseGlow = new THREE.Mesh(this.house.glow, this.glowMat);
-    house.geometry.userData.shared = houseGlow.geometry.userData.shared = true;
-    group.add(house, houseGlow);
-    for (const c of this.house.colliders) col(...c);
-    shadow.put(G.box, '#000', 0, 0.02, 0, { sx: HOUSE_W + 1.2, sy: 0.01, sz: HOUSE_D + 1.2 });
+    group.add(this.groundMesh(cx, cz, b));
 
-    // Streets on this cell's +x and +z edges, and the front walk.
-    solid.put(G.box, b.path, 0, 0.015, H, { sx: CELL - 3, sy: 0.03, sz: 3 });
-    solid.put(G.box, shade(b.path, -0.03), H, 0.02, 0, { sx: 3, sy: 0.04, sz: CELL + 3 });
-    solid.put(G.box, b.path, 0, 0.012, (HOUSE_D / 2 + H - 1.5) / 2 + 0.6, { sx: 1.4, sy: 0.024, sz: H - 1.5 - HOUSE_D / 2 - 1 });
+    // The place with the door: same door, many shapes.
+    const kind = this.placeOf(cx, cz, b);
+    const pl = this.place(band, kind);
+    const body = new THREE.Mesh(pl.solid, this.solidMat);
+    body.position.y = pad;
+    group.add(body);
+    if (pl.glow) {
+      const gl = new THREE.Mesh(pl.glow, this.glowMat);
+      gl.position.y = pad;
+      group.add(gl);
+    }
+    for (const c of pl.colliders) col(...c);
+    if (kind === 'house' || kind === 'tower') shadowB.put(G.box, '#000', 0, pad + 0.02, -0.5, { sx: kind === 'house' ? HOUSE_W + 1.2 : 7.4, sy: 0.01, sz: kind === 'house' ? HOUSE_D + 1.2 : 8 });
 
-    // Hedges along the side yards, with gaps to slip through.
+    // Mailbox at the end of the walk.
+    const my = h(1.4, H - 2.1);
+    solidB.put(G.box, b.house.trim, 1.4, my + 0.55, H - 2.1, { sx: 0.1, sy: 1.1, sz: 0.1 });
+    solidB.put(G.box, b.house.door, 1.4, my + 1.15, H - 2.1, { sx: 0.3, sy: 0.3, sz: 0.5 });
+    col(1.25, H - 2.35, 1.55, H - 1.85);
+
+    // Hedges along the side yards, in short runs that follow the land.
     for (const sx of [-1, 1]) {
       const x = sx * 8.2;
       let z = -H + 1.8;
@@ -405,21 +673,27 @@ export class Outdoor {
         const len = r.range(2.5, 6);
         const end = Math.min(z + len, H - 3);
         if (r.chance(0.82)) {
-          const mid = (z + end) / 2, l = end - z;
-          solid.put(G.box, b.hedge, x, 0.6, mid, { sx: 0.9, sy: 1.2, sz: l });
-          for (let k = 0; k < l / 0.9; k++) solid.put(G.ball, shade(b.hedge, r.range(-0.04, 0.06)), x + r.range(-0.15, 0.15), 1.15, z + 0.45 + k * 0.9, { sx: 1, sy: 0.55, sz: 1 });
-          if (r.chance(0.35)) flowers(solid, b, r, x - 0.5, z, x + 0.5, end, Math.floor(l * 2));
+          for (let zz = z; zz < end - 0.1; zz += 1.5) {
+            const seg = Math.min(1.5, end - zz), mid = zz + seg / 2;
+            solid.put(G.box, b.hedge, x, 0.6, mid, { sx: 0.9, sy: 1.2, sz: seg + 0.05 });
+            solid.put(G.ball, shade(b.hedge, r.range(-0.04, 0.06)), x + r.range(-0.15, 0.15), 1.15, mid, { sx: 1, sy: 0.55, sz: seg + 0.2 });
+          }
+          if (r.chance(0.35)) flowers(solid, b, r, x - 0.5, z, x + 0.5, end, Math.floor((end - z) * 2));
           col(x - 0.5, z, x + 0.5, end);
-          shadow.put(G.box, '#000', x + 0.4, 0.02, mid, { sx: 1.6, sy: 0.01, sz: l + 0.4 });
+          shadow.put(G.box, '#000', x + 0.4, 0, (z + end) / 2, { sx: 1.6, sy: 0.01, sz: end - z + 0.4 });
         }
         z = end + r.range(1.2, 2.2);
       }
     }
 
-    // Flower beds along the front of the house.
-    for (const sx of [-1, 1]) {
-      solid.put(G.box, shade(b.ground, -0.12), sx * 3, 0.06, HOUSE_D / 2 + 0.6, { sx: 3.6, sy: 0.12, sz: 0.9 });
-      flowers(solid, b, r, sx * 3 - 1.7, HOUSE_D / 2 + 0.25, sx * 3 + 1.7, HOUSE_D / 2 + 0.95, 14);
+    // Flower beds along the front.
+    if (kind === 'house' || kind === 'tower') {
+      for (const sx of [-1, 1]) {
+        solid.put(G.box, shade(b.ground, -0.12), sx * 3, 0.06, HOUSE_D / 2 + 0.6, { sx: kind === 'house' ? 3.6 : 1.6, sy: 0.12, sz: 0.9 });
+        flowers(solid, b, r, sx * 3 - 1.6, HOUSE_D / 2 + 0.25, sx * 3 + 1.6, HOUSE_D / 2 + 0.95, kind === 'house' ? 14 : 6);
+      }
+    } else {
+      flowers(solid, b, r, -5, HOUSE_D / 2 + 0.5, 5, HOUSE_D / 2 + 3, 18);
     }
 
     // Trees.
@@ -433,25 +707,28 @@ export class Outdoor {
     spots.forEach(([x, z], i) => {
       if (i > 1 && r.chance(0.45)) return;
       if (i === 1 && Math.abs(spots[0][0] - x) < 3.5) return;
-      trees.push(tree(solid, glow, b, r, x, z, i === 3 ? 0.7 : 1));
+      if (kind === 'cave' && i < 2 && Math.abs(x) < 7) return;
+      const y = h(x, z);
+      trees.push(tree(raised(solidB, y), raised(glowB, y), b, r, x, z, i === 3 ? 0.7 : 1));
     });
     for (const t of trees) {
       col(t.x - t.r, t.z - t.r, t.x + t.r, t.z + t.r);
-      shadow.put(G.cyl, '#000', t.x + 0.6, 0.025, t.z + 0.3, { sx: 4.5, sy: 0.01, sz: 4.5 });
+      shadow.put(G.cyl, '#000', t.x + 0.6, 0.005, t.z + 0.3, { sx: 4.5, sy: 0.01, sz: 4.5 });
     }
 
-    // A pond in some back yards.
-    if (r.chance(b.ponds)) {
+    // A pond in some back yards, where the land allows.
+    if (r.chance(b.ponds ?? 0.2) && kind !== 'cave') {
       const px = r.chance(0.5) ? -4.5 : 4.5, pz = -H + 4.2;
+      const py = Math.min(h(px - 2, pz), h(px + 2, pz), h(px, pz - 1.5), h(px, pz + 1.5));
       const pond = new THREE.Mesh(G.cyl, this.waterMat);
       pond.scale.set(4.4, 0.05, 3.2);
-      pond.position.set(px, 0.03, pz);
+      pond.position.set(px, py + 0.04, pz);
       group.add(pond);
       for (let k = 0; k < 14; k++) {
         const a = (k / 14) * Math.PI * 2;
-        solid.put(G.ball, shade(b.path, r.range(-0.15, 0)), px + Math.cos(a) * 2.25, 0.06, pz + Math.sin(a) * 1.65, { sx: 0.6, sy: 0.25, sz: 0.5 });
+        solid.put(G.ball, shade(b.path, r.range(-0.15, 0)), px + Math.cos(a) * 2.25, 0.06, pz + Math.sin(a) * 1.65, { sx: 0.6, sy: 0.3, sz: 0.5 });
       }
-      for (let k = 0; k < 5; k++) solid.put(G.cyl, '#4f9a4a', px + r.range(-1.4, 1.4), 0.07, pz + r.range(-1, 1), { sx: 0.5, sy: 0.02, sz: 0.5 });
+      for (let k = 0; k < 5; k++) solidB.put(G.cyl, '#4f9a4a', px + r.range(-1.4, 1.4), py + 0.08, pz + r.range(-1, 1), { sx: 0.5, sy: 0.02, sz: 0.5 });
       col(px - 2.2, pz - 1.6, px + 2.2, pz + 1.6);
     }
 
@@ -463,46 +740,75 @@ export class Outdoor {
     col(lx - 0.12, lz - 0.12, lx + 0.12, lz + 0.12);
     if (b.night) glow.put(G.cyl, b.lamp, lx, 0.03, lz, { sx: 3.5, sy: 0.005, sz: 3.5 });
 
-    const sg = solid.build();
+    // Bikes to borrow at some corners.
+    if (hash32(this.seed, cx, cz, 808) % 3 === 0) {
+      const bx = lx - 2.4, bz = H - 1.2;
+      const by = h(bx, bz);
+      solidB.put(G.box, '#3a3a3a', bx, by + 0.4, bz, { sx: 1.8, sy: 0.06, sz: 0.06 });
+      for (const ex of [-0.9, 0.9]) solidB.put(G.box, '#3a3a3a', bx + ex, by + 0.2, bz, { sx: 0.06, sy: 0.4, sz: 0.06 });
+      const colors = b.flowers || ['#ff8fb1'];
+      for (let k = 0; k < 2; k++) {
+        const bike = makeVehicle('bike', colors[Math.abs(cx * 7 + cz * 3 + k) % colors.length]);
+        bike.position.set(bx - 0.45 + k * 0.9, by, bz - 0.05);
+        bike.rotation.y = Math.PI / 2;
+        group.add(bike);
+      }
+      this.racks.set(`${cx},${cz}`, new THREE.Vector3(ox + bx, this.base + by, oz + bz));
+      col(bx - 1, bz - 0.4, bx + 1, bz + 0.4);
+    }
+
+    const sg = solidB.build();
     if (sg) group.add(new THREE.Mesh(sg, this.solidMat));
-    const gg = glow.build();
+    const gg = glowB.build();
     if (gg) group.add(new THREE.Mesh(gg, this.glowMat));
-    const shg = shadow.build();
+    const shg = shadowB.build();
     if (shg) {
       const m = new THREE.Mesh(shg, this.shadowMat);
       m.renderOrder = 1;
       group.add(m);
     }
     this.root.add(group);
-    const cell = { x: cx, z: cz, group, colliders, grass: null, extras: null };
+    const cell = { x: cx, z: cz, band, kind, top: pl.top + pad, group, colliders, grass: null, extras: null };
     this.applySummary(cell);
     return cell;
   }
 
+  bikeNear(pos) {
+    for (const p of this.racks.values()) if (Math.hypot(p.x - pos.x, p.z - pos.z) < 2.4) return p;
+    return null;
+  }
+
+  grassGeo(band) {
+    if (!this.grassGeos.has(band)) {
+      const g = makeGrassGeometry(this.bands[band]);
+      g.userData.shared = true;
+      this.grassGeos.set(band, g);
+    }
+    return this.grassGeos.get(band);
+  }
+
   setGrass(cell, on) {
     if (on && !cell.grass) {
-      const b = this.biome;
+      const b = this.bands[cell.band];
       const r = new Rand(hash32(this.seed, cell.x, cell.z, 3));
-      const n = Math.floor(2600 * b.grass.density);
-      const mesh = new THREE.InstancedMesh(this.grassGeo, this.grassMat, n);
-      mesh.geometry.userData.shared = true;
+      const n = Math.floor(2600 * (b.grass.density ?? 1));
+      const mesh = new THREE.InstancedMesh(this.grassGeo(cell.band), this.grassMat, Math.max(1, n));
       const m = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler();
       const H = CELL / 2;
+      const clearX = cell.kind === 'cave' ? 6.5 : cell.kind === 'arch' ? 2 : HOUSE_W / 2 + 0.4;
       let placed = 0;
       for (let i = 0; i < n * 2 && placed < n; i++) {
         const x = r.range(-H, H), z = r.range(-H, H);
-        if (Math.abs(x) < HOUSE_W / 2 + 0.4 && Math.abs(z) < HOUSE_D / 2 + 1.4) continue;
-        if (z > H - 1.6 || x > H - 1.6) continue;
+        if (Math.abs(x) < clearX && z < HOUSE_D / 2 + 1.4 && z > -7) continue;
+        if (Math.abs(x) > H - 1.6 || Math.abs(z) > H - 1.6) continue;
         if (Math.abs(x) < 0.9 && z > 0) continue;
-        const h = b.grass.height * r.range(0.45, 1.25);
-        m.compose(new THREE.Vector3(x, 0, z), q.setFromEuler(e.set(0, r.range(0, Math.PI), 0)), new THREE.Vector3(r.range(0.7, 1.2), h, 1));
+        const gh = (b.grass.height ?? 0.5) * r.range(0.45, 1.25);
+        m.compose(new THREE.Vector3(x, this.heightAt(cell.x * CELL + x, cell.z * CELL + z), z), q.setFromEuler(e.set(0, r.range(0, Math.PI), 0)), new THREE.Vector3(r.range(0.7, 1.2), gh, 1));
         mesh.setMatrixAt(placed++, m);
       }
       mesh.count = placed;
       mesh.position.set(cell.x * CELL, 0, cell.z * CELL);
-      mesh.frustumCulled = false;
       mesh.computeBoundingSphere();
-      mesh.frustumCulled = true;
       cell.grass = mesh;
       this.root.add(mesh);
     } else if (!on && cell.grass) {
@@ -518,7 +824,7 @@ export class Outdoor {
     if (cell) this.applySummary(cell);
   }
 
-  // Claimed houses get a name; houses being built get chimney smoke.
+  // Claimed places get a name; places being built get chimney smoke.
   applySummary(cell) {
     const s = this.summaries.get(`${cell.x},${cell.z}`);
     if (cell.extras) {
@@ -528,32 +834,29 @@ export class Outdoor {
     }
     if (!s) return;
     const extras = new THREE.Group();
+    const pad = this.padAt(cell.x, cell.z);
     if (s.claimed) {
       const l = label(s.claimed, { size: 0.42 });
-      l.position.set(0, WALL_H + 2.9, HOUSE_D / 2 + 0.6);
+      l.position.set(0, cell.top + 0.6, HOUSE_D / 2 + 0.6);
       extras.add(l);
-      const flag = new THREE.Mesh(G.box, new THREE.MeshLambertMaterial({ color: this.biome.house.door }));
-      flag.scale.set(0.04, 0.25, 0.35);
-      flag.position.set(1.55, 1.45, CELL / 2 - 2.1);
-      extras.add(flag);
     }
     if (s.building || s.growth > 0) {
       const puffs = [];
-      const mat = new THREE.SpriteMaterial({ map: softDot(), color: s.building ? '#ffffff' : this.biome.lamp, transparent: true, opacity: 0.5, depthWrite: false });
+      const mat = new THREE.SpriteMaterial({ map: softDot(), color: s.building ? '#ffffff' : this.bands[cell.band].lamp, transparent: true, opacity: 0.5, depthWrite: false });
       for (let i = 0; i < (s.building ? 6 : 2); i++) {
         const p = new THREE.Sprite(mat);
         p.userData.phase = i / (s.building ? 6 : 2);
         extras.add(p);
         puffs.push(p);
       }
+      const top = cell.kind === 'house' ? pad + WALL_H + 2.9 : cell.top;
       extras.userData.update = (t) => {
         for (const p of puffs) {
           const k = (t * 0.12 + p.userData.phase) % 1;
-          p.position.set(2.6 + Math.sin(k * 6) * 0.3, WALL_H + 2.9 + k * 4, -1.2);
+          p.position.set((cell.kind === 'house' ? 2.6 : 0) + Math.sin(k * 6) * 0.3, top + k * 4, cell.kind === 'house' ? -1.2 : 0);
           const sc = 0.6 + k * 1.8;
           p.scale.set(sc, sc, 1);
         }
-        mat.opacity = 0.5;
       };
     }
     cell.group.add(extras);
@@ -580,8 +883,11 @@ export class Outdoor {
       disposeTree(cell.group);
     }
     this.cells.clear();
-    this.house.solid.dispose();
-    this.house.glow.dispose();
+    for (const p of this.places.values()) {
+      p.solid?.dispose();
+      p.glow?.dispose();
+    }
+    for (const g of this.grassGeos.values()) g.dispose();
     this.root.clear();
   }
 }

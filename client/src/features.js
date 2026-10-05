@@ -13,7 +13,7 @@ const _v = new THREE.Vector3();
 const _s = new THREE.Vector3();
 
 // Places parts relative to a spot {x, y, z, ry} returned by ctx.spot().
-function frame(spot) {
+export function frame(spot) {
   const base = new THREE.Matrix4().compose(
     new THREE.Vector3(spot.x, spot.y || 0, spot.z),
     new THREE.Quaternion().setFromEuler(new THREE.Euler(0, spot.ry || 0, 0)),

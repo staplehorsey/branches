@@ -46,6 +46,12 @@ export const WORLDS = [
     "motes": "#ffd6ae",
     "night": false,
     "path": "#f2d2bd",
+    "places": {
+     "arch": 0.1,
+     "cave": 0.05,
+     "house": 0.6,
+     "tower": 0.25
+    },
     "ponds": 0.15,
     "sky": {
      "bottom": "#f2a596",
@@ -58,11 +64,16 @@ export const WORLDS = [
      "elevation": 0.14,
      "intensity": 2.2
     },
+    "terrain": {
+     "amp": 3.4,
+     "scale": 52
+    },
     "trees": "blossom",
     "trunk": "#5b3f3a",
     "water": "#b39be0"
    }
   },
+  "hub": true,
   "id": "dusk-orchard",
   "name": "Dusk Orchard",
   "portal_policy": {
@@ -120,6 +131,12 @@ export const WORLDS = [
     "motes": "#ffffff",
     "night": false,
     "path": "#d9dcd4",
+    "places": {
+     "arch": 0.05,
+     "cave": 0.3,
+     "house": 0.45,
+     "tower": 0.2
+    },
     "ponds": 0.4,
     "sky": {
      "bottom": "#d3dfdb",
@@ -132,11 +149,16 @@ export const WORLDS = [
      "elevation": 0.7,
      "intensity": 1.3
     },
+    "terrain": {
+     "amp": 7.0,
+     "scale": 70
+    },
     "trees": "pine",
     "trunk": "#4a3a30",
     "water": "#8db4ae"
    }
   },
+  "hub": true,
   "id": "fog-pines",
   "name": "Fog Pines",
   "portal_policy": {
@@ -194,6 +216,12 @@ export const WORLDS = [
     "motes": "#d8ff7a",
     "night": true,
     "path": "#3a4470",
+    "places": {
+     "arch": 0.15,
+     "cave": 0.3,
+     "house": 0.45,
+     "tower": 0.1
+    },
     "ponds": 0.3,
     "sky": {
      "bottom": "#141c40",
@@ -206,11 +234,16 @@ export const WORLDS = [
      "elevation": 0.8,
      "intensity": 1.5
     },
+    "terrain": {
+     "amp": 4.2,
+     "scale": 46
+    },
     "trees": "mushroom",
     "trunk": "#d9e4ff",
     "water": "#2b4f96"
    }
   },
+  "hub": true,
   "id": "moonlit-meadow",
   "name": "Moonlit Meadow",
   "portal_policy": {
@@ -267,6 +300,12 @@ export const WORLDS = [
     "motes": "#ffffff",
     "night": false,
     "path": "#ffffff",
+    "places": {
+     "arch": 0.4,
+     "cave": 0.05,
+     "house": 0.45,
+     "tower": 0.1
+    },
     "ponds": 0.5,
     "sky": {
      "bottom": "#ffe3ea",
@@ -279,11 +318,16 @@ export const WORLDS = [
      "elevation": 1.25,
      "intensity": 2.6
     },
+    "terrain": {
+     "amp": 0.5,
+     "scale": 90
+    },
     "trees": "palm",
     "trunk": "#c9a27f",
     "water": "#9ff0ee"
    }
   },
+  "hub": true,
   "id": "salt-flat-noon",
   "name": "Salt Flat Noon",
   "portal_policy": {
@@ -343,6 +387,12 @@ export const WORLDS = [
     "motes": "#fffbe0",
     "night": false,
     "path": "#efe6d2",
+    "places": {
+     "arch": 0.12,
+     "cave": 0.08,
+     "house": 0.7,
+     "tower": 0.1
+    },
     "ponds": 0.25,
     "sky": {
      "bottom": "#dfeedd",
@@ -355,11 +405,16 @@ export const WORLDS = [
      "elevation": 0.9,
      "intensity": 2.4
     },
+    "terrain": {
+     "amp": 2.6,
+     "scale": 64
+    },
     "trees": "round",
     "trunk": "#7a5a43",
     "water": "#79d3cc"
    }
   },
+  "hub": true,
   "id": "the-lush",
   "name": "The Lush",
   "portal_policy": {

@@ -12,7 +12,8 @@ import { DoorPortal, PortalRenderer, link } from './portals.js';
 import { Player, isTyping } from './player.js';
 import { Others } from './avatars.js';
 import { XR } from './xr.js';
-import { disposeTree } from './geo.js';
+import { Signals, tone } from './play.js';
+import { disposeTree, label as makeLabel } from './geo.js';
 import * as ui from './ui.js';
 import { CELL, HOUSE_D, DOOR_W, DOOR_H, pocketY, houseCenter, cellOf } from './layout.js';
 
@@ -79,6 +80,10 @@ const S = {
   started: false,
   waking: false,
   unread: 0,
+  signals: new Signals(),
+  app: false, // served by Branches for Mac
+  playSecs: 0,
+  nudged: false,
   lastSend: 0,
   lastPoll: 0,
 };
@@ -105,7 +110,7 @@ const realmKey = (origin, world) => `${origin}|${world}`;
 async function manifestFor(origin, world) {
   const key = realmKey(origin, world);
   if (!S.manifests.has(key)) {
-    const p = new Host(origin).world(world).then((r) => r.manifest);
+    const p = new Host(origin).world(world).then((r) => ({ ...r.manifest, _versions: r.versions || [], _ring: r.ring || 6 }));
     p.catch(() => S.manifests.delete(key));
     S.manifests.set(key, p);
   }
@@ -180,7 +185,7 @@ function prepare(space, eye) {
   const it = S.spaces.get(space);
   const r = realmOfSpace(space);
   if (!it && r?.outdoor) {
-    const b = r.biome;
+    const b = r.outdoor.biome;
     fog.color.set(b.fog.color);
     fog.near = b.fog.near;
     fog.far = Math.min(b.fog.far, 4 * CELL + 14);
@@ -315,7 +320,7 @@ function attachExterior(it) {
   const r = it.realm;
   const c = houseCenter(it.x, it.z);
   it.ext = new DoorPortal({
-    pos: new THREE.Vector3(c.x, r.base + DOOR_H / 2, c.z + HOUSE_D / 2),
+    pos: new THREE.Vector3(c.x, r.base + r.outdoor.padAt(it.x, it.z) + DOOR_H / 2, c.z + HOUSE_D / 2),
     normal: new THREE.Vector3(0, 0, 1),
     w: DOOR_W,
     h: DOOR_H,
@@ -477,7 +482,7 @@ async function arrive(target) {
   const r = realmFor(t.origin, manifest);
   promote(r);
   const c = houseCenter(t.x, t.z);
-  player.place(c.x - 0.7, r.base, c.z + CELL / 2 - 1.3, -0.1);
+  player.place(c.x - 1.8, r.base + r.outdoor.heightAt(c.x - 1.8, c.z + CELL / 2 - 1.3), c.z + CELL / 2 - 1.3, 0.05);
   ui.banner(manifest.name);
   return manifest;
 }
@@ -537,6 +542,10 @@ function connect() {
     log(m) {
       if (S.inside?.addr === m.addr && m.entry.kind !== 'visit' && m.entry.player !== identity().player) ui.chatLine('', '', `${m.entry.who} wrote in the visitor log: “${m.entry.text}”`, true);
     },
+    born(m) {
+      ui.toast(`A new world: ${m.name}`, `It grew from the way people have been walking (${m.about}). A door to it opened in the house at ${m.addr}.`);
+      ui.chatLine('', '', `${m.name} came into being. Its door is in the house at ${m.addr}.`, true);
+    },
     notify(m) {
       S.unread++;
       ui.setUnread(S.unread);
@@ -560,15 +569,71 @@ function mailboxNear() {
   return Math.hypot(player.pos.x - (h.x + 1.4), player.pos.z - (h.z + CELL / 2 - 2.1)) < 2.6 ? c : null;
 }
 
+// What you could use right now: the nearest of the visitor book, the
+// mailbox, and the characters, notes and games in the room.
+function nearestUse() {
+  const eye = player.eye;
+  if (S.inside) {
+    let best = null, bd = Infinity;
+    const gb = S.inside.built.guestbook.distanceTo(eye);
+    if (gb < 2.6) (best = { kind: 'book', hint: 'visitor log' }), (bd = gb);
+    for (const it of S.inside.built.interactables) {
+      const d = it.pos.distanceTo(eye);
+      // A little extra reach for whatever you're looking at.
+      const reach = it.radius + (S.signals.looking === it.id ? 0.8 : 0);
+      if (d < reach && d < bd) (best = it), (bd = d);
+    }
+    return best;
+  }
+  if (mailboxNear()) return { kind: 'mailbox', hint: 'visitor log for this house' };
+  const rack = S.primary.outdoor?.bikeNear(player.pos);
+  if (rack && player.vehicle !== 'bike') return { kind: 'bike', hint: 'ride a bike' };
+  return null;
+}
+
 function interact() {
   const r = S.primary;
-  if (xr.active) return readLogInVR();
-  if (S.inside) {
-    if (S.inside.built.guestbook.distanceTo(player.eye) < 2.6) openLog(S.inside.realm, S.inside.x, S.inside.z);
-  } else {
-    const c = mailboxNear();
-    if (c) openLog(r, c.x, c.z);
+  const u = nearestUse();
+  if (!u) {
+    if (player.vehicle === 'bike') ride('bike');
+    return;
   }
+  if (u.kind === 'book') return xr.active ? readLogInVR() : openLog(S.inside.realm, S.inside.x, S.inside.z);
+  if (u.kind === 'mailbox') {
+    const c = mailboxNear();
+    return openLog(r, c.x, c.z);
+  }
+  if (u.kind === 'bike') return ride('bike');
+  u.use(thingApi);
+  ui.hint('');
+}
+
+// What things can do to the world around them.
+const thingApi = {
+  say(obj, text, name) {
+    if (obj.userData.bubble) obj.remove(obj.userData.bubble);
+    const b = labelBubble(text);
+    b.position.y = 2.35;
+    obj.add(b);
+    obj.userData.bubble = b;
+    setTimeout(() => obj.userData.bubble === b && obj.remove(b), 8000);
+    if (xr.active) vrNote = { text: `${name}: ${text}`, until: performance.now() + 9000 };
+    else ui.chatLine(name || '', '#5a4a7a', text);
+  },
+  read(title, text, sub) {
+    if (xr.active) vrNote = { text: `${title}: ${text}`, until: performance.now() + 14000 };
+    else ui.openReading(title, text, sub);
+  },
+  touch(id, done) {
+    if (!S.inside || !S.live) return;
+    S.live.send({ t: 'touch', room: S.inside.addr, id, done: done || null });
+    if (done) ui.toast('The room remembers', done);
+  },
+  tone,
+};
+
+function labelBubble(text) {
+  return makeLabel(text.length > 90 ? text.slice(0, 89) + '\u2026' : text, { size: 0.2, bg: 'rgba(255,255,255,0.9)', color: '#2a2833', font: 'italic 500 40px Georgia, serif' });
 }
 
 // In a headset the visitor log is read from the wrist: the latest words.
@@ -581,7 +646,92 @@ function readLogInVR() {
 }
 
 function openLog(r, x, z) {
-  ui.openRoomPanel({ host: r.host, world: r.manifest.id, x, z, themes: S.themes });
+  ui.openRoomPanel({ host: r.host, world: r.manifest.id, x, z, themes: S.themes, local: r.origin === LOCAL_ORIGIN, needsApp: (why) => needsApp(why) });
+}
+
+// ---------------------------------------------------------------- the Mac app
+
+const APP_KEY = 'branches.app';
+
+async function appAlive(url = ui.APP_URL) {
+  try {
+    const r = await fetch(`${url}/.well-known/branches.json`, { signal: AbortSignal.timeout(1200) });
+    return r.ok && !!(await r.json()).app;
+  } catch {
+    return false;
+  }
+}
+
+// Move what grew in this browser into the app, then continue there.
+async function connectApp() {
+  if (!(await appAlive())) return false;
+  try {
+    localStorage.setItem(APP_KEY, ui.APP_URL);
+  } catch {}
+  const local = S.home === LOCAL_ORIGIN ? JSON.parse(localStorage.getItem('branches.local-host.v1') || 'null') : null;
+  if (local?.rooms) {
+    await fetch(`${ui.APP_URL}/api/app/import`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ rooms: local.rooms, player: local.player }) }).catch(() => {});
+  }
+  const r = S.primary;
+  const c = cellOf(player.pos.x, player.pos.z);
+  location.href = `${ui.APP_URL}/w/${encodeURIComponent(r.manifest.id)}/${c.x},${c.z}`;
+  return true;
+}
+
+function needsApp(why) {
+  ui.needsApp(why, { onConnect: connectApp });
+}
+
+// Gentle, once: after a while of playing with no app, offer it.
+function maybeNudge(dt) {
+  if (S.home !== LOCAL_ORIGIN || S.nudged || !S.started) return;
+  S.playSecs += dt;
+  if (S.playSecs < 30) return;
+  let total = 0;
+  try {
+    total = Number(localStorage.getItem('branches.play-secs') || 0) + S.playSecs;
+    localStorage.setItem('branches.play-secs', String(total));
+    if (localStorage.getItem('branches.nudge-snooze') > Date.now()) total = 0;
+  } catch {}
+  S.playSecs = 0;
+  if (total < 8 * 60) return;
+  S.nudged = true;
+  ui.nudge('Keep this world growing', 'Everything you see lives in this browser tab. Branches for Mac keeps your worlds and lets the architect build while you are away.', [
+    ['tell me more', () => needsApp('time')],
+    ['not now', () => {
+      try {
+        localStorage.setItem('branches.nudge-snooze', String(Date.now() + 30 * 60e3));
+      } catch {}
+    }],
+  ]);
+}
+
+// ---------------------------------------------------------------- bikes and scooters
+
+function ride(kind) {
+  if (S.inside) return;
+  player.setVehicle(player.vehicle === kind ? null : kind);
+  ui.hint(player.vehicle ? `${player.vehicle === 'bike' ? 'riding a bike' : 'on your scooter'} \u00b7 ${player.vehicle === 'bike' ? 'E' : 'Q'} to step off` : '');
+}
+
+async function openMap() {
+  const r = S.primary;
+  const c = cellOf(player.pos.x, player.pos.z);
+  let data = {};
+  if (r.origin !== LOCAL_ORIGIN) data = await r.host.get(`/api/worlds/${encodeURIComponent(r.manifest.id)}/map`).catch(() => ({}));
+  const sp = (data.spawn || r.manifest.spawn || '0,0').split(',').map(Number);
+  ui.openMap({
+    worldName: r.manifest.name,
+    center: { x: c.x, z: c.z, fx: player.pos.x / CELL, fz: player.pos.z / CELL },
+    yaw: player.yaw,
+    explored: S.signals.exploredIn(r.key),
+    heat: data.heat,
+    rooms: data.rooms,
+    versions: data.versions,
+    ring: data.ring || 6,
+    spawn: sp,
+    local: r.origin === LOCAL_ORIGIN,
+  });
 }
 
 function admire() {
@@ -619,10 +769,14 @@ addEventListener('keydown', (e) => {
   if (e.code === 'KeyL') openWorlds();
   if (e.code === 'KeyN') openInbox();
   if (e.code === 'KeyH') wake();
+  if (e.code === 'KeyM') openMap();
+  if (e.code === 'KeyQ') ride('scooter');
 });
 
-function openWorlds() {
-  ui.openWorldsPanel({ host: S.primary.host, currentWorld: S.primary.manifest.id });
+async function openWorlds() {
+  await ui.openWorldsPanel({ host: S.primary.host, currentWorld: S.primary.manifest.id });
+  const el = $('app-settings');
+  if (el && S.app) ui.appSettings(S.primary.host, el);
 }
 function openInbox() {
   ui.openInbox({ host: S.primary.host, onRead: () => ((S.unread = 0), ui.setUnread(0)) });
@@ -657,13 +811,16 @@ function updateHud() {
     $('room-line').textContent = `${room.claim?.title || room.theme_name} · ${ch?.name || ''}`;
     $('growth').classList.add('on');
     $('growth-bar').style.width = `${room.building ? 100 : Math.min(100, (room.attention / Math.max(1, room.next_growth_at)) * 100)}%`;
-    const nearBook = it.built.guestbook.distanceTo(player.eye) < 2.6;
+    const use = nearestUse();
     const door = it.branch.find((d) => d.info.pos.distanceTo(player.eye) < 3);
-    ui.hint(nearBook ? 'E · visitor log' : door ? (door.sealed ? 'this door does not open from this side' : door.partner ? `through here: ${door.info.portal.label}` : 'the far side is still arriving…') : room.building ? 'the architect is building…' : 'F · more of this');
+    const old = room.version ? ` \u00b7 as it was at ${room.version.split('/').pop()}` : '';
+    $('room-line').textContent += old;
+    ui.hint(use ? `E \u00b7 ${use.hint}` : door ? (door.sealed ? 'this door does not open from this side' : door.partner ? `through here: ${door.info.portal.label}` : 'the far side is still arriving\u2026') : room.building ? 'the architect is building\u2026' : 'F \u00b7 more of this');
   } else {
     $('room-line').textContent = '';
     $('growth').classList.remove('on');
-    ui.hint(mailboxNear() ? 'E · visitor log for this house' : '');
+    const use = nearestUse();
+    ui.hint(use ? `E \u00b7 ${use.hint}` : player.vehicle ? `${player.vehicle === 'bike' ? 'E' : 'Q'} \u00b7 step off` : '');
   }
   $('online').textContent = `● ${S.others.count() + 1}`;
   if (xr.active) {
@@ -694,7 +851,12 @@ function step(dt) {
   if (here) {
     const ch = here.built.chambers[here.built.chamberAt(player.pos.x, player.pos.z)];
     player.ceiling = here.origin.y + (ch?.h ?? 3.2);
-  } else player.ceiling = Infinity;
+  } else {
+    player.ceiling = Infinity;
+    // Outdoors the ground rolls: stand on it.
+    const r0 = realmOfSpace(space);
+    if (r0?.outdoor) player.floorY = r0.base + r0.outdoor.heightAt(player.pos.x, player.pos.z);
+  }
   player.update(dt, collidersFor(space, player.pos));
   const after = player.eye;
 
@@ -750,6 +912,11 @@ function step(dt) {
   r.outdoor.animate(t);
   for (const realm of S.realms.values()) for (const it of realm.interiors.values()) for (const a of it.built.anims) a(t, dt);
   S.others.update(dt, t);
+  if (S.inside && player.vehicle) player.setVehicle(null);
+  S.signals.gaze(camera, S.inside, dt);
+  S.signals.path(player.pos, performance.now(), S.live, r.key);
+  S.signals.flush(S.live);
+  maybeNudge(dt);
   updateHud();
 
   if (S.live && performance.now() - S.lastSend > 100) {
@@ -759,6 +926,7 @@ function step(dt) {
       t: 'move',
       p: [player.pos.x, player.pos.y - r.base, player.pos.z].map((v) => Math.round(v * 100) / 100),
       ry: player.yaw,
+      v: player.vehicle,
       room: inPrimary ? S.inside.addr : null,
       ch: inPrimary ? Math.max(0, S.chamber) : null,
     });
@@ -781,9 +949,37 @@ async function findHome(params) {
   if (params.has('offline') || !location.protocol.startsWith('http')) return LOCAL_ORIGIN;
   try {
     const r = await fetch('/.well-known/branches.json', { signal: AbortSignal.timeout(2500) });
-    if (r.ok && (await r.json()).protocol) return location.origin;
+    const m = r.ok ? await r.json() : null;
+    if (m?.protocol) {
+      S.app = !!m.app;
+      return location.origin;
+    }
   } catch {}
   return LOCAL_ORIGIN;
+}
+
+// Playing in a browser but the app has been connected before and is
+// running now: go there, quietly, with a way to stay.
+async function offerSavedApp() {
+  let saved = null;
+  try {
+    saved = localStorage.getItem(APP_KEY);
+  } catch {}
+  if (!saved || !(await appAlive(saved))) return;
+  const card = ui.nudge('Branches is running on this Mac', 'Your worlds are there. Taking you over\u2026', [['stay here', () => clearTimeout(timer)]]);
+  const timer = setTimeout(() => {
+    card.remove();
+    connectApp();
+  }, 2500);
+}
+
+// First time in the app: where worlds live, and sharing (when ready).
+function welcomeToApp() {
+  try {
+    if (localStorage.getItem('branches.app-welcomed')) return;
+    localStorage.setItem('branches.app-welcomed', '1');
+  } catch {}
+  ui.nudge('Welcome to Branches for Mac', 'Your worlds now live on this computer, saved as a git repository: every build is a commit, every few builds a version. Visitor books are open; the architect is listening.', [['lovely', null]]);
 }
 
 async function boot() {
@@ -819,6 +1015,8 @@ async function boot() {
     $('hud').hidden = false;
     S.started = true;
     connect();
+    if (S.app) welcomeToApp();
+    else if (S.home === LOCAL_ORIGIN) offerSavedApp();
     player.lock();
     ui.chatLine('', '', 'Walk up to any house. Go inside. Stay a while.', true);
   };

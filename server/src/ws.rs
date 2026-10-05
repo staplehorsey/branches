@@ -21,7 +21,7 @@ static CONN: AtomicU64 = AtomicU64::new(1);
 #[serde(tag = "t", rename_all = "snake_case")]
 enum In {
     Hello { player: String, secret: String, name: String, color: String },
-    Move { p: [f32; 3], ry: f32, room: Option<String>, ch: Option<u32> },
+    Move { p: [f32; 3], ry: f32, room: Option<String>, ch: Option<u32>, #[serde(default)] v: Option<String> },
     Chat { text: String },
     Admire { room: String, ch: u32 },
     /// Seconds spent looking at features and things, by id.
@@ -92,7 +92,7 @@ async fn session(socket: WebSocket, app: Arc<App>, world: String) {
         let mut pres = app.presence.lock().unwrap();
         let here = pres.entry(world.clone()).or_default();
         let peers = here.values().filter(|p| p.id != player).map(peer_json).collect();
-        here.insert(player.clone(), Presence { id: player.clone(), name: name.clone(), color: color.clone(), p: [0.0; 3], ry: 0.0, room: None, ch: None, last_move: Instant::now(), room_since: Instant::now(), conn });
+        here.insert(player.clone(), Presence { id: player.clone(), name: name.clone(), color: color.clone(), p: [0.0; 3], ry: 0.0, room: None, ch: None, last_move: Instant::now(), room_since: Instant::now(), v: None, conn });
         peers
     };
     let (dtx, mut drx) = mpsc::unbounded_channel::<Msg>();
@@ -127,7 +127,12 @@ async fn session(socket: WebSocket, app: Arc<App>, world: String) {
         let Message::Text(text) = msg else { continue };
         let Ok(input) = serde_json::from_str::<In>(&text) else { continue };
         match input {
-            In::Move { p, ry, room, ch } => on_move(&app, &world, &player, p, ry, room, ch),
+            In::Move { p, ry, room, ch, v } => {
+                if let Some(me) = app.presence.lock().unwrap().get_mut(&world).and_then(|w| w.get_mut(&player)) {
+                    me.v = v.filter(|k| k == "bike" || k == "scooter");
+                }
+                on_move(&app, &world, &player, p, ry, room, ch)
+            }
             In::Chat { text } => {
                 let text: String = text.trim().chars().filter(|c| !c.is_control()).take(280).collect();
                 if !text.is_empty() {
@@ -274,7 +279,7 @@ fn on_move(app: &App, world: &str, player: &str, p: [f32; 3], ry: f32, room: Opt
 }
 
 fn peer_json(p: &Presence) -> serde_json::Value {
-    json!({ "id": p.id, "name": p.name, "color": p.color, "p": p.p, "ry": p.ry, "room": p.room })
+    json!({ "id": p.id, "name": p.name, "color": p.color, "p": p.p, "ry": p.ry, "room": p.room, "v": p.v })
 }
 
 fn cleanup(app: &App, world: &str, player: &str, conn: u64) {

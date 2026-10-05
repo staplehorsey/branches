@@ -3,7 +3,8 @@
 // each further from the front door, ending at a misty frontier.
 import * as THREE from 'three';
 import { Batch, G, aabb, label } from './geo.js';
-import { FEATURES } from './features.js';
+import { FEATURES, frame } from './features.js';
+import { buildThing } from './things.js';
 import { theme as themeOf, surface, shade } from './themes.js';
 import { Rand } from './rng.js';
 import { HOUSE_W, HOUSE_D, DOOR_W, DOOR_H, ARCH_W, ARCH_H } from './layout.js';
@@ -64,6 +65,10 @@ export function buildInterior({ room, origin, biome, frontier = true }) {
   const lights = [];
   const anims = [];
   const branchDoors = [];
+  // What can be used (talked to, read, played) and looked at, by id.
+  const interactables = [];
+  const gaze = [];
+  const originV = new THREE.Vector3(origin.x, origin.y, origin.z);
   const chambers = layoutChambers(room, th);
   const wallMat = surface(th.wall);
   const floorMat = surface(th.floor);
@@ -203,7 +208,22 @@ export function buildInterior({ room, origin, biome, frontier = true }) {
       x1: c.x1,
       z0: c.z0,
       z1: c.z1,
-      spot: (kind, w, d, opts) => occ.spot(rand, kind, w, d, opts),
+      spot: (kind, w, d, opts) => {
+        const s = occ.spot(ctx.rand, kind, w, d, opts);
+        if (s && ctx.current) {
+          const swap = Math.abs(Math.sin(s.ry || 0)) > 0.5;
+          const hw = (swap ? d : w) / 2 + 0.1, hd = (swap ? w : d) / 2 + 0.1;
+          gaze.push({ id: ctx.current, box: aabb(origin.x + s.x - hw, origin.z + s.z - hd, origin.x + s.x + hw, origin.z + s.z + hd, origin.y, origin.y + Math.min(c.h, 2.8)) });
+        }
+        return s;
+      },
+      frame: (s) => {
+        const f = frame(s);
+        return { put: f.put, world: (x, y, z) => f.world(x, y, z).add(originV) };
+      },
+      world: (x, y, z) => new THREE.Vector3(x, y, z).add(originV),
+      originV,
+      current: null,
       collide: (s, w, d) => {
         const swap = Math.abs(Math.sin(s.ry || 0)) > 0.5;
         const hw = (swap ? d : w) / 2, hd = (swap ? w : d) / 2;
@@ -214,14 +234,21 @@ export function buildInterior({ room, origin, biome, frontier = true }) {
     };
     // Entry hall is dressed from the theme's own tags; later chambers from
     // what the architect built there.
-    const tags = i === 0 ? th.tags.slice() : [];
-    for (const f of room.features || []) if (f.chamber === i) tags.push(f.tag);
-    tags.forEach((tag, k) => {
-      const build = FEATURES[tag];
+    const list = (i === 0 ? th.tags.map((tag) => ({ id: `theme:${tag}`, tag })) : []).concat((room.features || []).filter((f) => f.chamber === i));
+    list.forEach((f, k) => {
+      const build = FEATURES[f.tag];
       if (!build) return;
-      ctx.rand = new Rand(((data?.seed ?? 1) + k * 7907) ^ hashTag(tag));
+      ctx.rand = new Rand(((data?.seed ?? 1) + k * 7907) ^ hashTag(f.tag));
+      ctx.current = f.id;
       build(ctx);
     });
+    for (const t of room.things || []) {
+      if (t.chamber !== i) continue;
+      ctx.rand = new Rand((t.seed >>> 0) ^ 0x7417);
+      ctx.current = t.id;
+      buildThing(t, ctx, interactables);
+    }
+    ctx.current = null;
     // Soft ambient fill so every chamber has a lamp somewhere.
     ctx.light(midX, c.h - 0.5, midZ, th.glow, 0.5);
     // Ceiling glow panel, the classic liminal fluorescent.
@@ -243,6 +270,7 @@ export function buildInterior({ room, origin, biome, frontier = true }) {
   solid.put(G.box, shade(th.trim, -0.2), gb.x, 1.05, gb.z, { sx: 0.75, sy: 0.08, sz: 0.55, rx: -0.35 });
   glow.put(G.box, '#fff8e8', gb.x, 1.11, gb.z + 0.02, { sx: 0.6, sy: 0.02, sz: 0.4, rx: -0.35 });
   addCollider(gb.x - 0.4, gb.z - 0.35, gb.x + 0.4, gb.z + 0.35);
+  gaze.push({ id: 'guestbook', box: aabb(origin.x + gb.x - 0.5, origin.z + gb.z - 0.45, origin.x + gb.x + 0.5, origin.z + gb.z + 0.45, origin.y, origin.y + 1.4) });
   const gbLabel = label('visitor log · E', { size: 0.2 });
   gbLabel.position.set(gb.x, 1.6, gb.z);
   group.add(gbLabel);
@@ -299,6 +327,8 @@ export function buildInterior({ room, origin, biome, frontier = true }) {
     lights,
     anims,
     branchDoors,
+    interactables,
+    gaze,
     chambers: chambers.map((c, i) => ({ ...c, name: room.chambers[i]?.name || '' })),
     guestbook: new THREE.Vector3(origin.x + gb.x, origin.y + 1, origin.z + gb.z),
     chamberAt(x, z) {

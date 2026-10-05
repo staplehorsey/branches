@@ -171,7 +171,9 @@ pub fn builtin_worlds() -> Vec<WorldManifest> {
                 "night": false,
                 "motes": "#fffbe0",
                 "water": "#79d3cc",
-                "ponds": 0.25
+                "ponds": 0.25,
+                "terrain": { "amp": 2.6, "scale": 64 },
+                "places": { "house": 0.7, "tower": 0.1, "cave": 0.08, "arch": 0.12 }
             }),
         ),
         manifest(
@@ -198,7 +200,9 @@ pub fn builtin_worlds() -> Vec<WorldManifest> {
                 "night": false,
                 "motes": "#ffd6ae",
                 "water": "#b39be0",
-                "ponds": 0.15
+                "ponds": 0.15,
+                "terrain": { "amp": 3.4, "scale": 52 },
+                "places": { "house": 0.6, "tower": 0.25, "cave": 0.05, "arch": 0.1 }
             }),
         ),
         manifest(
@@ -225,7 +229,9 @@ pub fn builtin_worlds() -> Vec<WorldManifest> {
                 "night": false,
                 "motes": "#ffffff",
                 "water": "#8db4ae",
-                "ponds": 0.4
+                "ponds": 0.4,
+                "terrain": { "amp": 7.0, "scale": 70 },
+                "places": { "house": 0.45, "tower": 0.2, "cave": 0.3, "arch": 0.05 }
             }),
         ),
         manifest(
@@ -252,7 +258,9 @@ pub fn builtin_worlds() -> Vec<WorldManifest> {
                 "night": false,
                 "motes": "#ffffff",
                 "water": "#9ff0ee",
-                "ponds": 0.5
+                "ponds": 0.5,
+                "terrain": { "amp": 0.5, "scale": 90 },
+                "places": { "house": 0.45, "tower": 0.1, "cave": 0.05, "arch": 0.4 }
             }),
         ),
         manifest(
@@ -279,7 +287,9 @@ pub fn builtin_worlds() -> Vec<WorldManifest> {
                 "night": true,
                 "motes": "#d8ff7a",
                 "water": "#2b4f96",
-                "ponds": 0.3
+                "ponds": 0.3,
+                "terrain": { "amp": 4.2, "scale": 46 },
+                "places": { "house": 0.45, "tower": 0.1, "cave": 0.3, "arch": 0.15 }
             }),
         ),
     ]

@@ -63,6 +63,7 @@ pub struct Presence {
     pub ch: Option<u32>,
     pub last_move: std::time::Instant,
     pub room_since: std::time::Instant,
+    pub v: Option<String>,
     pub conn: u64,
 }
 

@@ -1,6 +1,6 @@
 // Everyone else who showed up.
 import * as THREE from 'three';
-import { makeAvatar } from './player.js';
+import { makeAvatar, makeVehicle } from './player.js';
 import { label, disposeTree } from './geo.js';
 
 export class Others {
@@ -26,6 +26,12 @@ export class Others {
       o.seen = true;
     }
     o.room = p.room ?? null;
+    const v = p.v || null;
+    if (v !== (o.vehicle?.userData.kind || null)) {
+      o.vehicle?.removeFromParent();
+      o.vehicle = v ? makeVehicle(v, o.color || '#ffffff') : null;
+      if (o.vehicle) o.g.add(o.vehicle);
+    }
     return o;
   }
   remove(id) {
@@ -64,7 +70,8 @@ export class Others {
       d = Math.atan2(Math.sin(d), Math.cos(d));
       o.g.rotation.y += d * a;
       const moving = before.distanceTo(o.g.position) / Math.max(dt, 1e-3);
-      o.g.userData.body.position.y = 0.66 + Math.abs(Math.sin(t * 9)) * Math.min(0.06, moving * 0.01);
+      o.g.userData.body.position.y = o.vehicle ? (o.vehicle.userData.kind === 'bike' ? 0.95 : 0.78) : 0.66 + Math.abs(Math.sin(t * 9)) * Math.min(0.06, moving * 0.01);
+      for (const w of o.vehicle?.userData.wheels || []) w.rotation.x += moving * dt * 3;
       o.g.userData.halo.rotation.z = t;
       if (o.bubble && performance.now() > o.bubbleUntil) {
         o.g.remove(o.bubble);
