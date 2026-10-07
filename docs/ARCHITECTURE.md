@@ -10,8 +10,8 @@ such as Claude Code) grows them from how people actually play.
  browser / headset                 Branches for Mac (localhost:7878)        GitHub
  ─────────────────                 ─────────────────────────────────        ──────
  three.js client  ── HTTP + ws ──▶ Rust server ── git ──▶ worlds repo ──push──▶ your fork
-   realms, doors,                    architect (heuristic | command)            (worlds branch)
-   things, gaze, map                 night shift (agent, long projects)            │
+   realms, doors,                    architect (heuristic | command)            (worlds branch,
+   things, gaze, map                 night shift, residents, sync                gh-pages)
         │                            story kit, genesis, evolution                 │ PR
         └─ no app? an in-page host                                                 ▼
            runs the same worlds                                       staplehorsey/branches
@@ -74,8 +74,14 @@ worlds/<id>/versions.json         tags, newest first
 worlds/<id>/paths.json            recent path signatures
 worlds/<id>/log.json              the world's guestbook
 worlds/<id>/attractions/<slug>/   night-shift games: BRIEF.md, index.html, meta.json
+residents/<id>.json               a resident: persona, goal, memories, coins
+residents/economy.json            the treasury and the ledger
 .branches/                        private, never committed: players, settings, GitHub token
+.branches/agent/                  the folder agents run in
 ```
+
+Besides `worlds`, the fork carries a `gh-pages` branch (section 5): the
+static site plus `site.json`. It is built by the app, not edited by hand.
 
 Every build is a commit whose message says what was built and by whom.
 Visits, visitor books and heat are committed every couple of minutes. Every
@@ -102,9 +108,29 @@ learned.
   parent biome: winding and lingering paths make close, foggy, overgrown
   places, while straight, hurried ones make open, sparse ones. A door pair
   joins the house you were walking past to the new world's first house.
-* **Terrain and places.** Rolling value-noise terrain with level pads. Each
-  address is a house, tower, cave or stone arch, by the biome's `places`
-  mix. All share the same door, so portals work identically.
+* **Terrain and places.** Each address is a house, tower, cave or stone
+  arch, by the biome's `places` mix. All share the same door, so portals
+  work identically.
+
+### The liminal start
+
+Worlds begin liminal (`procgen::liminal`, `start: "liminal"` in the
+manifest): flat land, the same house on the same lawn everywhere. Terrain
+never gains height; worlds made before this were migrated once. Only
+**grown** houses (ones the architect has built on) differ:
+
+* a storey for every two chambers, up to 9 (`shapeOf` and
+  `buildHouse(storeys)` in `client/src/outdoor.js`);
+* their own trees and ponds;
+* place shapes (tower, cave, arch) on the lawn.
+
+The in-page starter worlds are liminal too.
+
+### Bikes
+
+A bike from a rack is yours. It stays where you step off, and by the front
+walk when you go inside (remembered in the browser's `localStorage`). **E**
+near it gets back on. The scooter folds indoors and unfolds outside.
 
 ## 4. The architect
 
@@ -130,6 +156,15 @@ asks ──┘
   Claude Code the architect, and a local-model wrapper or script works the
   same way. The plan shape is in `architect::prompt`; replies are parsed
   leniently.
+* **Running agents** (`server/src/agent.rs`). Every agent run (architect,
+  night shift, residents, sync merges) goes through here. It finds `claude`
+  wherever it is installed (an app launched from Finder doesn't see your
+  shell's PATH) and removes `ANTHROPIC_API_KEY` from its environment, so
+  your Claude subscription is used, not an API key. Agents run in
+  `.branches/agent`. The first time a house is about to grow, the app asks
+  who should build (`architect::hold_for_setup`, the `setupAi` card) and
+  holds builds for up to 3 minutes. `POST /api/app/agent/check` backs the
+  "test it" button.
 * **Story kit** (`server/src/stories.rs`). A cast of characters whose last
   lines point to other characters and worlds, story threads whose pages
   scatter across houses in order, and small games. Creative architects can
@@ -140,6 +175,29 @@ asks ──┘
   set…). It writes a brief and runs your agent in that project's folder for
   up to N minutes. The resulting self-contained `index.html` opens in-world
   as an attraction booth in the most lingered-in house.
+
+## 4b. Residents and the economy
+
+`server/src/residents.rs`. Residents are persistent agents who live in the
+worlds: a name, a persona, a goal, memories (capped) and a wallet of coins.
+They are shown to clients as other people through the peers list.
+
+* **Life.** They walk the streets (simple street-walking between houses,
+  no collision), visit houses (their lingering feeds the architect like
+  anyone's), write visitor-book notes, talk in chat, and commission builds.
+  Talk to one with **E**; **R** opens the panel (fund, move someone in,
+  list). The HTTP API is under `/api/residents`.
+* **Thinking costs coins.** One coin stands for 1,000 tokens. A think runs
+  your agent and is charged what it used, from the resident's coins. With
+  no agent configured they still wander and talk by simple rules, free.
+* **Treasury.** You fund it; everything paid out comes from it, so nothing
+  is spent that you didn't put in. A commission costs at least 3 coins.
+* **Rewards** flow to whoever commissioned a chamber: 2 coins when someone
+  admires it (**F**), 0.5 when they use something in it, 0.3 a minute for
+  lingering.
+* **Between residents:** offers, tips and favours, all in the ledger.
+* **Stored in git:** `residents/<id>.json` and `residents/economy.json`,
+  committed with the rest, so they back up and sync like houses.
 
 ## 5. Onboarding
 
@@ -155,11 +213,39 @@ Each step appears only when it's needed:
 4. **In the app, Connect GitHub.** It reuses the GitHub CLI's login if you
    have one, else device sign-in (when the build has an OAuth app id), else
    a pasted token. It forks `staplehorsey/branches` and keeps your worlds on
-   the fork's `worlds` branch, tags included.
-5. **Share?** A pull request adds your worlds to `universe.json`. Once
-   merged, a door to them appears in **the Commons** (the house west of The
-   Lush's spawn). Anyone can walk in; it reads straight from your repository
+   the fork's `worlds` branch, tags included. `github::fork` waits until
+   GitHub has actually made the fork, then pushes patiently. On connecting,
+   worlds already on your fork are brought back and merged in by sync (a new
+   Mac, or a reinstall). For the owner of the main repository the "fork" is
+   the main repository itself. Backups show their errors and fall back to
+   the git command line (`push_with_git`); **back up now** pushes at once.
+5. **Share?** A pull request adds to `universe.json` (`api::github_share`,
+   `github::share`): any house (claimed or empty, from its visitor book) or
+   all your worlds. Once merged, a door appears in **the Commons**, a
+   street of doors going west from The Lush's `-1,0`, six per house.
+   Anyone can walk in; it reads straight from your repository
    (`client/src/githost.js`). Only you can change them.
+6. **Your own page.** `server/src/pages.rs` builds the static site from the
+   bundled client, adds `site.json` (`{"home": "gh://owner/repo@worlds", …}`),
+   commits it to `gh-pages`, pushes to your fork and turns on GitHub Pages
+   through the API. No Actions needed. The client reads `site.json` at boot,
+   so your page opens your worlds. The main page also opens anyone's with
+   `?at=gh://owner/branches@worlds/w/the-lush/0,0`. For the owner of the
+   main repository the main page is left alone.
+
+### Sync from upstream
+
+`server/src/sync.rs`, behind **bring in changes** and **restore from my
+fork** (`POST /api/app/sync`).
+
+* Fetches the main world's `worlds` branch (or your fork's) and merges it
+  into yours. `BRANCHES_UPSTREAM_URL` overrides the source.
+* Houses changed on both sides go to your agent (the architect command,
+  e.g. `claude -p`) with base, ours and theirs. Everything else uses a
+  built-in JSON merge that keeps both sides' additions.
+* The agent runs without holding the game lock: sync merges a snapshot,
+  then does a quick second merge for anything that changed meanwhile.
+* The fork's code is kept current through GitHub's merge-upstream API.
 
 ## 6. Code map
 
@@ -175,6 +261,10 @@ server/src/
   genesis.rs     path-born worlds, biome evolution, colour
   nightshift.rs  long projects by an agent while nobody plays
   github.rs      connect, fork, push, share
+  agent.rs       finds and runs agents (subscription, no API key)
+  sync.rs        fetch and merge from upstream or your fork
+  residents.rs   residents, coins, treasury, rewards
+  pages.rs       your own page: site build, gh-pages, Pages API
   api.rs / ws.rs HTTP and live layer
 client/src/
   main.js        realms, spaces, doors, interaction, onboarding, loop
@@ -224,8 +314,11 @@ the first piece of hosted infrastructure.
 
 ## 8. Known limits
 
-* Worlds read from GitHub (the Commons) are read-only and have no live
-  presence yet.
+* Worlds read from GitHub (the Commons, anyone's own page) are read-only
+  and have no live presence yet.
+* Residents walk the streets in simple lines with no collisions, and live
+  only in the app (not the in-page host).
+* Thinking residents need an agent; without one they use simple rules.
 * Version bands draw older biomes outdoors and older rooms indoors. Biome
   terrain amplitude is taken from the present version so the land stays
   continuous.

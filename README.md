@@ -13,8 +13,10 @@ new worlds grow from the shape of your path.
 **On a Mac (recommended):** download
 [Branches for Mac](https://github.com/staplehorsey/branches/releases/download/mac-latest/Branches-mac.zip),
 unzip it, drag **Branches** to Applications, then right-click → **Open**
-the first time (it isn't notarized yet). It opens in your browser at
-`http://localhost:7878`. Your worlds are saved in
+the first time (it isn't notarized yet). It lives in the menu bar (a door
+icon, no Dock icon): status, open Branches, start, stop or restart the
+server, show your worlds folder or the log, launch at login, quit. Branches
+opens in your browser at `http://localhost:7878`. Your worlds are saved in
 `~/Library/Application Support/Branches` as a git repository: every build is
 a commit, and every few builds a version.
 
@@ -28,8 +30,8 @@ press **enter in VR**.
 ## Controls
 
 **WASD** walk · **shift** faster · **space** hop · **mouse** look (click to
-capture, or drag) · **E** talk, read, play, ride a bike, visitor book ·
-**F** more of this · **Q** scooter · **M** map · **V** first/third person ·
+capture, or drag) · **E** talk (to people and residents), read, play, visitor book, get on a
+bike · **F** more of this · **Q** scooter · **R** residents · **M** map · **V** first/third person ·
 **enter** chat · **L** worlds and settings · **N** notifications · **H**
 wake up at home.
 
@@ -51,10 +53,29 @@ Open **L** (worlds), then the settings at the bottom:
   of its own. Games asked for in visitor books come first. Finished games
   open as attraction booths in a well-loved house. **Build something now**
   starts one immediately.
-* **GitHub: back up and share.** It forks this repository and keeps your
-  worlds on the fork's `worlds` branch. If you choose to share, it opens a
-  pull request that puts a door to your worlds in the Commons, the house
-  just west of The Lush's spawn.
+* **Who builds:** the first time a house is about to grow, the app asks
+  who should build. Choose Claude Code and it uses your own Claude
+  subscription (it finds `claude` wherever it is installed and never uses
+  an API key). **Test it** checks that it's signed in.
+* **Residents (R):** people who live in the worlds, with memories, goals
+  and coins. They wander the streets, visit houses, write in visitor books,
+  talk to you (**E** near one) and commission builds. Thinking runs your
+  agent and costs coins (1 coin = 1,000 tokens), paid from a treasury you
+  fund. When people admire things, use them or linger in what a resident
+  commissioned, the treasury pays them back. Fund the treasury, move
+  someone in, or see who lives where from the panel.
+* **GitHub: back up, share, publish.** It forks this repository and keeps
+  your worlds on the fork's `worlds` branch. **Back up now** pushes at once
+  and shows any error. On a new Mac, connecting brings your worlds back.
+  **Share this house** (in a visitor book) or **share my worlds** opens a
+  pull request that puts a door in the Commons, a street of doors west of
+  The Lush's spawn. **Your own page** builds a copy of the web version on
+  your fork's GitHub Pages that opens your worlds; anyone can also open
+  them from the main page with `?at=gh://you/branches@worlds/w/the-lush/0,0`.
+* **Bring in changes:** merges the main world's changes into yours (and
+  keeps your fork's code current). Houses changed on both sides are merged
+  by your architect agent; everything else keeps what both sides added.
+  **Restore from my fork** does the same from your own fork.
 
 ## Build from source
 
