@@ -276,7 +276,7 @@ client/src/
   xr.js          WebXR (Quest 3): rig, sticks, wrist card
   procgen.js     exact port of the generator
   localhost.js   the in-page host; githost.js: worlds read from GitHub
-macos/           Branches.app launcher, Info.plist, icon
+macos/           Branches.app menu bar app (main.swift), Info.plist, icon
 .github/workflows/mac.yml    universal app, rolling mac-latest release
 .github/workflows/pages.yml  the web version on GitHub Pages
 ```

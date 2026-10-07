@@ -33,7 +33,12 @@ jobs:
           APP=build/Branches.app
           mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
           cp macos/Info.plist "$APP/Contents/Info.plist"
-          cp macos/launcher.sh "$APP/Contents/MacOS/Branches"
+          # The menu bar app is the bundle's executable; it starts branches-server.
+          SDK=$(xcrun --sdk macosx --show-sdk-path)
+          mkdir -p build
+          xcrun swiftc -O -swift-version 5 -sdk "$SDK" -target arm64-apple-macos11 macos/main.swift -o build/Branches-arm64
+          xcrun swiftc -O -swift-version 5 -sdk "$SDK" -target x86_64-apple-macos11 macos/main.swift -o build/Branches-x86_64
+          lipo -create -output "$APP/Contents/MacOS/Branches" build/Branches-arm64 build/Branches-x86_64
           chmod +x "$APP/Contents/MacOS/Branches"
           cp server/branches-server "$APP/Contents/MacOS/branches-server"
           cp -R client "$APP/Contents/Resources/client"
@@ -57,6 +62,18 @@ jobs:
           curl -sf -X POST http://localhost:7878/api/app/quit -H 'content-type: application/json' -d '{}'
           sleep 2
           git -C "$RUNNER_TEMP/worlds" log --oneline | head -3
+          # The menu bar app should start the server itself (env passes through).
+          BRANCHES_NO_OPEN=1 DATA_DIR="$RUNNER_TEMP/worlds2" build/Branches.app/Contents/MacOS/Branches &
+          MENU_PID=$!
+          up=0
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:7878/.well-known/branches.json; then up=1; break; fi
+            sleep 1
+          done
+          if [ "$up" != 1 ]; then kill "$MENU_PID" || true; echo "menu bar app never started the server"; exit 1; fi
+          curl -sf -X POST http://localhost:7878/api/app/quit -H 'content-type: application/json' -d '{}'
+          sleep 3
+          kill "$MENU_PID" || true
       - uses: actions/upload-artifact@v4
         with:
           name: Branches-mac
