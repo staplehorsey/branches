@@ -25,14 +25,14 @@
     }
   ],
   "claim": null,
-  "attention": 1.9249715829999998,
+  "attention": 1.924971583,
   "weights": {
     "books": 1.1197166,
     "cozy": 1.0924182,
     "plants": 1.1885754
   },
   "investors": {
-    "94b402ce6e6a1d1b": 1.9249715829999998
+    "94b402ce6e6a1d1b": 1.924971583
   },
   "building": null,
   "last_visit": {
