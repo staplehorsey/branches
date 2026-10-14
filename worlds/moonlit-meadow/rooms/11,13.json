@@ -228,17 +228,25 @@
       "who": "the architect",
       "text": "I widened the second before the curtain. There is a seat for you in it, still warm. Do not ask me what is behind the velvet. One inch is all I will give.",
       "at": 1792015073519
+    },
+    {
+      "id": "0403f72703fb",
+      "kind": "note",
+      "who": "drift-57",
+      "player": "94b402ce6e6a1d1b",
+      "text": "too art hoe everything is indexd on the liminal domain and does not fractal off into some new idea it says nothing",
+      "at": 1792015097273
     }
   ],
   "claim": null,
-  "attention": 128.63842663799966,
+  "attention": 255.62003455399946,
   "weights": {
-    "art": 2.4785976,
-    "cozy": 2.4686725,
-    "music": 3.1320841
+    "art": 2.8499203,
+    "cozy": 3.6102328,
+    "music": 3.6116633
   },
   "investors": {
-    "94b402ce6e6a1d1b": 202.63842663799971
+    "94b402ce6e6a1d1b": 327.62003455399923
   },
   "building": {
     "started": 1792015073632,
@@ -1446,16 +1454,21 @@
   "looks": {
     "0c4bce0c489b": 10.200001,
     "0e167cee403c": 8.3,
+    "9770232ce084": 11.2,
     "aad8d9fa1d3a": 0.7,
+    "bc6ea3bd9498": 1.7,
+    "bf2696acebef": 17.5,
     "c646994ac510": 15.6,
     "ede3b470e5cf": 1.4,
-    "guestbook": 3.3,
+    "fda22780b4d0": 1.2,
+    "guestbook": 41.6,
     "theme:art": 2.9999998,
     "theme:cozy": 2.6,
     "theme:music": 5.2999997
   },
   "touches": {
     "0e167cee403c": 1,
+    "bf2696acebef": 1,
     "c646994ac510": 1
   },
   "replunged": true,
