@@ -1,0 +1,52 @@
+{
+  "x": 5,
+  "z": 0,
+  "seed": 2337678664,
+  "theme": "tea-garden",
+  "chambers": [
+    {
+      "name": "Entry Hall",
+      "tag": "water",
+      "seed": 2337678664,
+      "by": "generator",
+      "at": 0
+    }
+  ],
+  "features": [],
+  "portals": [],
+  "log": [],
+  "claim": null,
+  "attention": 0.0,
+  "weights": {
+    "plants": 1.1896486,
+    "stone": 1.1360799,
+    "water": 1.0855455
+  },
+  "investors": {},
+  "building": null,
+  "last_visit": {},
+  "things": [],
+  "looks": {},
+  "touches": {},
+  "replunged": false,
+  "idea": null,
+  "spaces": [
+    {
+      "n": 1,
+      "status": "building",
+      "name": "",
+      "summary": "",
+      "minutes": 0.0,
+      "started": 1792016614801,
+      "secs": 0,
+      "error": null,
+      "dwell": 0.0,
+      "visits": 0,
+      "tries": 1,
+      "thread": "",
+      "delight": ""
+    }
+  ],
+  "space_visited": 0,
+  "space_seen_at": 1792016614800
+}
