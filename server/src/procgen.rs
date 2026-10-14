@@ -391,6 +391,7 @@ pub fn default_room(world: &WorldManifest, others: &[WorldManifest], x: i32, z: 
         looks: BTreeMap::new(),
         touches: BTreeMap::new(),
         replunged: false,
+        idea: None,
     }
 }
 

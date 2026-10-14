@@ -184,6 +184,27 @@ pub struct Room {
     /// Brought forward from an older version when someone built on it there.
     #[serde(default)]
     pub replunged: bool,
+    /// The idea this house keeps refining, once an architect has given it one.
+    #[serde(default)]
+    pub idea: Option<Idea>,
+}
+
+/// What a house is about: a premise every build takes one step deeper, and
+/// the look it has grown into (wallpaper, light, fog), drawn by the client
+/// over the house's theme.
+#[derive(Clone, Debug, Serialize, Deserialize, Default)]
+pub struct Idea {
+    pub name: String,
+    pub premise: String,
+    #[serde(default)]
+    pub look: Option<Value>,
+    /// The muses it grew from.
+    #[serde(default)]
+    pub muses: Vec<String>,
+    /// How many builds have refined it.
+    #[serde(default)]
+    pub refined: u32,
+    pub at: u64,
 }
 
 /// Something with a story in a room: a character, a note, a little game.

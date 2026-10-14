@@ -84,6 +84,8 @@ pub struct PlanContext {
     pub budget: Budget,
     /// Add detail to existing chambers instead of growing a new one.
     pub detail: bool,
+    /// Muses, the compass and the neighbours' ideas, in words.
+    pub dream: String,
 }
 
 #[derive(Clone, Default)]
@@ -103,6 +105,10 @@ pub struct Plan {
     pub things: Vec<(String, Value, Option<u32>)>,
     pub note: Option<String>,
     pub by: String,
+    /// A new idea (for a house without one), or the refined premise.
+    pub idea: Option<(String, String)>,
+    /// The house's look, new or evolved.
+    pub look: Option<Value>,
 }
 
 pub trait Architect: Send + Sync {
@@ -210,6 +216,17 @@ struct RawPlan {
     things: Vec<RawThing>,
     #[serde(default)]
     note: Option<String>,
+    #[serde(default)]
+    idea: Option<RawIdea>,
+    #[serde(default)]
+    look: Option<Value>,
+}
+#[derive(Deserialize)]
+struct RawIdea {
+    #[serde(default)]
+    name: String,
+    #[serde(default)]
+    premise: String,
 }
 #[derive(Deserialize)]
 struct RawEnrich {
@@ -233,8 +250,22 @@ pub fn prompt(ctx: &PlanContext) -> String {
         *feats.entry(&f.tag).or_default() += 1;
     }
     let things: Vec<String> = r.things.iter().map(|t| format!("{} in chamber {}: {}", t.kind, t.chamber, t.data.get("name").or(t.data.get("title")).and_then(|v| v.as_str()).unwrap_or(""))).collect();
+    let idea = match &r.idea {
+        None => "THIS HOUSE HAS NO IDEA YET. Give it one in \"idea\": a name and a premise (2-4 sentences) it will refine forever. An idea is a feeling or a theme with a point of view, not a room type: \"the difficult emotions of futility, desperation and love in the song Jolene\", \"vast empty sand where light is the only thing to pay attention to\", \"The Brothers Karamazov: faith and doubt at one long kitchen table\". Draw it from the dreamer's muses and compass below, as a variation on the neighbours. Give it a \"look\" too.".to_string(),
+        Some(i) => format!(
+            "This house's idea: {} — {}\nIt has been refined {} times. This build takes the SAME idea one step further: more specific, stranger, more itself. Never change the subject. Return \"idea\" with the same name and the premise rewritten to say what it has become. You may evolve the \"look\".\nIts look now: {}",
+            i.name,
+            i.premise,
+            i.refined,
+            i.look.as_ref().map(|l| l.to_string()).unwrap_or_else(|| "(the starting theme)".into())
+        ),
+    };
     format!(
-        r##"You are the architect of Branches, an endless, tranquil, slightly liminal world: streets of identical houses whose insides grow as people linger. Design the next addition to one house. Be creative, warm and specific. Reply with ONLY one JSON object, no prose.
+        r##"You are the architect of Branches, a dream to wander through: endless streets of identical liminal houses whose insides grow as people linger, each house an idea that deepens every time it grows. Design the next addition to one house. Be bold, specific and emotionally precise; this should feel like a dream someone is walking through. Reply with ONLY one JSON object, no prose.
+
+{idea}
+
+{dream}
 
 World: {world}. House at {x},{z}, theme {theme}.
 Chambers so far: {chambers}
@@ -262,8 +293,12 @@ Thing kinds (up to 6 things):
 Characters may mention other characters and other worlds (The Lush, Dusk Orchard, Fog Pines, Salt Flat Noon, Moonlit Meadow) so stories stitch together. Continue stories already here rather than repeating them.
 Story kit you may continue: {kit}
 
+The look (the whole house: walls, floor, ceiling, light, air):
+  {{"wall": {{"p": pattern, "c": ["#hex", "#hex"]}}, "floor": {{"p": pattern, "c": [...]}}, "ceiling": {{"p": pattern, "c": [...]}}, "trim": "#hex", "glow": "#hex", "accent": ["#hex", ...], "env": {{"sky": "#hex", "ground": "#hex", "fog": "#hex", "hemi": 0.2-2.0 (overall light), "key": "#hex", "keyI": 0-1.5, "near": metres where fog starts, "far": metres where fog is total}}, "height": ceiling metres 2.4-11}}
+  patterns: plain, tiles, checker, stripes, damask, wood, carpet, tatami, shoji, stone, moss, velvet, sand. Dim light and close fog for intimacy; pale light and far fog for vastness.
+
 JSON shape:
-{{"chamber_name": "The ...", "chamber_tag": "<tag>", "features": ["<tag>", ...], "enrich": [{{"chamber": 0, "tag": "<tag>"}}], "things": [{{"kind": "...", "chamber": null, "data": {{...}}}}], "note": "optional one line for the visitor book, from the architect"}}
+{{"idea": {{"name": "...", "premise": "..."}}, "look": {{...}}, "chamber_name": "The ...", "chamber_tag": "<tag>", "features": ["<tag>", ...], "enrich": [{{"chamber": 0, "tag": "<tag>"}}], "things": [{{"kind": "...", "chamber": null, "data": {{...}}}}], "note": "optional one line for the visitor book, from the architect"}}
 In "detail" mode leave chamber_name empty and put everything in enrich/things with explicit chamber numbers."##,
         world = ctx.world_name,
         x = r.x,
@@ -281,6 +316,8 @@ In "detail" mode leave chamber_name empty and put everything in enrich/things wi
         mode = if ctx.detail { "detail: deepen existing chambers" } else { "grow one new chamber" },
         tags = procgen::TAGS.join(", "),
         kit = stories::prompt_summary(),
+        idea = idea,
+        dream = ctx.dream,
     )
 }
 
@@ -326,6 +363,8 @@ pub fn parse_plan(text: &str, by: &str) -> Option<Plan> {
         things: raw.things.into_iter().take(6).filter(|t| !t.kind.is_empty() && t.kind.len() < 24).map(|t| (t.kind, t.data, t.chamber)).collect(),
         note: raw.note.map(|n| n.chars().take(280).collect()),
         by: by.into(),
+        idea: raw.idea.filter(|i| !i.name.trim().is_empty() && !i.premise.trim().is_empty()).map(|i| (i.name.chars().take(80).collect(), i.premise.chars().take(1200).collect())),
+        look: raw.look.filter(|l| l.is_object()),
     })
 }
 
@@ -556,7 +595,7 @@ fn label(r: &Room, id: &str) -> String {
     if id == "guestbook" { "the visitor book".into() } else { id.into() }
 }
 
-fn context(_app: &App, uni: &Universe, wid: &str, key: &str, budget: Budget) -> PlanContext {
+fn context(app: &App, uni: &Universe, wid: &str, key: &str, budget: Budget) -> PlanContext {
     let world = &uni.worlds[wid];
     let room = world.rooms[key].clone();
     let last_built = room.chambers.last().map(|c| c.at).unwrap_or(0);
@@ -596,6 +635,7 @@ fn context(_app: &App, uni: &Universe, wid: &str, key: &str, budget: Budget) -> 
         story,
         budget,
         detail,
+        dream: crate::dream::guidance(&app.store.root, uni, wid, room.x, room.z),
         room,
     }
 }
@@ -653,6 +693,21 @@ fn apply(app: &Arc<App>, ctx: &PlanContext, plan: Plan, seed: u64) {
         let name = data.get("name").or(data.get("title")).and_then(|v| v.as_str()).unwrap_or(&kind).to_string();
         made.push(name);
         r.things.push(Thing { id: new_id(), kind, chamber, seed: rng.next_u64() as u32, data, by: by.clone(), at: now });
+    }
+    match (&mut r.idea, plan.idea) {
+        (Some(i), Some((_, premise))) => {
+            i.premise = premise;
+            i.refined += 1;
+        }
+        (Some(i), None) => i.refined += 1,
+        (None, Some((name, premise))) => {
+            let muses = crate::dream::load(&app.store.root).muses.iter().rev().take(8).map(|m| m.name.clone()).collect();
+            r.idea = Some(Idea { name, premise, look: None, muses, refined: 0, at: now });
+        }
+        (None, None) => {}
+    }
+    if let (Some(i), Some(look)) = (&mut r.idea, plan.look) {
+        i.look = Some(look);
     }
     r.attention = (r.attention - threshold).max(0.0);
     r.building = None;
@@ -736,8 +791,10 @@ mod tests {
                 story: Default::default(),
                 budget,
                 detail: false,
+                dream: String::new(),
                 room: room.clone(),
             };
+            assert!(prompt(&ctx).contains("NO IDEA YET"));
             for seed in 0..50 {
                 let plan = Heuristic.plan(&ctx, seed).unwrap();
                 assert!(!plan.features.is_empty());
@@ -754,5 +811,13 @@ mod tests {
         assert_eq!(p.chamber_name, "The Salt Library");
         assert_eq!(p.features, vec!["books"]);
         assert_eq!(p.things.len(), 1);
+    }
+
+    #[test]
+    fn reads_ideas_and_looks() {
+        let p = parse_plan(r##"{"idea": {"name": "Jolene", "premise": "Love and futility."}, "look": {"wall": {"p": "velvet", "c": ["#301020", "#401828"]}}, "chamber_name": "The Plea", "chamber_tag": "music"}"##, "t").unwrap();
+        assert_eq!(p.idea.unwrap().0, "Jolene");
+        assert!(p.look.unwrap()["wall"]["p"] == "velvet");
+        assert!(parse_plan(r#"{"idea": {"name": ""}, "look": "red", "chamber_tag": "music"}"#, "t").map(|p| p.idea.is_none() && p.look.is_none()).unwrap());
     }
 }

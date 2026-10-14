@@ -348,3 +348,26 @@ export const THEMES = {
 export function theme(id) {
   return THEMES[id] || THEMES.poolrooms;
 }
+
+// A house's own look (from its idea) drawn over its theme. Anything the
+// architect got wrong (an unknown pattern, a bad colour) keeps the theme's.
+const isHex = (c) => typeof c === 'string' && /^#[0-9a-f]{3}([0-9a-f]{3})?$/i.test(c);
+const num = (v, lo, hi, d) => (Number.isFinite(+v) ? Math.min(hi, Math.max(lo, +v)) : d);
+export function withLook(base, look) {
+  if (!look || typeof look !== 'object') return base;
+  const th = { ...base, env: { ...base.env } };
+  for (const k of ['wall', 'floor', 'ceiling']) {
+    const l = look[k];
+    if (l && PATTERNS[l.p] && Array.isArray(l.c) && l.c.length && l.c.every(isHex)) th[k] = { p: l.p, c: l.c.slice(0, 3), scale: num(l.scale, 0.3, 4, base[k].scale || 1) };
+  }
+  for (const k of ['trim', 'glow', 'water']) if (isHex(look[k])) th[k] = look[k];
+  if (Array.isArray(look.accent) && look.accent.filter(isHex).length >= 2) th.accent = look.accent.filter(isHex).slice(0, 6);
+  const e = look.env || {};
+  for (const k of ['sky', 'ground', 'fog', 'key']) if (isHex(e[k])) th.env[k] = e[k];
+  th.env.hemi = num(e.hemi, 0.2, 2.2, th.env.hemi);
+  th.env.keyI = num(e.keyI, 0, 1.5, th.env.keyI);
+  th.env.near = num(e.near, 0.5, 60, th.env.near);
+  th.env.far = Math.max(th.env.near + 2, num(e.far, 4, 200, th.env.far));
+  th.height = num(look.height, 2.4, 11, th.height);
+  return th;
+}

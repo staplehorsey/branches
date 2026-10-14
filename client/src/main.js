@@ -16,6 +16,7 @@ import { Signals, tone } from './play.js';
 import { disposeTree, label as makeLabel } from './geo.js';
 import * as ui from './ui.js';
 import * as workshop from './workshop.js';
+import * as dream from './dream.js';
 import { CELL, HOUSE_D, DOOR_W, DOOR_H, pocketY, houseCenter, cellOf } from './layout.js';
 
 const $ = (id) => document.getElementById(id);
@@ -255,7 +256,7 @@ function allDoors() {
 // ---------------------------------------------------------------- interiors
 
 function signature(room) {
-  return [room.theme, room.chambers.length, room.features.length, room.portals.map((p) => p.id + p.sealed).join(','), !!room.building].join(':');
+  return [room.theme, JSON.stringify(room.idea?.look || null), room.chambers.length, room.features.length, room.portals.map((p) => p.id + p.sealed).join(','), !!room.building].join(':');
 }
 
 // The Commons: the house just west of The Lush's spawn holds doors to what
@@ -953,6 +954,15 @@ addEventListener('keydown', (e) => {
     e.preventDefault();
     return;
   }
+  if (S.app && (e.code === 'Equal' || e.code === 'Minus' || e.code === 'NumpadAdd' || e.code === 'NumpadSubtract')) {
+    if (S.inside?.realm === S.primary) dream.feel(S.primary.manifest.id, S.inside.x, S.inside.z, e.code === 'Equal' || e.code === 'NumpadAdd' ? 1 : -1);
+    else ui.hint('go inside a house to say warmer or colder');
+    return;
+  }
+  if (S.app && e.code === 'KeyI') {
+    dream.openMuses();
+    return;
+  }
   if (e.code === 'KeyE') interact();
   if (e.code === 'KeyF') admire();
   if (e.code === 'KeyV') player.thirdPerson = !player.thirdPerson;
@@ -999,7 +1009,7 @@ function updateHud() {
   if (it) {
     const room = it.room;
     const ch = it.built.chambers[Math.max(0, S.chamber)];
-    $('room-line').textContent = `${room.claim?.title || room.theme_name} · ${ch?.name || ''}`;
+    $('room-line').textContent = `${room.claim?.title || room.idea?.name || room.theme_name} · ${ch?.name || ''}`;
     $('growth').classList.add('on');
     $('growth-bar').style.width = `${room.building ? 100 : Math.min(100, (room.attention / Math.max(1, room.next_growth_at)) * 100)}%`;
     const use = nearestUse();

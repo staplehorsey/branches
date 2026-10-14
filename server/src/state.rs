@@ -284,6 +284,7 @@ pub fn room_summary(r: &Room) -> Value {
         "claimed": r.claim.as_ref().map(|c| c.title.clone()),
         "portals": r.portals.len(),
         "building": r.building.is_some(),
+        "idea": r.idea.as_ref().map(|i| i.name.clone()),
     })
 }
 
@@ -309,6 +310,7 @@ pub fn room_view(app: &App, uni: &Universe, world: &str, x: i32, z: i32) -> Opti
         "world": world,
         "x": x, "z": z, "seed": shown.seed, "theme": shown.theme,
         "theme_name": procgen::theme(&shown.theme).map(|t| t.name).unwrap_or("Unknown"),
+        "idea": shown.idea,
         "chambers": shown.chambers,
         "features": shown.features,
         "things": shown.things,

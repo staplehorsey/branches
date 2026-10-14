@@ -119,3 +119,9 @@ body.in-vr #chat, body.in-vr #hint, body.in-vr #crosshair { display: none; }
 #workshop code, #workshop pre { font-family: ui-monospace, Menlo, monospace; font-size: 12px; background: rgba(0, 0, 0, 0.05); border-radius: 4px; padding: 0 3px; }
 #workshop pre { padding: 6px; overflow-x: auto; }
 #workshop .ws-input { margin: 8px; border: 0; border-radius: 10px; padding: 8px 10px; resize: none; font: inherit; background: rgba(255, 255, 255, 0.95); outline: 1px solid rgba(0, 0, 0, 0.08); }
+
+/* Muses */
+.muse { padding: 8px 0; border-top: 1px solid rgba(0, 0, 0, 0.08); }
+.muse .sub { margin-top: 4px; line-height: 1.45; }
+.btn.small { padding: 1px 8px; font-size: 11px; margin-left: 6px; }
+#panel textarea { width: 100%; font: inherit; border-radius: 8px; border: 1px solid rgba(0, 0, 0, 0.12); padding: 6px 8px; margin-top: 6px; }

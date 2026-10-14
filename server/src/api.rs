@@ -54,6 +54,10 @@ pub fn router() -> Router<Arc<App>> {
         .route("/api/app/workshop", get(workshop_status).post(workshop_ask))
         .route("/api/app/workshop/new", post(workshop_new))
         .route("/api/app/workshop/stop", post(workshop_stop))
+        .route("/api/app/dream", get(dream_get))
+        .route("/api/app/muses", post(muse_add))
+        .route("/api/app/muses/{id}", axum::routing::delete(muse_remove))
+        .route("/api/app/compass", post(compass_mark))
         .route("/api/residents", get(residents_list).post(resident_spawn))
         .route("/api/residents/fund", post(residents_fund))
         .route("/api/residents/{id}", get(resident_get).delete(resident_retire))
@@ -665,6 +669,48 @@ async fn workshop_ask(State(app): AppState, headers: HeaderMap, Json(b): Json<Wo
     let who = if b.who.trim().is_empty() { "someone" } else { b.who.trim() };
     crate::workshop::ask(&app, text, who, &b.place).map_err(|e| err(StatusCode::CONFLICT, e))?;
     Ok(Json(json!({ "ok": true })))
+}
+
+async fn dream_get(State(app): AppState) -> Res {
+    let d = crate::dream::load(&app.store.root);
+    let compass: Vec<_> = d.compass.iter().rev().take(40).collect();
+    Ok(Json(json!({ "muses": d.muses, "compass": compass })))
+}
+
+#[derive(Deserialize)]
+struct MuseAdd {
+    #[serde(default)]
+    url: Option<String>,
+    #[serde(default)]
+    text: String,
+}
+
+async fn muse_add(State(app): AppState, headers: HeaderMap, Json(b): Json<MuseAdd>) -> Res {
+    workshop_guard(&app, &headers)?;
+    let a = app.clone();
+    let m = tokio::task::spawn_blocking(move || crate::dream::add_muse(&a, b.url, b.text)).await.map_err(|e| err(StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?.map_err(|e| err(StatusCode::BAD_REQUEST, e))?;
+    app.note_commit(format!("A new muse: {}", m.name));
+    Ok(Json(json!({ "ok": true, "muse": m })))
+}
+
+async fn muse_remove(State(app): AppState, headers: HeaderMap, Path(id): Path<String>) -> Res {
+    workshop_guard(&app, &headers)?;
+    crate::dream::remove_muse(&app, &id);
+    Ok(Json(json!({ "ok": true })))
+}
+
+#[derive(Deserialize)]
+struct CompassMark {
+    world: String,
+    x: i32,
+    z: i32,
+    score: i32,
+}
+
+async fn compass_mark(State(app): AppState, headers: HeaderMap, Json(b): Json<CompassMark>) -> Res {
+    workshop_guard(&app, &headers)?;
+    let v = crate::dream::mark(&app, &b.world, b.x, b.z, b.score).map_err(|e| err(StatusCode::BAD_REQUEST, e))?;
+    Ok(Json(v))
 }
 
 async fn workshop_new(State(app): AppState, headers: HeaderMap) -> Res {

@@ -5,7 +5,7 @@ import * as THREE from 'three';
 import { Batch, G, aabb, label } from './geo.js';
 import { FEATURES, frame } from './features.js';
 import { buildThing } from './things.js';
-import { theme as themeOf, surface, shade } from './themes.js';
+import { theme as themeOf, withLook, surface, shade } from './themes.js';
 import { Rand } from './rng.js';
 import { HOUSE_W, HOUSE_D, DOOR_W, DOOR_H, ARCH_W, ARCH_H } from './layout.js';
 
@@ -56,7 +56,7 @@ function wallGeometry(length, height, holes) {
 }
 
 export function buildInterior({ room, origin, biome, frontier = true }) {
-  const th = themeOf(room.theme);
+  const th = withLook(themeOf(room.theme), room.idea?.look);
   const group = new THREE.Group();
   group.position.set(origin.x, origin.y, origin.z);
   const solid = new Batch();

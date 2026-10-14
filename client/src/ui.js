@@ -64,7 +64,7 @@ export function closePanel() {
 }
 let onClose = null;
 
-function openPanel(html, close) {
+export function openPanel(html, close) {
   $('panel-body').innerHTML = html;
   $('panel').hidden = false;
   onClose = close;

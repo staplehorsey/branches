@@ -35,11 +35,23 @@ bike · **F** more of this · **Q** scooter · **R** residents · **M** map · *
 **enter** chat · **L** worlds and settings · **N** notifications · **H**
 wake up at home.
 
+In the app: **I** muses · **=** warmer · **-** colder · **`** the workshop.
+
 In VR: left stick walk (click to go faster), right stick turn, **A** use,
 **B** more of this, **Y** leave VR. A card on your left wrist shows where
 you are.
 
 ## In the app
+
+**The dream.** Every house grows an *idea* (a premise with a point of view,
+like "vast empty sand where light is the only thing to pay attention to")
+and its own look, and every build takes that idea one step further. Add
+**muses** (**I**): links to tweets, stories or songs you love, or just words;
+Claude distills each into an aesthetic that new ideas grow from. Inside a
+house, **=** says *warmer* and **-** says *colder*: the architect sees which
+ideas pull you in and steps from them, small steps when you're close, bold
+leaps when you're cold. Neighbouring houses are variations on each other,
+so a walk down the street wanders through nearby aesthetics.
 
 Open **L** (worlds), then the settings at the bottom:
 
