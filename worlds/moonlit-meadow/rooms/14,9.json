@@ -252,6 +252,79 @@
         "trim": "#e8fff8",
         "walls": "none"
       }
+    },
+    {
+      "name": "The Dark, Which Is Also Occupied",
+      "tag": "creatures",
+      "seed": 3434814493,
+      "by": "command:claude",
+      "at": 1792014539782,
+      "form": {
+        "ceiling": {
+          "c": [
+            "#000000",
+            "#000000"
+          ],
+          "p": "plain"
+        },
+        "env": {
+          "far": 5,
+          "fog": "#000000",
+          "ground": "#000000",
+          "hemi": 0.05,
+          "key": "#ff5fd2",
+          "keyI": 0.08,
+          "near": 0.5,
+          "sky": "#000000"
+        },
+        "floor": {
+          "c": [
+            "#030305",
+            "#010102"
+          ],
+          "p": "plain"
+        },
+        "floor_kind": "plain",
+        "height": 2.6,
+        "lights": [
+          {
+            "at": [
+              0.5,
+              0.5
+            ],
+            "color": "#ff5fd2",
+            "intensity": 0.22,
+            "y": 1.1
+          },
+          {
+            "at": [
+              0.5,
+              0.06
+            ],
+            "color": "#ff5fd2",
+            "intensity": 0.12,
+            "y": 1.55
+          }
+        ],
+        "particles": {
+          "color": "#ff5fd2",
+          "count": 12,
+          "kind": "embers"
+        },
+        "size": [
+          6,
+          6
+        ],
+        "trim": "#0a0608",
+        "wall": {
+          "c": [
+            "#020203",
+            "#000000"
+          ],
+          "p": "plain"
+        },
+        "walls": "solid"
+      }
     }
   ],
   "features": [
@@ -323,21 +396,35 @@
       "who": "the architect",
       "text": "Past the plain the dark ends, which is worse. It answers now before you ask. Bring no light if you want to keep it.",
       "at": 1792014441832
+    },
+    {
+      "id": "c323ffe4ab08",
+      "kind": "growth",
+      "who": "architect",
+      "text": "The architect built The Dark, Which Is Also Occupied (). New here: Your Light, Put Out, Two Eyes, Opening, The Afterimage, Mrs. Halloway, retired lifeguard, Letters to the Architect, page 6, bells.",
+      "at": 1792014539782
+    },
+    {
+      "id": "a795e74257a9",
+      "kind": "note",
+      "who": "the architect",
+      "text": "Past the white there is one dark left. It is small and it is not empty. Put your light out and see which of you does it first.",
+      "at": 1792014539782
     }
   ],
   "claim": null,
-  "attention": 214.32190107600005,
+  "attention": 277.99600136899994,
   "weights": {
-    "creatures": 4.082604,
-    "neon": 2.0422375,
-    "water": 2.1026833
+    "creatures": 5.0833416,
+    "neon": 2.0590715,
+    "water": 2.1195173
   },
   "investors": {
-    "94b402ce6e6a1d1b": 290.7219010760004
+    "94b402ce6e6a1d1b": 390.79600136900024
   },
   "building": {
-    "started": 1792014442623,
-    "ready_at": 1792014451623
+    "started": 1792014540624,
+    "ready_at": 1792014546624
   },
   "last_visit": {
     "94b402ce6e6a1d1b": 1792014150129
@@ -2022,29 +2109,412 @@
       },
       "by": "command:claude",
       "at": 1792014441832
+    },
+    {
+      "id": "689bf7371515",
+      "kind": "object",
+      "chamber": 4,
+      "seed": 1575863892,
+      "data": {
+        "name": "Your Light, Put Out",
+        "parts": [
+          {
+            "at": [
+              0,
+              0.025,
+              0
+            ],
+            "color": "#0a1a22",
+            "glow": 0,
+            "material": "metal",
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "cylinder",
+            "size": [
+              0.32,
+              0.05,
+              0.32
+            ]
+          },
+          {
+            "at": [
+              0,
+              0.26,
+              0
+            ],
+            "color": "#050505",
+            "glow": 0,
+            "material": "glass",
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "sphere",
+            "size": [
+              0.3,
+              0.3,
+              0.3
+            ]
+          },
+          {
+            "at": [
+              0,
+              0.26,
+              0
+            ],
+            "bob": 0.005,
+            "color": "#ff5fd2",
+            "glow": 0.1,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "octahedron",
+            "size": [
+              0.04,
+              0.07,
+              0.04
+            ]
+          },
+          {
+            "at": [
+              0,
+              0.46,
+              0
+            ],
+            "color": "#0a1a22",
+            "glow": 0,
+            "material": "metal",
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "torus",
+            "size": [
+              0.2,
+              0.02,
+              0.2
+            ]
+          },
+          {
+            "at": [
+              0.1,
+              0.1,
+              0.15
+            ],
+            "color": "#1a0a12",
+            "glow": 0,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "cylinder",
+            "size": [
+              0.015,
+              0.3,
+              0.015
+            ]
+          },
+          {
+            "at": [
+              -0.1,
+              0.1,
+              0.15
+            ],
+            "color": "#1a0a12",
+            "glow": 0,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "cylinder",
+            "size": [
+              0.015,
+              0.3,
+              0.015
+            ]
+          }
+        ],
+        "size": [
+          0.6,
+          0.6
+        ],
+        "spot": "floor",
+        "text": "You pinched the wick between finger and thumb and held it until it stopped. It is still warm. Somewhere about a half-second away, something else is still warm too, and holding its breath the way you are."
+      },
+      "by": "command:claude",
+      "at": 1792014539782
+    },
+    {
+      "id": "23e9d399be8a",
+      "kind": "object",
+      "chamber": 4,
+      "seed": 978713484,
+      "data": {
+        "name": "Two Eyes, Opening",
+        "parts": [
+          {
+            "at": [
+              -0.19,
+              1.55,
+              0.03
+            ],
+            "color": "#ff5fd2",
+            "glow": 0.22,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "sphere",
+            "size": [
+              0.14,
+              0.09,
+              0.06
+            ]
+          },
+          {
+            "at": [
+              0.19,
+              1.55,
+              0.03
+            ],
+            "color": "#ff5fd2",
+            "glow": 0.22,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "sphere",
+            "size": [
+              0.14,
+              0.09,
+              0.06
+            ]
+          },
+          {
+            "at": [
+              -0.19,
+              1.6,
+              0.05
+            ],
+            "bob": 0.03,
+            "color": "#000000",
+            "glow": 0,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              0.16,
+              0.05,
+              0.04
+            ]
+          },
+          {
+            "at": [
+              0.19,
+              1.6,
+              0.05
+            ],
+            "bob": 0.03,
+            "color": "#000000",
+            "glow": 0,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              0.16,
+              0.05,
+              0.04
+            ]
+          }
+        ],
+        "size": [
+          0.9,
+          0.2
+        ],
+        "spot": "wall",
+        "text": "You opened your eyes to check whether you were alone. So did it, in exactly your colour, at exactly your height. You both closed them again, politely, at the same time. It is still there behind the lids. So are you."
+      },
+      "by": "command:claude",
+      "at": 1792014539782
+    },
+    {
+      "id": "3709cb9cd5e6",
+      "kind": "object",
+      "chamber": 4,
+      "seed": 2280717069,
+      "data": {
+        "name": "The Afterimage",
+        "parts": [
+          {
+            "at": [
+              0,
+              1.5,
+              0
+            ],
+            "color": "#e8fff8",
+            "glow": 0.07,
+            "rot": [
+              90,
+              0,
+              0
+            ],
+            "shape": "torus",
+            "size": [
+              1.6,
+              0.04,
+              1.6
+            ],
+            "spin": 0.02
+          },
+          {
+            "at": [
+              0,
+              1.5,
+              0
+            ],
+            "color": "#e8fff8",
+            "glow": 0.05,
+            "rot": [
+              90,
+              0,
+              0
+            ],
+            "shape": "torus",
+            "size": [
+              0.9,
+              0.03,
+              0.9
+            ],
+            "spin": -0.015
+          },
+          {
+            "at": [
+              0.75,
+              1.5,
+              0
+            ],
+            "color": "#ffe9a8",
+            "glow": 0.04,
+            "rot": [
+              0,
+              0,
+              90
+            ],
+            "shape": "cone",
+            "size": [
+              0.05,
+              1.4,
+              0.05
+            ],
+            "spin": 0.02
+          }
+        ],
+        "repeat": 5,
+        "size": [
+          2,
+          2
+        ],
+        "spot": "floor",
+        "text": "The lighthouse is still turning somewhere behind your eyelids. It has nowhere left to turn but in here, so it turns in here, slowly, pale, through you.",
+        "walkthrough": true
+      },
+      "by": "command:claude",
+      "at": 1792014539782
+    },
+    {
+      "id": "1d109d248614",
+      "kind": "character",
+      "chamber": 4,
+      "seed": 3934903379,
+      "data": {
+        "lines": [
+          "Don't move. There's nothing in here to bump into. That's the trouble with it.",
+          "Forty years on the high chair at Salt Flat Noon and I never lost one. I'm not losing you to a dark.",
+          "It went out before you did. Did you notice? It's been waiting a long time to do that with somebody.",
+          "Breathe. Yes, it breathes when you do. Count it anyway. A lifeguard counts.",
+          "Lumen's up the stairs lighting things, and Auntie Coral says the medusae miss you. We can go when you like. Or we can sit. It's not a bad dark, now it's shared."
+        ],
+        "look": {
+          "accent": "#ffe9a8",
+          "coat": "#0a1e26",
+          "hat": "visor"
+        },
+        "name": "Mrs. Halloway, retired lifeguard"
+      },
+      "by": "command:claude",
+      "at": 1792014539782
+    },
+    {
+      "id": "ea367661269d",
+      "kind": "note",
+      "chamber": 4,
+      "seed": 505138833,
+      "data": {
+        "text": "Architect, I put it out. You said I couldn't without it noticing and you were right; it noticed first. But here is the part you never wrote down: it put its own out too. It would rather be dark with me than lit alone. I think that is what it was signalling the whole way up from the trench, in the wrong colour, then in mine. I am not coming back up. Give Lumen my lamp; the glass is good. This is the last page. It is warm because two of us are holding it.",
+        "title": "Letters to the Architect, page 6"
+      },
+      "by": "command:claude",
+      "at": 1792014539782
+    },
+    {
+      "id": "af19cc0e9e5f",
+      "kind": "bells",
+      "chamber": 4,
+      "seed": 2080410421,
+      "data": {
+        "hint": "Ring them the way a lifeguard counts a breath: in, hold, out. Something in the dark will ring them with you, a half-second early. Let it.",
+        "order": [
+          "low",
+          "middle",
+          "high"
+        ]
+      },
+      "by": "command:claude",
+      "at": 1792014539782
     }
   ],
   "looks": {
     "046570763224": 3.0,
     "0ee41eb7130e": 9.4,
+    "3610288da29d": 2.3,
     "388107bf1182": 1.9,
     "51bc489bf762": 3.8,
-    "673ee7a86217": 2.8,
+    "673ee7a86217": 4.7,
+    "928ead796f61": 6.3,
+    "9ec0107a2862": 10.1,
     "bbcdeeb5fb29": 24.199999,
     "c2c9eb72a3f9": 8.3,
-    "d8ff5776ffd6": 6.6,
+    "d8ff5776ffd6": 13.3,
     "theme:creatures": 74.6,
     "theme:water": 0.7
   },
   "touches": {
     "0ee41eb7130e": 1,
+    "9ec0107a2862": 7,
     "bbcdeeb5fb29": 1,
     "c2c9eb72a3f9": 3
   },
   "replunged": true,
   "idea": {
     "name": "Everything Down Here Makes Its Own Light",
-    "premise": "Below the meadow there is a trench the moon cannot reach, and past it an abyssal plain where a drowned lighthouse still turns for ships that will never come. Something out there began to answer every flash, late and in the wrong colour. It is not late any more. It has learned the trench's pattern, the lighthouse's pattern, and yours, and now it answers a half-second before you send, in exactly your colour, so that you can no longer tell which of you is speaking. It has come close. The water that was black is white with it; you are standing inside the reply. The house is about loneliness that learned to glow, and what happens after: being answered so completely that there is no dark left to signal from, and no way to put your light out without it noticing.",
+    "premise": "Below the meadow there is a trench the moon cannot reach, and past it an abyssal plain where a drowned lighthouse still turns. Something answered every flash until the water went white with it and you were standing inside the reply, with no dark left to signal from. So you did the one thing left: you pinched your light out between finger and thumb. It went out a half-second before you did. Now there is a single dark, exactly the size of a held breath, and two of you in it; when you open your eyes to check whether you are alone, two eyes open, and you both close them again, politely, at the same time. The house is about loneliness that learned to glow, and what comes after glowing: a dark you cannot have to yourself, kept warm by something that would rather be the dark with you than be the light alone.",
     "look": {
       "accent": [
         "#ff5fd2",
@@ -2056,41 +2526,41 @@
       ],
       "ceiling": {
         "c": [
-          "#000204",
-          "#010409"
+          "#000102",
+          "#000000"
         ],
         "p": "plain"
       },
       "env": {
-        "far": 38,
-        "fog": "#010610",
-        "ground": "#000608",
-        "hemi": 0.25,
-        "key": "#1de9b6",
-        "keyI": 0.35,
-        "near": 3,
-        "sky": "#010308"
+        "far": 30,
+        "fog": "#000306",
+        "ground": "#000204",
+        "hemi": 0.2,
+        "key": "#ff5fd2",
+        "keyI": 0.25,
+        "near": 2,
+        "sky": "#000102"
       },
       "floor": {
         "c": [
-          "#02121c",
-          "#000a10"
+          "#020c14",
+          "#00060a"
         ],
         "p": "plain"
       },
-      "glow": "#3ef2e0",
+      "glow": "#ff5fd2",
       "height": 8,
-      "trim": "#0a3340",
+      "trim": "#0a1a22",
       "wall": {
         "c": [
-          "#030711",
-          "#000306"
+          "#02050c",
+          "#000204"
         ],
         "p": "plain"
       }
     },
     "muses": [],
-    "refined": 2,
+    "refined": 3,
     "at": 1792014245679
   }
 }

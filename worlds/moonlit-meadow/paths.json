@@ -229,5 +229,40 @@
     "speed": 3.478,
     "straight": 0.363,
     "turn": 0.166
+  },
+  {
+    "heading": 2.064,
+    "revisit": 0.542,
+    "speed": 3.498,
+    "straight": 0.251,
+    "turn": 0.148
+  },
+  {
+    "heading": -1.388,
+    "revisit": 0.533,
+    "speed": 3.456,
+    "straight": 0.297,
+    "turn": 0.113
+  },
+  {
+    "heading": -1.389,
+    "revisit": 0.608,
+    "speed": 3.361,
+    "straight": 0.838,
+    "turn": 0.131
+  },
+  {
+    "heading": -1.203,
+    "revisit": 0.675,
+    "speed": 3.405,
+    "straight": 0.337,
+    "turn": 0.128
+  },
+  {
+    "heading": 1.067,
+    "revisit": 0.708,
+    "speed": 3.407,
+    "straight": 0.269,
+    "turn": 0.173
   }
 ]
