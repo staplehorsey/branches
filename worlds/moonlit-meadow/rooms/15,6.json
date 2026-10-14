@@ -1,0 +1,58 @@
+{
+  "x": 15,
+  "z": 6,
+  "seed": 2031830904,
+  "theme": "snowglobe-den",
+  "chambers": [
+    {
+      "name": "Entry Hall",
+      "tag": "snow",
+      "seed": 2031830904,
+      "by": "generator",
+      "at": 0
+    }
+  ],
+  "features": [],
+  "portals": [
+    {
+      "id": "pair-dusk-orchard",
+      "slot": 2,
+      "target": "/w/dusk-orchard/15,6",
+      "label": "Dusk Orchard",
+      "by": "generator",
+      "at": 0,
+      "sealed": false
+    }
+  ],
+  "log": [
+    {
+      "id": "34617276b0fb",
+      "kind": "visit",
+      "who": "drift-57",
+      "player": "94b402ce6e6a1d1b",
+      "text": "stopped by",
+      "at": 1792011668891
+    }
+  ],
+  "claim": null,
+  "attention": 5.51666529,
+  "weights": {
+    "cozy": 1.1009905,
+    "light": 1.1806953,
+    "snow": 1.2399144
+  },
+  "investors": {
+    "94b402ce6e6a1d1b": 5.51666529
+  },
+  "building": null,
+  "last_visit": {
+    "94b402ce6e6a1d1b": 1792011668891
+  },
+  "things": [],
+  "looks": {
+    "theme:light": 1.1,
+    "theme:snow": 0.4
+  },
+  "touches": {},
+  "replunged": false
+}

@@ -1,0 +1,47 @@
+{
+  "x": 15,
+  "z": 3,
+  "seed": 2233989563,
+  "theme": "poolrooms",
+  "chambers": [
+    {
+      "name": "Entry Hall",
+      "tag": "water",
+      "seed": 2233989563,
+      "by": "generator",
+      "at": 0
+    }
+  ],
+  "features": [],
+  "portals": [],
+  "log": [
+    {
+      "id": "f2211cf3a7dc",
+      "kind": "visit",
+      "who": "drift-57",
+      "player": "94b402ce6e6a1d1b",
+      "text": "stopped by",
+      "at": 1792011633159
+    }
+  ],
+  "claim": null,
+  "attention": 5.2089702110000005,
+  "weights": {
+    "light": 1.0991666,
+    "stone": 1.2494546,
+    "water": 1.1481341
+  },
+  "investors": {
+    "94b402ce6e6a1d1b": 5.2089702110000005
+  },
+  "building": null,
+  "last_visit": {
+    "94b402ce6e6a1d1b": 1792011633159
+  },
+  "things": [],
+  "looks": {
+    "theme:light": 4.3
+  },
+  "touches": {},
+  "replunged": false
+}

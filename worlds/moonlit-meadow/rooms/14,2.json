@@ -1,0 +1,47 @@
+{
+  "x": 14,
+  "z": 2,
+  "seed": 3023083153,
+  "theme": "moss-library",
+  "chambers": [
+    {
+      "name": "Entry Hall",
+      "tag": "books",
+      "seed": 3023083153,
+      "by": "generator",
+      "at": 0
+    }
+  ],
+  "features": [],
+  "portals": [],
+  "log": [
+    {
+      "id": "e55bc4b8ec49",
+      "kind": "visit",
+      "who": "drift-57",
+      "player": "94b402ce6e6a1d1b",
+      "text": "stopped by",
+      "at": 1792011606126
+    }
+  ],
+  "claim": null,
+  "attention": 1.9249715829999998,
+  "weights": {
+    "books": 1.1197166,
+    "cozy": 1.0924182,
+    "plants": 1.1885754
+  },
+  "investors": {
+    "94b402ce6e6a1d1b": 1.9249715829999998
+  },
+  "building": null,
+  "last_visit": {
+    "94b402ce6e6a1d1b": 1792011606126
+  },
+  "things": [],
+  "looks": {
+    "theme:plants": 1.0
+  },
+  "touches": {},
+  "replunged": false
+}
