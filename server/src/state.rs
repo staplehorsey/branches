@@ -101,11 +101,19 @@ pub struct Settings {
     /// Whether you have chosen an architect (asked once, before the first build).
     #[serde(default)]
     pub asked: bool,
+    /// The Claude model that writes spaces ("sonnet" makes one in about a
+    /// minute; a bigger model is richer and much slower). Empty: your default.
+    #[serde(default = "default_space_model")]
+    pub space_model: String,
+}
+
+fn default_space_model() -> String {
+    "sonnet".into()
 }
 
 impl Default for Settings {
     fn default() -> Self {
-        Settings { architect: "heuristic".into(), command: "claude -p".into(), night: Default::default(), asked: false }
+        Settings { architect: "heuristic".into(), command: "claude -p".into(), night: Default::default(), asked: false, space_model: default_space_model() }
     }
 }
 

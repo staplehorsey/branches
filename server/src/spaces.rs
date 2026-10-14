@@ -197,7 +197,8 @@ fn build(app: &Arc<App>, world: &str, x: i32, z: i32, n: u32) {
         let _ = std::fs::write(d.join("BRIEF.md"), &prompt);
         let cmd = {
             let s = app.settings.lock().unwrap();
-            format!("{} --permission-mode acceptEdits --allowedTools Read Write Edit Glob Grep", s.command.trim())
+            let model = if s.space_model.trim().is_empty() || s.command.contains("--model") { String::new() } else { format!(" --model {}", s.space_model.trim()) };
+            format!("{}{model} --permission-mode acceptEdits --allowedTools Read Write Edit Glob Grep", s.command.trim())
         };
         crate::agent::run(&cmd, &prompt, Some(&d), BUILD_TIMEOUT)?;
         if !d.join("index.html").is_file() {

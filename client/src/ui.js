@@ -380,6 +380,7 @@ export async function appSettings(host, el) {
       <label class="sub"><input type="radio" name="arch" value="command" ${s.settings.architect === 'command' ? 'checked' : ''}/> a program you choose, for example Claude Code</label>
       <input id="arch-cmd" value="${esc(s.settings.command)}" placeholder="claude -p" />
       <div class="sub">It gets a description of the house and what visitors want on stdin and prints a JSON plan, and it builds everything. When it can't, the house waits and it tries again a minute later. ${s.claude ? `Claude Code is installed (<code>${esc(s.claude)}</code>); <code>claude -p</code> uses your Claude subscription.` : 'Claude Code is not installed yet.'}</div>
+      <label class="sub">model that writes spaces <input id="space-model" value="${esc(s.settings.space_model ?? 'sonnet')}" placeholder="your default" style="width:140px" /> (sonnet: about a minute each; opus or your default: richer, much slower)</label>
       <div class="btns"><button class="btn" id="arch-save">save</button><button class="btn" id="arch-test">test it</button></div>
       <div id="arch-msg"></div>
     </div>
@@ -399,7 +400,7 @@ export async function appSettings(host, el) {
   $('arch-save').onclick = async () => {
     const architect = el.querySelector('input[name=arch]:checked').value;
     try {
-      await host.send('POST', '/api/app/settings', { architect, command: $('arch-cmd').value.trim(), night: nightValues() });
+      await host.send('POST', '/api/app/settings', { architect, command: $('arch-cmd').value.trim(), night: nightValues(), space_model: $('space-model')?.value.trim() ?? 'sonnet' });
       $('arch-msg').innerHTML = '<span class="ok">saved</span>';
     } catch (e) {
       $('arch-msg').innerHTML = `<span class="err">${esc(e.message)}</span>`;
@@ -420,7 +421,7 @@ export async function appSettings(host, el) {
   });
   const saveNight = async () => {
     const architect = el.querySelector('input[name=arch]:checked').value;
-    await host.send('POST', '/api/app/settings', { architect, command: $('arch-cmd').value.trim(), night: nightValues() });
+    await host.send('POST', '/api/app/settings', { architect, command: $('arch-cmd').value.trim(), night: nightValues(), space_model: $('space-model')?.value.trim() ?? 'sonnet' });
   };
   for (const id of ['night-on', 'night-cmd', 'night-from', 'night-to', 'night-idle', 'night-max']) $(id).onchange = () => saveNight().catch(() => {});
   $('night-now').onclick = async () => {
