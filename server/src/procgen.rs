@@ -332,7 +332,7 @@ pub fn default_room(world: &WorldManifest, others: &[WorldManifest], x: i32, z: 
         tag: entry_tag.into(),
         seed,
         by: "generator".into(),
-        at: 0,
+        at: 0, form: None
     }];
 
     let policy = &world.portal_policy;

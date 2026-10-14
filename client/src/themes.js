@@ -353,21 +353,33 @@ export function theme(id) {
 // architect got wrong (an unknown pattern, a bad colour) keeps the theme's.
 const isHex = (c) => typeof c === 'string' && /^#[0-9a-f]{3}([0-9a-f]{3})?$/i.test(c);
 const num = (v, lo, hi, d) => (Number.isFinite(+v) ? Math.min(hi, Math.max(lo, +v)) : d);
+export { isHex, num };
+
+// A surface spec from an architect, or the fallback if it isn't one.
+export function surfaceSpec(l, fallback) {
+  if (l && PATTERNS[l.p] && Array.isArray(l.c) && l.c.length && l.c.every(isHex)) return { p: l.p, c: l.c.slice(0, 3), scale: num(l.scale, 0.3, 4, fallback?.scale || 1) };
+  return fallback;
+}
+
+// Light and air (fog, sky, ground light) with an architect's changes.
+export function envWith(env, e) {
+  if (!e || typeof e !== 'object') return env;
+  const out = { ...env };
+  for (const k of ['sky', 'ground', 'fog', 'key']) if (isHex(e[k])) out[k] = e[k];
+  out.hemi = num(e.hemi, 0.2, 2.2, out.hemi);
+  out.keyI = num(e.keyI, 0, 1.5, out.keyI);
+  out.near = num(e.near, 0.5, 60, out.near);
+  out.far = Math.max(out.near + 2, num(e.far, 4, 200, out.far));
+  return out;
+}
+
 export function withLook(base, look) {
   if (!look || typeof look !== 'object') return base;
-  const th = { ...base, env: { ...base.env } };
-  for (const k of ['wall', 'floor', 'ceiling']) {
-    const l = look[k];
-    if (l && PATTERNS[l.p] && Array.isArray(l.c) && l.c.length && l.c.every(isHex)) th[k] = { p: l.p, c: l.c.slice(0, 3), scale: num(l.scale, 0.3, 4, base[k].scale || 1) };
-  }
+  const th = { ...base };
+  for (const k of ['wall', 'floor', 'ceiling']) th[k] = surfaceSpec(look[k], base[k]);
   for (const k of ['trim', 'glow', 'water']) if (isHex(look[k])) th[k] = look[k];
   if (Array.isArray(look.accent) && look.accent.filter(isHex).length >= 2) th.accent = look.accent.filter(isHex).slice(0, 6);
-  const e = look.env || {};
-  for (const k of ['sky', 'ground', 'fog', 'key']) if (isHex(e[k])) th.env[k] = e[k];
-  th.env.hemi = num(e.hemi, 0.2, 2.2, th.env.hemi);
-  th.env.keyI = num(e.keyI, 0, 1.5, th.env.keyI);
-  th.env.near = num(e.near, 0.5, 60, th.env.near);
-  th.env.far = Math.max(th.env.near + 2, num(e.far, 4, 200, th.env.far));
+  th.env = envWith(base.env, look.env);
   th.height = num(look.height, 2.4, 11, th.height);
   return th;
 }

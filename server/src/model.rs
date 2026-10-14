@@ -109,6 +109,11 @@ pub struct Chamber {
     pub seed: u32,
     pub by: String,
     pub at: u64,
+    /// Its shape and atmosphere, when an architect designed them: size,
+    /// walls, floor, sky, surfaces, light, fog, particles. The client
+    /// reads what it understands and ignores the rest.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub form: Option<Value>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

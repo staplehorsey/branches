@@ -109,6 +109,9 @@ pub struct Plan {
     pub idea: Option<(String, String)>,
     /// The house's look, new or evolved.
     pub look: Option<Value>,
+    /// The new chamber's form, and new forms for chambers already built.
+    pub form: Option<Value>,
+    pub reform: Vec<(u32, Value)>,
 }
 
 pub trait Architect: Send + Sync {
@@ -220,6 +223,15 @@ struct RawPlan {
     idea: Option<RawIdea>,
     #[serde(default)]
     look: Option<Value>,
+    #[serde(default)]
+    form: Option<Value>,
+    #[serde(default)]
+    reform: Vec<RawReform>,
+}
+#[derive(Deserialize)]
+struct RawReform {
+    chamber: u32,
+    form: Value,
 }
 #[derive(Deserialize)]
 struct RawIdea {
@@ -244,7 +256,15 @@ struct RawThing {
 
 pub fn prompt(ctx: &PlanContext) -> String {
     let r = &ctx.room;
-    let chambers: Vec<String> = r.chambers.iter().enumerate().map(|(i, c)| format!("{i}: {} ({})", c.name, c.tag)).collect();
+    let chambers: Vec<String> = r
+        .chambers
+        .iter()
+        .enumerate()
+        .map(|(i, c)| match &c.form {
+            Some(f) => format!("{i}: {} ({}) form {}", c.name, c.tag, f.to_string().chars().take(300).collect::<String>()),
+            None => format!("{i}: {} ({}) a plain room", c.name, c.tag),
+        })
+        .collect();
     let mut feats: BTreeMap<&str, u32> = BTreeMap::new();
     for f in &r.features {
         *feats.entry(&f.tag).or_default() += 1;
@@ -278,12 +298,13 @@ Fresh requests in the visitor book: {requests:?}
 Recent visitor-book notes: {notes:?}
 Budget: {budget}. Mode: {mode}.
 
-Make this place its own: invent, don't reach for stock pieces. The feature tags below are only background dressing; what makes a chamber memorable is the things you design for it, above all objects you sculpt yourself.
+VISUAL LANGUAGE: never settle into one motif. Houses must not look like each other, and a house's chambers should not look like each other either: each refinement may transform the space itself (a corridor becomes a flooded hall, a salon dissolves into open dunes under a sky, walls become a colonnade, then glass, then nothing at all). Vary scale wildly (a 3 m cell, a 50 m void), light (pitch dark with one lamp, blinding white haze), colour, emptiness and density. Avoid furniture-showroom rooms. You may reshape chambers already built with "reform" when the idea has outgrown them.
 
-Feature tags (background dressing, use 0-3): {tags}.
+Feature tags are stock furniture and dressing; prefer NONE (an empty list) unless one truly serves the idea: {tags}.
 Thing kinds (up to 6 things):
   object {{"name": str, "text": "what you find when you look closer (a sentence or two, or a short poem)", "parts": [up to 24 parts], "size": [width, depth] in metres (footprint, max 3x3), "spot": "floor"|"wall"|"corner"}}
     each part: {{"shape": box|sphere|cylinder|cone|torus|octahedron, "size": [x, y, z] metres, "at": [x, y, z] metres from the centre of the footprint at floor level (y up), "rot": [x, y, z] degrees, "color": "#hex", "glow": 0-1, "spin": turns per second about y (optional), "bob": metres (optional)}}
+    part "material" (optional): "metal", "mirror" or "glass". Object options: "repeat": 1-12 copies scattered through the chamber (a field of lanterns, a grove of pillars), "walkthrough": true to let people walk through it. Sizes up to 12 m: monuments, arches, a moon hanging in the haze.
     Sculpt anything this way: a piano, a fountain, a tree of lamps, a boat, a shrine, a vending machine for memories. Use several parts; make them sit on each other believably.
   character {{"name": str, "lines": [3-6 short spoken lines, in order], "look": {{"coat": "#hex", "accent": "#hex", "hat": one of wide|cap|visor|straw|tall|none|scarf|beret|beanie|bowler|net}}}}
   note {{"title": str, "text": str}}
@@ -297,8 +318,11 @@ The look (the whole house: walls, floor, ceiling, light, air):
   {{"wall": {{"p": pattern, "c": ["#hex", "#hex"]}}, "floor": {{"p": pattern, "c": [...]}}, "ceiling": {{"p": pattern, "c": [...]}}, "trim": "#hex", "glow": "#hex", "accent": ["#hex", ...], "env": {{"sky": "#hex", "ground": "#hex", "fog": "#hex", "hemi": 0.2-2.0 (overall light), "key": "#hex", "keyI": 0-1.5, "near": metres where fog starts, "far": metres where fog is total}}, "height": ceiling metres 2.4-11}}
   patterns: plain, tiles, checker, stripes, damask, wood, carpet, tatami, shoji, stone, moss, velvet, sand. Dim light and close fog for intimacy; pale light and far fog for vastness.
 
+A chamber's form (for the new chamber in "form"; to reshape built ones, "reform": [{{"chamber": n, "form": {{...}}}}]; chamber 0 is the entry hall, whose size is fixed):
+  {{"size": [width, depth] metres 6-60, "height": metres 2.4-12, "walls": "solid"|"glass"|"columns"|"none" (none: open into the fog, edges invisible), "floor_kind": "plain"|"water"|"dunes", "sky": "open" (no ceiling, a sky lost in haze) or omit, "wall"/"floor"/"ceiling": surfaces like the look's, "trim": "#hex", "env": {{fog, sky, ground, key, hemi, keyI, near, far: this chamber's own air}}, "particles": {{"kind": dust|snow|fireflies|petals|embers|rain|bubbles, "color": "#hex", "count": 10-600}}, "lights": [{{"color": "#hex", "intensity": 0-3, "at": [0-1, 0-1] across the floor, "y": metres}}]}}
+
 JSON shape:
-{{"idea": {{"name": "...", "premise": "..."}}, "look": {{...}}, "chamber_name": "The ...", "chamber_tag": "<tag>", "features": ["<tag>", ...], "enrich": [{{"chamber": 0, "tag": "<tag>"}}], "things": [{{"kind": "...", "chamber": null, "data": {{...}}}}], "note": "optional one line for the visitor book, from the architect"}}
+{{"idea": {{"name": "...", "premise": "..."}}, "look": {{...}}, "form": {{...}}, "reform": [], "chamber_name": "The ...", "chamber_tag": "<tag>", "features": ["<tag>", ...], "enrich": [{{"chamber": 0, "tag": "<tag>"}}], "things": [{{"kind": "...", "chamber": null, "data": {{...}}}}], "note": "optional one line for the visitor book, from the architect"}}
 In "detail" mode leave chamber_name empty and put everything in enrich/things with explicit chamber numbers."##,
         world = ctx.world_name,
         x = r.x,
@@ -365,6 +389,8 @@ pub fn parse_plan(text: &str, by: &str) -> Option<Plan> {
         by: by.into(),
         idea: raw.idea.filter(|i| !i.name.trim().is_empty() && !i.premise.trim().is_empty()).map(|i| (i.name.chars().take(80).collect(), i.premise.chars().take(1200).collect())),
         look: raw.look.filter(|l| l.is_object()),
+        form: raw.form.filter(|f| f.is_object()),
+        reform: raw.reform.into_iter().filter(|r| r.form.is_object()).take(4).map(|r| (r.chamber, r.form)).collect(),
     })
 }
 
@@ -679,7 +705,7 @@ fn apply(app: &Arc<App>, ctx: &PlanContext, plan: Plan, seed: u64) {
     let chambers_before = r.chambers.len() as u32;
     let new_chamber = !ctx.detail && !plan.chamber_name.is_empty();
     if new_chamber {
-        r.chambers.push(Chamber { name: plan.chamber_name.clone(), tag: plan.chamber_tag.clone(), seed: rng.next_u64() as u32, by: by.clone(), at: now });
+        r.chambers.push(Chamber { name: plan.chamber_name.clone(), tag: plan.chamber_tag.clone(), seed: rng.next_u64() as u32, by: by.clone(), at: now, form: plan.form.clone() });
     }
     let idx = r.chambers.len() as u32 - 1;
     let clamp = |c: u32| c.min(r.chambers.len() as u32 - 1);
@@ -708,6 +734,11 @@ fn apply(app: &Arc<App>, ctx: &PlanContext, plan: Plan, seed: u64) {
     }
     if let (Some(i), Some(look)) = (&mut r.idea, plan.look) {
         i.look = Some(look);
+    }
+    for (c, form) in plan.reform {
+        if let Some(ch) = r.chambers.get_mut(c as usize) {
+            ch.form = Some(form);
+        }
     }
     r.attention = (r.attention - threshold).max(0.0);
     r.building = None;

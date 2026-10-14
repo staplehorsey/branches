@@ -207,7 +207,7 @@ function prepare(space, eye) {
     for (const l of points) l.intensity = 0;
     r.outdoor.follow(eye);
   } else if (it) {
-    const env = it.built.theme.env;
+    const env = (it === S.inside && it.built.chambers[Math.max(0, S.chamber)]?.env) || it.built.theme.env;
     fog.color.set(env.fog);
     fog.near = env.near;
     fog.far = env.far;
