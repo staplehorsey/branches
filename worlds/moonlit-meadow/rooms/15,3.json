@@ -43,5 +43,6 @@
     "theme:light": 4.3
   },
   "touches": {},
-  "replunged": false
+  "replunged": false,
+  "idea": null
 }

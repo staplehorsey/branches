@@ -80,5 +80,6 @@
     "guestbook": 0.7
   },
   "touches": {},
-  "replunged": false
+  "replunged": false,
+  "idea": null
 }

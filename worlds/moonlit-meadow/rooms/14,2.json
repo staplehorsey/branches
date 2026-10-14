@@ -43,5 +43,6 @@
     "theme:plants": 1.0
   },
   "touches": {},
-  "replunged": false
+  "replunged": false,
+  "idea": null
 }

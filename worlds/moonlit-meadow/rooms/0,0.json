@@ -78,5 +78,6 @@
   "things": [],
   "looks": {},
   "touches": {},
-  "replunged": false
+  "replunged": false,
+  "idea": null
 }

@@ -54,5 +54,6 @@
     "theme:snow": 0.4
   },
   "touches": {},
-  "replunged": false
+  "replunged": false,
+  "idea": null
 }
