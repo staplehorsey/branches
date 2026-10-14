@@ -60,9 +60,14 @@
     "visits": 0
   },
   "11,13": {
-    "inside": 462.6434,
-    "outside": 11.159816,
+    "inside": 578.682,
+    "outside": 13.385456,
     "visits": 1
+  },
+  "11,14": {
+    "inside": 0.0,
+    "outside": 6.757472,
+    "visits": 0
   },
   "11,3": {
     "inside": 0.0,
