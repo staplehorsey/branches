@@ -183,6 +183,75 @@
         },
         "walls": "none"
       }
+    },
+    {
+      "name": "The Reply, Which Is Everywhere Now",
+      "tag": "creatures",
+      "seed": 2764693265,
+      "by": "command:claude",
+      "at": 1792014441832,
+      "form": {
+        "env": {
+          "far": 13,
+          "fog": "#dbfff5",
+          "ground": "#c4fff1",
+          "hemi": 1.9,
+          "key": "#ffffff",
+          "keyI": 1.3,
+          "near": 2,
+          "sky": "#eafff9"
+        },
+        "floor": {
+          "c": [
+            "#9ff5e6",
+            "#d9fff8"
+          ],
+          "p": "plain"
+        },
+        "floor_kind": "water",
+        "height": 12,
+        "lights": [
+          {
+            "at": [
+              0.5,
+              0.5
+            ],
+            "color": "#ff5fd2",
+            "intensity": 2.2,
+            "y": 7
+          },
+          {
+            "at": [
+              0.18,
+              0.72
+            ],
+            "color": "#d8ff5e",
+            "intensity": 1.4,
+            "y": 3
+          },
+          {
+            "at": [
+              0.8,
+              0.25
+            ],
+            "color": "#3ef2e0",
+            "intensity": 1.4,
+            "y": 3
+          }
+        ],
+        "particles": {
+          "color": "#ffffff",
+          "count": 500,
+          "kind": "bubbles"
+        },
+        "size": [
+          52,
+          52
+        ],
+        "sky": "open",
+        "trim": "#e8fff8",
+        "walls": "none"
+      }
     }
   ],
   "features": [
@@ -240,21 +309,35 @@
       "who": "the architect",
       "text": "Past the trench the silt goes on forever, and something has started answering. Signal carefully. It learns whatever pattern you use.",
       "at": 1792014353104
+    },
+    {
+      "id": "ae2da27c7ed4",
+      "kind": "growth",
+      "who": "architect",
+      "text": "The architect built The Reply, Which Is Everywhere Now (). New here: The Answer, Up Close, Your Pattern, Returned, The Lens That Came Loose, Lumen, the lamplighter, Letters to the Architect, page 5, Ditto.",
+      "at": 1792014441832
+    },
+    {
+      "id": "723bde0a44f9",
+      "kind": "note",
+      "who": "the architect",
+      "text": "Past the plain the dark ends, which is worse. It answers now before you ask. Bring no light if you want to keep it.",
+      "at": 1792014441832
     }
   ],
   "claim": null,
-  "attention": 163.9146192490001,
+  "attention": 214.32190107600005,
   "weights": {
-    "creatures": 3.18253,
-    "neon": 2.0295727,
-    "water": 2.0900185
+    "creatures": 4.082604,
+    "neon": 2.0422375,
+    "water": 2.1026833
   },
   "investors": {
-    "94b402ce6e6a1d1b": 200.71461924900012
+    "94b402ce6e6a1d1b": 290.7219010760004
   },
   "building": {
-    "started": 1792014353622,
-    "ready_at": 1792014363622
+    "started": 1792014442623,
+    "ready_at": 1792014451623
   },
   "last_visit": {
     "94b402ce6e6a1d1b": 1792014150129
@@ -1537,15 +1620,419 @@
       },
       "by": "command:claude",
       "at": 1792014353104
+    },
+    {
+      "id": "e02cda13b754",
+      "kind": "object",
+      "chamber": 3,
+      "seed": 1054946443,
+      "data": {
+        "name": "The Answer, Up Close",
+        "parts": [
+          {
+            "at": [
+              0,
+              5.5,
+              0
+            ],
+            "bob": 0.4,
+            "color": "#f4fffc",
+            "glow": 0.95,
+            "material": "glass",
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "sphere",
+            "size": [
+              11,
+              11,
+              11
+            ]
+          },
+          {
+            "at": [
+              0,
+              5.5,
+              0
+            ],
+            "bob": 0.4,
+            "color": "#ff5fd2",
+            "glow": 1,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "sphere",
+            "size": [
+              2.6,
+              2.6,
+              2.6
+            ]
+          },
+          {
+            "at": [
+              0,
+              5.5,
+              0
+            ],
+            "color": "#3ef2e0",
+            "glow": 0.8,
+            "rot": [
+              90,
+              0,
+              0
+            ],
+            "shape": "torus",
+            "size": [
+              8,
+              0.18,
+              8
+            ],
+            "spin": 0.04
+          },
+          {
+            "at": [
+              0,
+              5.5,
+              0
+            ],
+            "color": "#d8ff5e",
+            "glow": 0.7,
+            "rot": [
+              60,
+              0,
+              20
+            ],
+            "shape": "torus",
+            "size": [
+              9.5,
+              0.12,
+              9.5
+            ],
+            "spin": -0.025
+          },
+          {
+            "at": [
+              0,
+              5.5,
+              0
+            ],
+            "color": "#ffe9a8",
+            "glow": 0.7,
+            "rot": [
+              20,
+              0,
+              70
+            ],
+            "shape": "torus",
+            "size": [
+              6,
+              0.1,
+              6
+            ],
+            "spin": 0.07
+          }
+        ],
+        "size": [
+          3,
+          3
+        ],
+        "spot": "floor",
+        "text": "You expected a mouth or a lamp. It is neither. It is the whole water gone bright, and in the middle of the brightness, a slow heart the colour of your last flash. It beats a half-second before you breathe.",
+        "walkthrough": true
+      },
+      "by": "command:claude",
+      "at": 1792014441832
+    },
+    {
+      "id": "3610288da29d",
+      "kind": "object",
+      "chamber": 3,
+      "seed": 1250457044,
+      "data": {
+        "name": "Your Pattern, Returned",
+        "parts": [
+          {
+            "at": [
+              0,
+              1.6,
+              0
+            ],
+            "color": "#0a3340",
+            "glow": 0.05,
+            "rot": [
+              0,
+              0,
+              4
+            ],
+            "shape": "cylinder",
+            "size": [
+              0.06,
+              3.2,
+              0.06
+            ]
+          },
+          {
+            "at": [
+              0.1,
+              3.3,
+              0
+            ],
+            "bob": 0.12,
+            "color": "#ff7a2a",
+            "glow": 1,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "sphere",
+            "size": [
+              0.42,
+              0.42,
+              0.42
+            ]
+          },
+          {
+            "at": [
+              0.1,
+              3.3,
+              0
+            ],
+            "bob": 0.12,
+            "color": "#ffffff",
+            "glow": 1,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "sphere",
+            "size": [
+              0.2,
+              0.2,
+              0.2
+            ]
+          },
+          {
+            "at": [
+              0,
+              0.02,
+              0
+            ],
+            "color": "#3ef2e0",
+            "glow": 0.6,
+            "rot": [
+              90,
+              0,
+              0
+            ],
+            "shape": "torus",
+            "size": [
+              0.9,
+              0.03,
+              0.9
+            ]
+          }
+        ],
+        "repeat": 10,
+        "size": [
+          1,
+          1
+        ],
+        "spot": "floor",
+        "text": "Thin stalks stand in the shallows, each holding up one bead of colour. They flash in sequence: three short, one long, two short. You have never signalled that. You will, in a moment."
+      },
+      "by": "command:claude",
+      "at": 1792014441832
+    },
+    {
+      "id": "928ead796f61",
+      "kind": "object",
+      "chamber": 3,
+      "seed": 1232734884,
+      "data": {
+        "name": "The Lens That Came Loose",
+        "parts": [
+          {
+            "at": [
+              0,
+              0.15,
+              0
+            ],
+            "color": "#2a3a3c",
+            "glow": 0,
+            "material": "metal",
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "cylinder",
+            "size": [
+              2.2,
+              0.3,
+              2.2
+            ]
+          },
+          {
+            "at": [
+              0,
+              1,
+              0
+            ],
+            "color": "#1d2b2d",
+            "glow": 0,
+            "material": "metal",
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "cylinder",
+            "size": [
+              0.3,
+              1.4,
+              0.3
+            ]
+          },
+          {
+            "at": [
+              0,
+              3.4,
+              0
+            ],
+            "bob": 0.1,
+            "color": "#e8fff8",
+            "glow": 0.7,
+            "material": "glass",
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "octahedron",
+            "size": [
+              2.4,
+              3.4,
+              2.4
+            ],
+            "spin": 0.08
+          },
+          {
+            "at": [
+              0,
+              3.4,
+              0
+            ],
+            "color": "#9fb0b2",
+            "glow": 0.1,
+            "material": "metal",
+            "rot": [
+              90,
+              0,
+              0
+            ],
+            "shape": "torus",
+            "size": [
+              2.6,
+              0.08,
+              2.6
+            ],
+            "spin": 0.08
+          },
+          {
+            "at": [
+              0,
+              3.4,
+              5.6
+            ],
+            "color": "#ffe9a8",
+            "glow": 0.9,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              0.3,
+              0.3,
+              9
+            ],
+            "spin": 0.08
+          }
+        ],
+        "size": [
+          3,
+          3
+        ],
+        "spot": "floor",
+        "text": "The drowned lighthouse's lens, lifted off its housing and carried here like a gift. It still turns. Whatever shines through it now is not the lamp it was built for; the beam comes out the colour of someone being very patient."
+      },
+      "by": "command:claude",
+      "at": 1792014441832
+    },
+    {
+      "id": "160dd9f1c919",
+      "kind": "character",
+      "chamber": 3,
+      "seed": 3796121665,
+      "data": {
+        "lines": [
+          "I light lamps for a living. I came down to see who lights these.",
+          "It learned the trench in a night. It learned me by my second lamp.",
+          "Auntie Coral says don't answer it. The moth collector says you already have. They're both right, which is the trouble.",
+          "Look how pale the water is. That isn't light. That's it, close.",
+          "If you mean to stop, stop now, while you still have a dark to stop in. I can't. I've been flashing since I arrived, and so has it, and I no longer know which of us started."
+        ],
+        "look": {
+          "accent": "#ffe9a8",
+          "coat": "#0a3340",
+          "hat": "tall"
+        },
+        "name": "Lumen, the lamplighter"
+      },
+      "by": "command:claude",
+      "at": 1792014441832
+    },
+    {
+      "id": "ede0f2e0161c",
+      "kind": "note",
+      "chamber": 3,
+      "seed": 3893102052,
+      "data": {
+        "text": "Architect, you built the trench so nothing would have to be alone in the dark, and it worked. Then you built the plain, and something answered, and that worked too. I am writing from inside the answer. The water is white. It flashes before I do. This morning the lighthouse turned its lens toward us and kept it there. I am not afraid of it. I am afraid that I have stopped wanting it to stop. Please build us a door that closes, or tell us honestly that you can't. Still signalling, M. Halloway.",
+        "title": "Letters to the Architect, page 5"
+      },
+      "by": "command:claude",
+      "at": 1792014441832
+    },
+    {
+      "id": "5b33cdb73f89",
+      "kind": "cat",
+      "chamber": 3,
+      "seed": 3647651185,
+      "data": {
+        "name": "Ditto",
+        "says": "(she blinks twice. you blink twice. she blinks twice. one of you is copying, and it is no longer clear who.)"
+      },
+      "by": "command:claude",
+      "at": 1792014441832
     }
   ],
   "looks": {
-    "046570763224": 1.8,
+    "046570763224": 3.0,
     "0ee41eb7130e": 9.4,
     "388107bf1182": 1.9,
-    "673ee7a86217": 2.0,
-    "bbcdeeb5fb29": 21.199999,
-    "c2c9eb72a3f9": 7.5,
+    "51bc489bf762": 3.8,
+    "673ee7a86217": 2.8,
+    "bbcdeeb5fb29": 24.199999,
+    "c2c9eb72a3f9": 8.3,
+    "d8ff5776ffd6": 6.6,
     "theme:creatures": 74.6,
     "theme:water": 0.7
   },
@@ -1557,14 +2044,15 @@
   "replunged": true,
   "idea": {
     "name": "Everything Down Here Makes Its Own Light",
-    "premise": "Below the meadow there is a trench the moon cannot reach, and nothing there has ever seen light it did not make itself. But the trench is only the edge. Past it lies the abyssal plain, where marine snow falls forever onto black silt and a lighthouse that fell in a storm lies drowned on its side, still turning, nobody having told it there are no ships. Out there something has begun to answer. Every flash sent into the dark comes back late, in a slightly different colour, and nobody can tell whether the reply is kindness or hunger. The house is about loneliness that learns to glow, and the worse hope that follows: being answered, and not being able to stop.",
+    "premise": "Below the meadow there is a trench the moon cannot reach, and past it an abyssal plain where a drowned lighthouse still turns for ships that will never come. Something out there began to answer every flash, late and in the wrong colour. It is not late any more. It has learned the trench's pattern, the lighthouse's pattern, and yours, and now it answers a half-second before you send, in exactly your colour, so that you can no longer tell which of you is speaking. It has come close. The water that was black is white with it; you are standing inside the reply. The house is about loneliness that learned to glow, and what happens after: being answered so completely that there is no dark left to signal from, and no way to put your light out without it noticing.",
     "look": {
       "accent": [
         "#ff5fd2",
         "#d8ff5e",
         "#3ef2e0",
         "#ff7a2a",
-        "#ffe9a8"
+        "#ffe9a8",
+        "#e8fff8"
       ],
       "ceiling": {
         "c": [
@@ -1602,7 +2090,7 @@
       }
     },
     "muses": [],
-    "refined": 1,
+    "refined": 2,
     "at": 1792014245679
   }
 }

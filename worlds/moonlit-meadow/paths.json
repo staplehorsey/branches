@@ -194,5 +194,40 @@
     "speed": 2.972,
     "straight": 0.202,
     "turn": 0.266
+  },
+  {
+    "heading": 2.251,
+    "revisit": 0.692,
+    "speed": 3.087,
+    "straight": 0.204,
+    "turn": 0.256
+  },
+  {
+    "heading": -0.885,
+    "revisit": 0.575,
+    "speed": 3.275,
+    "straight": 0.209,
+    "turn": 0.157
+  },
+  {
+    "heading": -0.918,
+    "revisit": 0.517,
+    "speed": 3.438,
+    "straight": 0.364,
+    "turn": 0.133
+  },
+  {
+    "heading": -1.07,
+    "revisit": 0.533,
+    "speed": 3.377,
+    "straight": 0.175,
+    "turn": 0.161
+  },
+  {
+    "heading": 1.868,
+    "revisit": 0.533,
+    "speed": 3.478,
+    "straight": 0.363,
+    "turn": 0.166
   }
 ]
