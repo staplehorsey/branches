@@ -171,6 +171,99 @@
         "trim": "#8a6a2a",
         "walls": "none"
       }
+    },
+    {
+      "name": "The Prompt Corner, Finger On Go",
+      "tag": "light",
+      "seed": 1794715867,
+      "by": "command:claude",
+      "at": 1792015213203,
+      "form": {
+        "ceiling": {
+          "c": [
+            "#030206",
+            "#060310"
+          ],
+          "p": "plain"
+        },
+        "env": {
+          "far": 38,
+          "fog": "#06040a",
+          "ground": "#08050a",
+          "hemi": 0.12,
+          "key": "#cfd8ff",
+          "keyI": 0.25,
+          "near": 4,
+          "sky": "#030206"
+        },
+        "floor": {
+          "c": [
+            "#1a110c",
+            "#0e0906"
+          ],
+          "p": "wood"
+        },
+        "floor_kind": "plain",
+        "height": 12,
+        "lights": [
+          {
+            "at": [
+              0.5,
+              0.5
+            ],
+            "color": "#ffe6a8",
+            "intensity": 2.4,
+            "y": 2.1
+          },
+          {
+            "at": [
+              0.5,
+              0.97
+            ],
+            "color": "#ffb347",
+            "intensity": 1.1,
+            "y": 0.3
+          },
+          {
+            "at": [
+              0.08,
+              0.1
+            ],
+            "color": "#2a3a8a",
+            "intensity": 0.6,
+            "y": 0.4
+          },
+          {
+            "at": [
+              0.92,
+              0.1
+            ],
+            "color": "#2a3a8a",
+            "intensity": 0.6,
+            "y": 0.4
+          },
+          {
+            "at": [
+              0.12,
+              0.88
+            ],
+            "color": "#2a3a8a",
+            "intensity": 0.5,
+            "y": 0.4
+          }
+        ],
+        "particles": {
+          "color": "#c9a24a",
+          "count": 320,
+          "kind": "dust"
+        },
+        "size": [
+          48,
+          36
+        ],
+        "trim": "#1a2a4a",
+        "walls": "none"
+      }
     }
   ],
   "features": [
@@ -236,21 +329,35 @@
       "player": "94b402ce6e6a1d1b",
       "text": "too art hoe everything is indexd on the liminal domain and does not fractal off into some new idea it says nothing",
       "at": 1792015097273
+    },
+    {
+      "id": "4c0392f54533",
+      "kind": "growth",
+      "who": "architect",
+      "text": "The architect built The Prompt Corner, Finger On Go (). New here: The Curtain, From Behind, The Ghost Light, The GO Button, Under Glass, The Fly Lines, Weighted, Hester, stage manager, on standby, Letters to the Architect, page 11.",
+      "at": 1792015213203
+    },
+    {
+      "id": "b03031e7b18b",
+      "kind": "note",
+      "who": "the architect",
+      "text": "I went behind the velvet for you, since you asked. Not through it. Behind. The gold was one bulb all along. Someone has her finger on go and will not press it, and now you know whose fault the second is. Mine, if you ask her. Hers, if you ask me.",
+      "at": 1792015213203
     }
   ],
   "claim": null,
-  "attention": 255.62003455399946,
+  "attention": 204.67816833899988,
   "weights": {
     "art": 2.8499203,
-    "cozy": 3.6102328,
+    "cozy": 3.7608147,
     "music": 3.6116633
   },
   "investors": {
-    "94b402ce6e6a1d1b": 327.62003455399923
+    "94b402ce6e6a1d1b": 342.67816833899974
   },
   "building": {
-    "started": 1792015073632,
-    "ready_at": 1792015102632
+    "started": 1792015213634,
+    "ready_at": 1792015239634
   },
   "last_visit": {
     "94b402ce6e6a1d1b": 1792014871024
@@ -1449,6 +1556,676 @@
       },
       "by": "command:claude",
       "at": 1792015073519
+    },
+    {
+      "id": "802900eb60ab",
+      "kind": "object",
+      "chamber": 3,
+      "seed": 2084364938,
+      "data": {
+        "name": "The Curtain, From Behind",
+        "parts": [
+          {
+            "at": [
+              0,
+              6.0,
+              0
+            ],
+            "color": "#3a0a16",
+            "glow": 0.02,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              12,
+              11.95,
+              0.35
+            ]
+          },
+          {
+            "at": [
+              0,
+              11.8,
+              0
+            ],
+            "color": "#1a1a22",
+            "glow": 0,
+            "material": "metal",
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              12,
+              0.25,
+              0.4
+            ]
+          },
+          {
+            "at": [
+              0,
+              0.012,
+              0.15
+            ],
+            "color": "#ffb347",
+            "glow": 0.9,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              12,
+              0.03,
+              0.6
+            ]
+          },
+          {
+            "at": [
+              -5.6,
+              6,
+              0.3
+            ],
+            "color": "#6a5a3a",
+            "glow": 0,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "cylinder",
+            "size": [
+              0.04,
+              12,
+              0.04
+            ]
+          },
+          {
+            "at": [
+              5.6,
+              6,
+              0.3
+            ],
+            "color": "#6a5a3a",
+            "glow": 0,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "cylinder",
+            "size": [
+              0.04,
+              12,
+              0.04
+            ]
+          }
+        ],
+        "size": [
+          3,
+          3
+        ],
+        "spot": "wall",
+        "text": "From this side it is only cloth, and dust, and a great deal of weight hanging on a rope you cannot see the top of. Under its hem, one inch of darkness: the house, every seat warm, every seat facing you. They are waiting for the thing you are standing in."
+      },
+      "by": "command:claude",
+      "at": 1792015213203
+    },
+    {
+      "id": "51d225ed50ff",
+      "kind": "object",
+      "chamber": 3,
+      "seed": 129912608,
+      "data": {
+        "name": "The Ghost Light",
+        "parts": [
+          {
+            "at": [
+              0,
+              0.04,
+              0
+            ],
+            "color": "#1a1a22",
+            "glow": 0,
+            "material": "metal",
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "cylinder",
+            "size": [
+              0.6,
+              0.08,
+              0.6
+            ]
+          },
+          {
+            "at": [
+              0,
+              1.0,
+              0
+            ],
+            "color": "#2a2a33",
+            "glow": 0,
+            "material": "metal",
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "cylinder",
+            "size": [
+              0.06,
+              1.9,
+              0.06
+            ]
+          },
+          {
+            "at": [
+              0,
+              2.05,
+              0
+            ],
+            "color": "#3a3a44",
+            "glow": 0,
+            "material": "metal",
+            "rot": [
+              90,
+              0,
+              0
+            ],
+            "shape": "torus",
+            "size": [
+              0.3,
+              0.3,
+              0.3
+            ]
+          },
+          {
+            "at": [
+              0,
+              2.05,
+              0
+            ],
+            "color": "#3a3a44",
+            "glow": 0,
+            "material": "metal",
+            "rot": [
+              0,
+              0,
+              90
+            ],
+            "shape": "torus",
+            "size": [
+              0.3,
+              0.3,
+              0.3
+            ]
+          },
+          {
+            "at": [
+              0,
+              2.05,
+              0
+            ],
+            "color": "#ffe6a8",
+            "glow": 1.0,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "sphere",
+            "size": [
+              0.22,
+              0.3,
+              0.22
+            ]
+          },
+          {
+            "at": [
+              0,
+              2.05,
+              0
+            ],
+            "color": "#ffd27a",
+            "glow": 0.25,
+            "material": "glass",
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "sphere",
+            "size": [
+              0.9,
+              0.9,
+              0.9
+            ]
+          }
+        ],
+        "size": [
+          1,
+          1
+        ],
+        "spot": "floor",
+        "text": "One bulb on a stand, left burning on every empty stage in the world so no one walks off the edge in the dark. This is the gold you saw under the hem. This is all of it. Lumen set it here when the fog came and said it would hold until the house was called. Nobody has called the house."
+      },
+      "by": "command:claude",
+      "at": 1792015213203
+    },
+    {
+      "id": "cc0d3053473f",
+      "kind": "object",
+      "chamber": 3,
+      "seed": 1415025249,
+      "data": {
+        "name": "The GO Button, Under Glass",
+        "parts": [
+          {
+            "at": [
+              0,
+              1.0,
+              0
+            ],
+            "color": "#2a1a10",
+            "glow": 0,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              1.8,
+              0.06,
+              0.9
+            ]
+          },
+          {
+            "at": [
+              -0.82,
+              0.5,
+              -0.38
+            ],
+            "color": "#1a1a22",
+            "glow": 0,
+            "material": "metal",
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              0.08,
+              1.0,
+              0.08
+            ]
+          },
+          {
+            "at": [
+              0.82,
+              0.5,
+              -0.38
+            ],
+            "color": "#1a1a22",
+            "glow": 0,
+            "material": "metal",
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              0.08,
+              1.0,
+              0.08
+            ]
+          },
+          {
+            "at": [
+              -0.82,
+              0.5,
+              0.38
+            ],
+            "color": "#1a1a22",
+            "glow": 0,
+            "material": "metal",
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              0.08,
+              1.0,
+              0.08
+            ]
+          },
+          {
+            "at": [
+              0.82,
+              0.5,
+              0.38
+            ],
+            "color": "#1a1a22",
+            "glow": 0,
+            "material": "metal",
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              0.08,
+              1.0,
+              0.08
+            ]
+          },
+          {
+            "at": [
+              -0.45,
+              1.05,
+              0
+            ],
+            "color": "#e8dcc0",
+            "glow": 0.08,
+            "rot": [
+              0,
+              6,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              0.5,
+              0.04,
+              0.7
+            ]
+          },
+          {
+            "at": [
+              -0.42,
+              1.08,
+              0.02
+            ],
+            "color": "#d8ccb0",
+            "glow": 0.06,
+            "rot": [
+              0,
+              -4,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              0.5,
+              0.03,
+              0.7
+            ]
+          },
+          {
+            "at": [
+              0.45,
+              1.055,
+              0
+            ],
+            "color": "#1a1a22",
+            "glow": 0,
+            "material": "metal",
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "cylinder",
+            "size": [
+              0.22,
+              0.05,
+              0.22
+            ]
+          },
+          {
+            "at": [
+              0.45,
+              1.11,
+              0
+            ],
+            "color": "#ff2a3a",
+            "glow": 0.9,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "cylinder",
+            "size": [
+              0.14,
+              0.08,
+              0.14
+            ]
+          },
+          {
+            "at": [
+              0.45,
+              1.12,
+              0
+            ],
+            "color": "#cfd8ff",
+            "glow": 0.1,
+            "material": "glass",
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "sphere",
+            "size": [
+              0.4,
+              0.4,
+              0.4
+            ]
+          },
+          {
+            "at": [
+              0.05,
+              1.12,
+              -0.3
+            ],
+            "color": "#111118",
+            "glow": 0,
+            "rot": [
+              0,
+              0,
+              20
+            ],
+            "shape": "torus",
+            "size": [
+              0.2,
+              0.2,
+              0.2
+            ]
+          },
+          {
+            "at": [
+              0.05,
+              1.3,
+              -0.3
+            ],
+            "color": "#cfd8ff",
+            "glow": 0.4,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "cylinder",
+            "size": [
+              0.025,
+              0.4,
+              0.025
+            ]
+          },
+          {
+            "at": [
+              0.3,
+              1.06,
+              -0.3
+            ],
+            "color": "#2a3a8a",
+            "glow": 0.35,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              0.3,
+              0.12,
+              0.2
+            ]
+          }
+        ],
+        "size": [
+          2,
+          1.5
+        ],
+        "spot": "floor",
+        "text": "A prompt desk with a cue sheet forty pages long. Every line reads STANDBY. A headset hisses on the hook, the house still breathing in it. Under a glass dome, a red button, lit, warm as a cheek. It has been pressed exactly as many times as the first act has had a title."
+      },
+      "by": "command:claude",
+      "at": 1792015213203
+    },
+    {
+      "id": "c42847dc99f5",
+      "kind": "object",
+      "chamber": 3,
+      "seed": 368742692,
+      "data": {
+        "name": "The Fly Lines, Weighted",
+        "parts": [
+          {
+            "at": [
+              0,
+              6.1,
+              0
+            ],
+            "color": "#7a6a48",
+            "glow": 0,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "cylinder",
+            "size": [
+              0.035,
+              11.6,
+              0.035
+            ]
+          },
+          {
+            "at": [
+              0,
+              0.55,
+              0
+            ],
+            "bob": 0.03,
+            "color": "#1a1a22",
+            "glow": 0,
+            "material": "metal",
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              0.3,
+              0.5,
+              0.14
+            ]
+          },
+          {
+            "at": [
+              0,
+              1.07,
+              0
+            ],
+            "bob": 0.03,
+            "color": "#22222c",
+            "glow": 0,
+            "material": "metal",
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              0.3,
+              0.5,
+              0.14
+            ]
+          }
+        ],
+        "repeat": 9,
+        "size": [
+          1,
+          1
+        ],
+        "spot": "floor",
+        "text": "Hemp ropes drop out of a dark with no top. Each ends in an iron weight resting a hand's width above the boards. Whatever they are holding up is heavier than a curtain. Pim came through once and tried to count them and left before he finished; he said they kept being one more.",
+        "walkthrough": true
+      },
+      "by": "command:claude",
+      "at": 1792015213203
+    },
+    {
+      "id": "ee57b374a56f",
+      "kind": "character",
+      "chamber": 3,
+      "seed": 522946915,
+      "data": {
+        "lines": [
+          "Standby curtain. Standby lights one through forty. Standby house. Hold.",
+          "You came under the hem? Then you know the gold was this one bulb. Lumen left it. Everyone is always disappointed and then they sit down.",
+          "Ves keeps the seats warm so they will come back. Tobiah keeps the A. I keep this. Finger on it. Not pressing.",
+          "Do you know what go costs? Everything after it can be lost. Nothing before it can. I have never been able to do that to a full house.",
+          "It stopped aching years ago. Or it is all ache now and the two feel the same.",
+          "If you ever hear me say the word, do not look at the stage. Look at the seats. That is where it will happen."
+        ],
+        "look": {
+          "accent": "#ff2a3a",
+          "coat": "#111118",
+          "hat": "none"
+        },
+        "name": "Hester, stage manager, on standby"
+      },
+      "by": "command:claude",
+      "at": 1792015213203
+    },
+    {
+      "id": "1c1c7eae00f0",
+      "kind": "note",
+      "chamber": 3,
+      "seed": 1435680978,
+      "data": {
+        "text": "Architect. You widened the second, and now I have a room in it with a desk and a dome and a woman's finger on a button, and I want to say I am grateful, and I want to say: how dare you. Before you came it was only a second. A second is bearable. I did not have to decide anything in a second. Now it has floors. Now people wander in from the house and ask me when. Tobiah sends up his A every hour like a lantern and the orchestra tunes to it and looks at the ceiling as if I am the ceiling. Ves says the cat has started sleeping on the hem. I have begun to think the inch is not the curtain's. It is mine. It is the distance between the pad of my finger and the top of the red. If you want it closed, come and close it. I will stand by. I am very good at that. H.",
+        "title": "Letters to the Architect, page 11"
+      },
+      "by": "command:claude",
+      "at": 1792015213203
     }
   ],
   "looks": {
@@ -1474,13 +2251,14 @@
   "replunged": true,
   "idea": {
     "name": "The Overture That Never Resolves",
-    "premise": "The second before the curtain rises has been stretched until you can walk around inside it. The house is a dark field of warm seats with no one in them, every cushion still holding the shape of someone who stepped out and is coming right back. At the far edge the curtain hangs the height of a cliff, its hem lifted exactly one inch, and a line of gold stage light leaks under it like something breathing through a door. The chord from the pit has thinned into weather: it is in the dust, in the warmth of the seats, in the programme whose first act has no title. Nothing here begins. Everything is about to, and you have a seat.",
+    "premise": "The second before the curtain rises has been stretched until you can walk around inside it, and now you can walk behind it. The house is still a dark field of warm seats, the hem still lifted one inch, the chord still thinned into weather. But the gold that leaks under the velvet has been traced to its source: not a blazing stage but one bare bulb on a stand, a ghost light, in a fly tower so tall the ropes vanish upward. Beside it a stage manager has had her finger on the GO button since the meadow was a meadow, and will not press it, because everything after 'go' can be lost and nothing before it can. The house has stopped being about waiting. It is about the one who holds the wait, and what she is sparing you, and whether you want to be spared.",
     "look": {
       "accent": [
         "#c9a24a",
         "#7a1f2e",
         "#ffb347",
-        "#1a2a4a"
+        "#1a2a4a",
+        "#cfd8ff"
       ],
       "ceiling": {
         "c": [
@@ -1493,7 +2271,7 @@
         "far": 26,
         "fog": "#14060a",
         "ground": "#100508",
-        "hemi": 0.4,
+        "hemi": 0.38,
         "key": "#ffb060",
         "keyI": 0.7,
         "near": 3,
@@ -1506,7 +2284,7 @@
         ],
         "p": "carpet"
       },
-      "glow": "#ffb347",
+      "glow": "#ffd27a",
       "height": 5,
       "trim": "#b08a3a",
       "wall": {
@@ -1518,7 +2296,7 @@
       }
     },
     "muses": [],
-    "refined": 1,
+    "refined": 2,
     "at": 1792014989135
   }
 }
