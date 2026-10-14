@@ -10,9 +10,94 @@
       "seed": 2729536707,
       "by": "generator",
       "at": 0
+    },
+    {
+      "name": "The Pit, Still Tuning",
+      "tag": "music",
+      "seed": 846571531,
+      "by": "command:claude",
+      "at": 1792014989135,
+      "form": {
+        "env": {
+          "far": 30,
+          "fog": "#120509",
+          "ground": "#0d0609",
+          "hemi": 0.3,
+          "key": "#ffb060",
+          "keyI": 0.9,
+          "near": 4,
+          "sky": "#06030a"
+        },
+        "floor": {
+          "c": [
+            "#2b1a10",
+            "#1a0e08"
+          ],
+          "p": "wood"
+        },
+        "floor_kind": "plain",
+        "height": 12,
+        "lights": [
+          {
+            "at": [
+              0.5,
+              0.55
+            ],
+            "color": "#ffb347",
+            "intensity": 1.6,
+            "y": 9
+          },
+          {
+            "at": [
+              0.1,
+              0.85
+            ],
+            "color": "#2a4a8a",
+            "intensity": 0.4,
+            "y": 2.5
+          },
+          {
+            "at": [
+              0.9,
+              0.85
+            ],
+            "color": "#2a4a8a",
+            "intensity": 0.4,
+            "y": 2.5
+          }
+        ],
+        "particles": {
+          "color": "#d9a85a",
+          "count": 260,
+          "kind": "dust"
+        },
+        "size": [
+          44,
+          30
+        ],
+        "trim": "#b08a3a",
+        "walls": "none"
+      }
     }
   ],
-  "features": [],
+  "features": [
+    {
+      "id": "a3c2bf1d3bcc",
+      "tag": "music",
+      "chamber": 1,
+      "seed": 476614621,
+      "by": "command:claude",
+      "at": 1792014989135
+    },
+    {
+      "id": "ede3b470e5cf",
+      "tag": "cozy",
+      "chamber": 0,
+      "seed": 670631917,
+      "by": "command:claude",
+      "at": 1792014989135
+    }
+  ],
   "portals": [],
   "log": [
     {
@@ -22,33 +107,555 @@
       "player": "94b402ce6e6a1d1b",
       "text": "stopped by",
       "at": 1792014871024
+    },
+    {
+      "id": "01d990ea5c42",
+      "kind": "growth",
+      "who": "architect",
+      "text": "The architect built The Pit, Still Tuning (music, cozy). New here: The A, Given Once, Stands, Lit, Unattended, The Podium, With a Baton Set Down, Old Tobiah, piano tuner, Letters to the Architect, page 9, bells. Brought forward from worlds/moonlit-meadow/v0.2.0.",
+      "at": 1792014989135
+    },
+    {
+      "id": "7345931aa976",
+      "kind": "note",
+      "who": "the architect",
+      "text": "A theatre with no first act. The chord is still holding. So are we.",
+      "at": 1792014989135
     }
   ],
   "claim": null,
-  "attention": 67.67387841399999,
+  "attention": 92.63172820599999,
   "weights": {
-    "art": 1.8664427,
-    "cozy": 1.8565178,
-    "music": 1.7824428
+    "art": 2.415013,
+    "cozy": 2.405088,
+    "music": 2.3320193
   },
   "investors": {
-    "94b402ce6e6a1d1b": 67.67387841399999
+    "94b402ce6e6a1d1b": 122.63172820599999
   },
   "building": {
-    "started": 1792014901629,
-    "ready_at": 1792014919629
+    "started": 1792014989631,
+    "ready_at": 1792015003631
   },
   "last_visit": {
     "94b402ce6e6a1d1b": 1792014871024
   },
-  "things": [],
+  "things": [
+    {
+      "id": "aad8d9fa1d3a",
+      "kind": "object",
+      "chamber": 1,
+      "seed": 3204613432,
+      "data": {
+        "name": "The A, Given Once",
+        "parts": [
+          {
+            "at": [
+              0,
+              0.15,
+              0
+            ],
+            "color": "#2a1a10",
+            "glow": 0,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "cylinder",
+            "size": [
+              1.4,
+              0.3,
+              1.4
+            ]
+          },
+          {
+            "at": [
+              0,
+              1.8,
+              0
+            ],
+            "color": "#c8c8d0",
+            "glow": 0.15,
+            "material": "metal",
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "cylinder",
+            "size": [
+              0.4,
+              3,
+              0.4
+            ]
+          },
+          {
+            "at": [
+              0,
+              3.5,
+              0
+            ],
+            "color": "#c8c8d0",
+            "glow": 0.15,
+            "material": "metal",
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              2.3,
+              0.5,
+              0.4
+            ]
+          },
+          {
+            "at": [
+              -0.95,
+              6.5,
+              0
+            ],
+            "bob": 0.04,
+            "color": "#d8d8e0",
+            "glow": 0.35,
+            "material": "metal",
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              0.4,
+              5.6,
+              0.4
+            ]
+          },
+          {
+            "at": [
+              0.95,
+              6.5,
+              0
+            ],
+            "bob": 0.04,
+            "color": "#d8d8e0",
+            "glow": 0.35,
+            "material": "metal",
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              0.4,
+              5.6,
+              0.4
+            ]
+          },
+          {
+            "at": [
+              0,
+              9.2,
+              0
+            ],
+            "color": "#ffb347",
+            "glow": 0.6,
+            "rot": [
+              90,
+              0,
+              0
+            ],
+            "shape": "torus",
+            "size": [
+              2.6,
+              0.08,
+              2.6
+            ]
+          },
+          {
+            "at": [
+              0,
+              9.2,
+              0
+            ],
+            "color": "#ffb347",
+            "glow": 0.3,
+            "rot": [
+              90,
+              0,
+              0
+            ],
+            "shape": "torus",
+            "size": [
+              3.4,
+              0.05,
+              3.4
+            ]
+          }
+        ],
+        "size": [
+          3,
+          3
+        ],
+        "spot": "floor",
+        "text": "A tuning fork taller than a house, struck before anyone remembers. It is still ringing. If you put your palm to the stem you feel the note trying to become the next note, and failing, and trying."
+      },
+      "by": "command:claude",
+      "at": 1792014989135
+    },
+    {
+      "id": "0c4bce0c489b",
+      "kind": "object",
+      "chamber": 1,
+      "seed": 1747911268,
+      "data": {
+        "name": "Stands, Lit, Unattended",
+        "parts": [
+          {
+            "at": [
+              0,
+              0.05,
+              0
+            ],
+            "color": "#1a1a1a",
+            "glow": 0,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "cone",
+            "size": [
+              0.5,
+              0.1,
+              0.5
+            ]
+          },
+          {
+            "at": [
+              0,
+              0.65,
+              0
+            ],
+            "color": "#2a2a2a",
+            "glow": 0,
+            "material": "metal",
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "cylinder",
+            "size": [
+              0.05,
+              1.2,
+              0.05
+            ]
+          },
+          {
+            "at": [
+              0,
+              1.4,
+              -0.1
+            ],
+            "color": "#111111",
+            "glow": 0,
+            "rot": [
+              -28,
+              0,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              0.6,
+              0.45,
+              0.03
+            ]
+          },
+          {
+            "at": [
+              0,
+              1.41,
+              -0.08
+            ],
+            "color": "#f0e6c8",
+            "glow": 0.1,
+            "rot": [
+              -28,
+              0,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              0.5,
+              0.36,
+              0.01
+            ]
+          },
+          {
+            "at": [
+              0,
+              1.78,
+              -0.18
+            ],
+            "color": "#ffb347",
+            "glow": 0.95,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "sphere",
+            "size": [
+              0.14,
+              0.14,
+              0.14
+            ]
+          }
+        ],
+        "repeat": 10,
+        "size": [
+          1,
+          1
+        ],
+        "spot": "floor",
+        "text": "Every stand has its little lamp on and a page open to the same bar. The chord is written out in full. Underneath it, in pencil, someone has written: hold.",
+        "walkthrough": true
+      },
+      "by": "command:claude",
+      "at": 1792014989135
+    },
+    {
+      "id": "c646994ac510",
+      "kind": "object",
+      "chamber": 1,
+      "seed": 2437874958,
+      "data": {
+        "name": "The Podium, With a Baton Set Down",
+        "parts": [
+          {
+            "at": [
+              0,
+              0.175,
+              0
+            ],
+            "color": "#3a1020",
+            "glow": 0,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              1.6,
+              0.35,
+              1.6
+            ]
+          },
+          {
+            "at": [
+              0,
+              0.37,
+              0
+            ],
+            "color": "#b08a3a",
+            "glow": 0.1,
+            "material": "metal",
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              1.7,
+              0.04,
+              1.7
+            ]
+          },
+          {
+            "at": [
+              0,
+              0.95,
+              -0.5
+            ],
+            "color": "#2a2a2a",
+            "glow": 0,
+            "material": "metal",
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "cylinder",
+            "size": [
+              0.06,
+              1.1,
+              0.06
+            ]
+          },
+          {
+            "at": [
+              0,
+              1.65,
+              -0.55
+            ],
+            "color": "#111111",
+            "glow": 0,
+            "rot": [
+              -25,
+              0,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              0.9,
+              0.6,
+              0.04
+            ]
+          },
+          {
+            "at": [
+              0.1,
+              1.68,
+              -0.5
+            ],
+            "color": "#f0e6d0",
+            "glow": 0.2,
+            "rot": [
+              0,
+              20,
+              90
+            ],
+            "shape": "cylinder",
+            "size": [
+              0.02,
+              0.45,
+              0.02
+            ]
+          }
+        ],
+        "size": [
+          2,
+          2
+        ],
+        "spot": "floor",
+        "text": "The baton is resting on the score, not raised. It has been not-raised for a long time. The dust on it is the shape of a hand that keeps almost returning."
+      },
+      "by": "command:claude",
+      "at": 1792014989135
+    },
+    {
+      "id": "0e167cee403c",
+      "kind": "character",
+      "chamber": 1,
+      "seed": 2773316212,
+      "data": {
+        "lines": [
+          "Hear that? Dominant seventh. They have been holding it since before you were born.",
+          "I tune for the moment before. After is somebody else's trade.",
+          "Pim came through counting doors. Said there were none down here. Only entrances.",
+          "Lumen wanted to bring the house lights up. I told him: not yet. The whole point is never yet.",
+          "If it ever does resolve, go find Ves in The Lush. She will know what to do with the quiet that comes after."
+        ],
+        "look": {
+          "accent": "#c9a24a",
+          "coat": "#2a1a10",
+          "hat": "bowler"
+        },
+        "name": "Old Tobiah, piano tuner"
+      },
+      "by": "command:claude",
+      "at": 1792014989135
+    },
+    {
+      "id": "1f3819237b59",
+      "kind": "note",
+      "chamber": 1,
+      "seed": 1764242678,
+      "data": {
+        "text": "You built the deep place where something answers. I came here instead, where nothing does. The oboe gave its A and the whole pit leaned toward it and I understood: I have spent my life in the half-second before someone says my name. Please do not finish this house. Leave the baton down. Leave the lamps on. Let me stay in the leaning.",
+        "title": "Letters to the Architect, page 9"
+      },
+      "by": "command:claude",
+      "at": 1792014989135
+    },
+    {
+      "id": "5357dc3f9588",
+      "kind": "bells",
+      "chamber": 1,
+      "seed": 2287706246,
+      "data": {
+        "hint": "The basses give the floor. The strings reach up for it. Then everyone settles into the middle, where the chord lives, and waits.",
+        "order": [
+          "low",
+          "high",
+          "middle"
+        ]
+      },
+      "by": "command:claude",
+      "at": 1792014989135
+    }
+  ],
   "looks": {
     "guestbook": 0.8,
-    "theme:art": 2.6999998,
-    "theme:cozy": 2.1,
+    "theme:art": 2.9999998,
+    "theme:cozy": 2.6,
     "theme:music": 5.2999997
   },
   "touches": {},
-  "replunged": false,
-  "idea": null
+  "replunged": true,
+  "idea": {
+    "name": "The Overture That Never Resolves",
+    "premise": "A velvet theatre held in the second before the curtain rises: the orchestra leaning on a chord that wants to go home and won't, the house lights half down, every seat still warm from someone who just stepped out. This house refines the ache of anticipation, the readiness that is sweeter than any show. Nothing here begins. Everything is about to.",
+    "look": {
+      "accent": [
+        "#c9a24a",
+        "#7a1f2e",
+        "#ffb347",
+        "#1a2a4a"
+      ],
+      "ceiling": {
+        "c": [
+          "#120609",
+          "#8a6a2a"
+        ],
+        "p": "damask"
+      },
+      "env": {
+        "far": 22,
+        "fog": "#1a070c",
+        "ground": "#140609",
+        "hemi": 0.45,
+        "key": "#ffb060",
+        "keyI": 0.7,
+        "near": 3,
+        "sky": "#0b0407"
+      },
+      "floor": {
+        "c": [
+          "#1c0a12",
+          "#3a1020"
+        ],
+        "p": "carpet"
+      },
+      "glow": "#ffb347",
+      "height": 5,
+      "trim": "#b08a3a",
+      "wall": {
+        "c": [
+          "#4a0f1c",
+          "#2a0810"
+        ],
+        "p": "velvet"
+      }
+    },
+    "muses": [],
+    "refined": 0,
+    "at": 1792014989135
+  }
 }
