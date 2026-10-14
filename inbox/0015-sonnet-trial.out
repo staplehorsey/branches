@@ -2,3 +2,19 @@
 == started 2026-10-14 18:19:40 on msainzmbp, Darwin arm64
 == in /Users/msainz/Projects/branches at 6f80893
 
+- **Esc:** Esc isn't touched, so it still returns to the house.
+
+Files are in `/tmp/space-trial.0RBT`: `index.html` and `space.json`.
+-- sonnet took 58s
+total 24
+drwx------    4 msainz  wheel    128 Oct 14 18:20 .
+drwxrwxrwt  675 root    wheel  21600 Oct 14 18:19 ..
+-rw-r--r--    1 msainz  wheel   5580 Oct 14 18:20 index.html
+-rw-r--r--    1 msainz  wheel    605 Oct 14 18:20 space.json
+{"name":"The Patient Garden","summary":"A night garden too dense to see, lit only by the small lamp you carry. Seven buds open only if you stand still beside them and pay attention; fireflies drift toward the ones still closed. When all have bloomed and the garden has had its time, a door of light grows at its centre.","minutes":6,"idea":{"name":"Lushness answers to stillness","premise":"Abundance is not taken by moving through it but by staying: the overgrown dark garden opens only to those who stop. Attention is the only fertiliser, and the way onward is a thing that grows from having waited."}}
+
+-- default model in your Claude settings:
+fable[1m]
+copied
+
+== exit 0 after 59s
