@@ -5,3 +5,11 @@
 -- building
     Finished `release` profile [optimized] target(s) in 59.10s
 -- restarting
+running, pid 90393
+{"app":true,"endpoints":{"chunk":"/api/worlds/{world}/chunk?x0&z0&x1&z1","live":"/ws/{world}","room":"/api/worlds/{world}/rooms/{x}/{z}","world":"/api/worlds/{world}"},"generators":["liminal-houses@1"],"protocol":"branches/0.1","software":"branches-server","version":"0.1.0","worlds":[{"id":"dusk-orchard","name":"Dusk Orchard","path":"/w/dusk-orchard/0,0"},{"id":"fog-pines","name":"Fog Pines","path":"/w/fog-pines/0,0"},{"id":"hushed-meridian-3f02","name":"The Hushed Meridian","path":"/w/hushed-meridian-3f02/0,0"},{"id":"moonlit-meadow","name":"Moonlit Meadow","path":"/w/moonlit-meadow/0,0"},{"id":"salt-flat-noon","name":"Salt Flat Noon","path":"/w/salt-flat-noon/0,0"},{"id":"the-lush","name":"The Lush","path":"/w/the-lush/0,0"}]}
+-- log
+[2m2026-10-14T20:51:19.537537Z[0m [32m INFO[0m [2mbranches_server[0m[2m:[0m worlds in /Users/msainz/Library/Application Support/Branches (a git repository); client from ../client
+[2m2026-10-14T20:51:19.539248Z[0m [32m INFO[0m [2mbranches_server[0m[2m:[0m branches listening on http://localhost:7878/
+[2m2026-10-14T20:51:19.583215Z[0m [33m WARN[0m [2mbranches_server[0m[2m:[0m push to Some("staplehorsey/branches") failed: unsupported URL protocol; class=Net (12)
+
+== exit 0 after 62s
