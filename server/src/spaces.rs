@@ -59,8 +59,10 @@ pub struct Space {
     pub delight: String,
 }
 
-/// Spaces being made at once.
-const MAX_BUILDS: usize = 2;
+/// Spaces being made at once, and how far ahead of the furthest one
+/// entered: two ahead, so a slow build has two spaces' time to finish.
+const MAX_BUILDS: usize = 3;
+const AHEAD: u32 = 2;
 const BUILD_TIMEOUT: Duration = Duration::from_secs(20 * 60);
 /// Keep making spaces for a house only while someone was there lately.
 const RECENT_MS: u64 = 30 * 60_000;
@@ -126,7 +128,8 @@ pub fn ensure_all(app: &Arc<App>) {
                 if now.saturating_sub(r.space_seen_at) > RECENT_MS || r.spaces.iter().any(|s| s.status == "building") {
                     continue;
                 }
-                let next = r.space_visited + 1;
+                // One ahead from the entry hall (you may not stay), then two.
+                let next = r.space_visited + if r.space_visited == 0 { 1 } else { AHEAD };
                 let have = r.spaces.iter().filter(|s| s.status == "ready").count() as u32;
                 let stuck = r.spaces.last().is_some_and(|s| s.status == "failed" && s.tries >= 3);
                 if have < next && !stuck {
@@ -265,7 +268,8 @@ const BRIDGE_KEYS: &str = "Esc (back to the house), = and - (warmer, colder), G 
 fn brief(app: &App, uni: &Universe, world: &str, x: i32, z: i32, n: u32, choice: &crate::atlas::Choice) -> String {
     let Some(r) = uni.room(world, x, z) else { return String::new() };
     let typical = typical_secs(uni);
-    let hold = (typical as f64 * 1.5 / 60.0).ceil().max(3.0);
+    // Two spaces are made ahead, so each needs to cover about half a build.
+    let hold = (typical as f64 * 0.75 / 60.0).ceil().clamp(3.0, 8.0);
     let idea = match &r.idea {
         Some(i) => format!("The house's idea so far: {} — {}", i.name, i.premise),
         None => "This is the house's first space: its idea is born here (put it in space.json as \"idea\").".into(),
@@ -298,7 +302,8 @@ This is an invitation, not a ticket. Make something you'd be glad to have made, 
 WHAT MAKES A GOOD SPACE
 - Things to DO. Objects you can pick up, use, combine, operate, read, give; mechanisms that respond; people (or creatures, or machines) with wants. At least 5 meaningful interactions, and state that changes because of them.
 - A STRUCTURE that evolves as you interact: a beginning that poses a question or a want, a middle where what you do changes the place, and an end that resolves or reveals something. It explores the coordinates' feeling through what happens, not through captions. It needn't be literal, but it must cohere.
-- The way onward is EARNED by that arc (solving, finishing, choosing), and becomes available after about {hold} minutes of engaged play. The next space takes about {typical}s to make and starts being made when this one is entered, so this one must hold someone at least that long.
+- The way onward is EARNED by that arc (solving, finishing, choosing), and becomes available after about {hold} minutes of engaged play, so the spaces after it have time to be made (each takes about {typical}s). Don't make it longer than that: if it drags, people leave.
+- Work briskly: aim to finish writing within about ten minutes. One well-made, working space beats an ambitious broken one.
 - Concrete, grounded and surprising. Avoid: empty contemplative voids, mist and liminal nothingness, whimsical named caretakers delivering quips, poems as the main content, doors and thresholds as the subject. Humour and specificity beat mood.
 - Solid, readable worlds: enclosed spaces need opaque walls that are visible from inside (a single-sided plane is invisible from its back: use boxes, or side: THREE.DoubleSide / BackSide). Good lighting, readable text, a clear hint of what to try first.
 - Continuity: it is the next scene of the same house (carry the thread below forward, transformed), and items from the previous space arrive in branches.carried.
