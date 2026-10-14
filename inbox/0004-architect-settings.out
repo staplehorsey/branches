@@ -2,3 +2,7 @@
 == started 2026-10-14 17:00:05 on msainzmbp, Darwin arm64
 == in /Users/msainz/Projects/branches at b410e33
 
+cat: /Users/msainz/Library/Application Support/Branches/.branches/settings.json: No such file or directory
+
+   2 [reference-heuristic@2, normal]
+   3 [reference-heuristic@2, sketch]
