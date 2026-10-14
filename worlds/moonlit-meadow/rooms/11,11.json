@@ -1,0 +1,46 @@
+{
+  "x": 11,
+  "z": 11,
+  "seed": 1570001658,
+  "theme": "snowglobe-den",
+  "chambers": [
+    {
+      "name": "Entry Hall",
+      "tag": "snow",
+      "seed": 1570001658,
+      "by": "generator",
+      "at": 0
+    }
+  ],
+  "features": [],
+  "portals": [],
+  "log": [
+    {
+      "id": "f2ed50e64f9b",
+      "kind": "visit",
+      "who": "drift-57",
+      "player": "94b402ce6e6a1d1b",
+      "text": "stopped by",
+      "at": 1792014842766
+    }
+  ],
+  "claim": null,
+  "attention": 0.849907416,
+  "weights": {
+    "cozy": 1.0468311,
+    "light": 1.1199245,
+    "snow": 1.1024854
+  },
+  "investors": {
+    "94b402ce6e6a1d1b": 0.849907416
+  },
+  "building": null,
+  "last_visit": {
+    "94b402ce6e6a1d1b": 1792014842766
+  },
+  "things": [],
+  "looks": {},
+  "touches": {},
+  "replunged": false,
+  "idea": null
+}

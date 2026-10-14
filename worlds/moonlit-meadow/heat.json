@@ -24,6 +24,16 @@
     "outside": 1.3490112,
     "visits": 0
   },
+  "10,12": {
+    "inside": 0.0,
+    "outside": 7.8843837,
+    "visits": 0
+  },
+  "10,13": {
+    "inside": 0.0,
+    "outside": 1.5074503,
+    "visits": 0
+  },
   "10,2": {
     "inside": 0.0,
     "outside": 0.101983376,
@@ -35,14 +45,24 @@
     "visits": 0
   },
   "11,10": {
-    "inside": 0.0,
-    "outside": 45.779175,
-    "visits": 0
+    "inside": 3.2582178,
+    "outside": 54.302223,
+    "visits": 1
   },
   "11,11": {
+    "inside": 0.8499074,
+    "outside": 10.038389,
+    "visits": 1
+  },
+  "11,12": {
     "inside": 0.0,
-    "outside": 0.32909375,
+    "outside": 4.131722,
     "visits": 0
+  },
+  "11,13": {
+    "inside": 67.67388,
+    "outside": 11.159816,
+    "visits": 1
   },
   "11,3": {
     "inside": 0.0,
