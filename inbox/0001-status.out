@@ -2,3 +2,51 @@
 == started 2026-10-14 16:46:17 on msainzmbp, Darwin arm64
 == in /Users/msainz/Projects/branches at a239297
 
+-- system
+ProductName:		macOS
+ProductVersion:		26.6.2
+BuildVersion:		25G83
+arm64
+
+-- tools
+git           git version 2.54.0 (Apple Git-157)
+cargo         cargo 1.96.1 (356927216 2026-06-26)
+rustc         rustc 1.96.1 (31fca3adb 2026-06-26)
+rustup        rustup 1.29.0 (28d1352db 2026-03-05)
+claude        2.1.285 (Claude Code)
+node          v26.9.0
+gh            not found
+brew          Homebrew 7.0.3
+xcode-select  xcode-select version 2416.
+cargo
+cargo-clippy
+cargo-fmt
+cargo-miri
+clippy-driver
+
+-- repo
+## claude/cool-knuth-muz63h...origin/claude/cool-knuth-muz63h
+ M inbox/0001-status.out
+b922680 inbox: start 0001-status.sh
+a239297 Command inbox: run scripts pushed to inbox/ on a local checkout and push their output back
+c3ebf3e Branches for Mac lives in the menu bar
+
+-- app
+Branches.app not in /Applications
+no branches process
+
+-- port 7878
+nothing listening
+(no answer)
+
+-- worlds
+total 16
+drwxr-xr-x@   7 msainz  staff   224 Oct  5 17:12 .
+drwx------+ 198 msainz  staff  6336 Oct  7 11:11 ..
+drwxr-xr-x@   4 msainz  staff   128 Oct  5 17:24 .branches
+drwxr-xr-x@  11 msainz  staff   352 Oct  5 17:23 .git
+-rw-r--r--@   1 msainz  staff    17 Oct  5 17:12 .gitignore
+-rw-r--r--@   1 msainz  staff   268 Oct  5 17:12 README.md
+drwxr-xr-x@   9 msainz  staff   288 Oct  5 17:19 worlds
+
+== exit 0 after 2s
