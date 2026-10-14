@@ -4,8 +4,9 @@
 //! Claude Code gets special care so that "use my subscription" just works:
 //! the app finds `claude` wherever the installer put it (apps opened from
 //! Finder don't see your shell's PATH), and it removes `ANTHROPIC_API_KEY`
-//! from the agent's environment so Claude Code signs in with your Claude
-//! account instead of billing an API key.
+//! (and any gateway token or base URL) from the agent's environment so
+//! Claude Code signs in with your Claude account instead of billing an API
+//! key or going through a gateway.
 
 use std::path::{Path, PathBuf};
 use std::process::Command;
@@ -59,12 +60,24 @@ fn is_claude(cmd: &str) -> bool {
     cmd.split_whitespace().next().is_some_and(|w| w == "claude" || w.ends_with("/claude"))
 }
 
+/// Variables that send Claude Code somewhere other than your subscription:
+/// an API key (maybe expired), or a token and base URL for a gateway such
+/// as OpenRouter.
+const NOT_YOUR_SUBSCRIPTION: &[&str] = &["ANTHROPIC_API_KEY", "ANTHROPIC_AUTH_TOKEN", "ANTHROPIC_BASE_URL"];
+
+/// Make Claude Code sign in with your Claude account.
+pub fn use_subscription(c: &mut Command) {
+    for v in NOT_YOUR_SUBSCRIPTION {
+        c.env_remove(v);
+    }
+}
+
 /// A shell command for an agent, ready to spawn.
 pub fn command(cmd: &str) -> Command {
     let mut c = Command::new("/bin/sh");
     c.arg("-c").arg(cmd).env("PATH", path());
     if is_claude(cmd) {
-        c.env_remove("ANTHROPIC_API_KEY");
+        use_subscription(&mut c);
     }
     c
 }

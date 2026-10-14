@@ -142,12 +142,12 @@ fn run(app: &Arc<App>, root: &Path, claude: &Path, session: Option<String>, inpu
     let mut cmd = Command::new(claude);
     cmd.current_dir(root)
         .env("PATH", crate::agent::path())
-        .env_remove("ANTHROPIC_API_KEY")
         .args(["-p", "--output-format", "stream-json", "--verbose", "--permission-mode", "acceptEdits", "--append-system-prompt", SYSTEM])
         .args(["--allowedTools", "Bash(cargo:*)", "Bash(git:*)", "Bash(node:*)", "Bash(ls:*)", "Bash(grep:*)", "Bash(find:*)"]);
     if let Some(s) = &session {
         cmd.args(["--resume", s]);
     }
+    crate::agent::use_subscription(&mut cmd);
     let mut child = cmd.stdin(Stdio::piped()).stdout(Stdio::piped()).stderr(Stdio::piped()).spawn().map_err(|e| format!("could not start Claude Code: {e}"))?;
     BENCH.lock().unwrap().busy = Some(child.id());
     emit(app, json!({ "kind": "status", "text": if session.is_some() { "Claude is working…" } else { "Claude is starting a new conversation…" } }));
