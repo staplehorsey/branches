@@ -110,5 +110,12 @@
     "speed": 3.599,
     "straight": 0.515,
     "turn": 0.171
+  },
+  {
+    "heading": 1.792,
+    "revisit": 0.6,
+    "speed": 3.594,
+    "straight": 0.501,
+    "turn": 0.176
   }
 ]
