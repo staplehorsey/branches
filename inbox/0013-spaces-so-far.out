@@ -2,3 +2,26 @@
 == started 2026-10-14 18:17:44 on msainzmbp, Darwin arm64
 == in /Users/msainz/Projects/branches at 2d17396
 
+== the-lush/spaces/2_0/1/space.json
+{
+  "name": "The Garden Under Glass",
+  "summary": "The peach hall has dissolved into sand: you are a small thing inside a vast terrarium on a windowsill, with the sun stopped a finger above the horizon and five tall heliotropes straining toward it. Stand still near a flower and it slowly forgets the sun and turns to watch you instead; when all five have turned away, nothing is holding the sun up and it finally sets. In the dark, cold leaks in through a glowing crack in the glass on the far side; walking into it is the way onward.",
+  "minutes": 6,
+  "idea": {
+    "name": "Kept at Golden Hour",
+    "premise": "A sealed glass garden where the sun has been stopped just above the horizon so that nothing inside will ever have to end. Whoever put the glass over it did it out of tenderness. The plants have grown toward that one light for so long they have forgotten there are others; the dreamer is the first thing in here that still remembers dusk. Every space asks the same thing: is keeping a kindness, and what does it cost the kept."
+  }
+}
+
+-- how walls are drawn (materials/sides/opacity)
+== the-lush/spaces/2_0/1/index.html (   40240 bytes)
+   1 430:transparent: true
+   1 430:opacity: 0
+   1 422:PlaneGeometry
+   1 421:transparent: true
+   1 421:side: THREE.DoubleSide
+   1 421:opacity: 0
+   1 405:transparent: true
+   1 405:opacity: 0
+
+== exit 0 after 2s
