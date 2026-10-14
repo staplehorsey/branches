@@ -57,5 +57,7 @@
   "looks": {},
   "touches": {},
   "replunged": false,
-  "idea": null
+  "idea": null,
+  "space_visited": 0,
+  "space_seen_at": 0
 }
