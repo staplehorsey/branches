@@ -25,14 +25,14 @@
     }
   ],
   "claim": null,
-  "attention": 55.93016800200002,
+  "attention": 90.84357971999998,
   "weights": {
-    "plants": 1.5786877,
-    "stone": 1.6209651,
-    "water": 1.707349
+    "plants": 1.9278214,
+    "stone": 1.9700989,
+    "water": 2.0564828
   },
   "investors": {
-    "94b402ce6e6a1d1b": 55.93016800200002
+    "94b402ce6e6a1d1b": 90.84357971999998
   },
   "building": null,
   "last_visit": {
@@ -41,7 +41,7 @@
   "things": [],
   "looks": {
     "guestbook": 2.4,
-    "theme:plants": 26.1,
+    "theme:plants": 60.1,
     "theme:stone": 1.8000001,
     "theme:water": 3.9
   },
