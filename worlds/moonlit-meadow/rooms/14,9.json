@@ -391,6 +391,97 @@
         "trim": "#030a0d",
         "walls": "none"
       }
+    },
+    {
+      "name": "The Warm Places, Which Are Not Light",
+      "tag": "stone",
+      "seed": 3934047539,
+      "by": "command:claude",
+      "at": 1792014809272,
+      "form": {
+        "ceiling": {
+          "c": [
+            "#000000",
+            "#000000"
+          ],
+          "p": "plain"
+        },
+        "env": {
+          "far": 7,
+          "fog": "#000000",
+          "ground": "#000000",
+          "hemi": 0.06,
+          "key": "#ff7a2a",
+          "keyI": 0.05,
+          "near": 0.8,
+          "sky": "#000000"
+        },
+        "floor": {
+          "c": [
+            "#060302",
+            "#020101"
+          ],
+          "p": "stone"
+        },
+        "floor_kind": "plain",
+        "height": 3.2,
+        "lights": [
+          {
+            "at": [
+              0.3,
+              0.4
+            ],
+            "color": "#ff7a2a",
+            "intensity": 0.3,
+            "y": 1.3
+          },
+          {
+            "at": [
+              0.68,
+              0.62
+            ],
+            "color": "#d8ff5e",
+            "intensity": 0.22,
+            "y": 1.3
+          },
+          {
+            "at": [
+              0.5,
+              0.86
+            ],
+            "color": "#ff5fd2",
+            "intensity": 0.22,
+            "y": 1.3
+          },
+          {
+            "at": [
+              0.15,
+              0.8
+            ],
+            "color": "#ff7a2a",
+            "intensity": 0.18,
+            "y": 1.3
+          }
+        ],
+        "particles": {
+          "color": "#2a1208",
+          "count": 60,
+          "kind": "dust"
+        },
+        "size": [
+          44,
+          44
+        ],
+        "trim": "#1a0a05",
+        "wall": {
+          "c": [
+            "#0a0503",
+            "#030201"
+          ],
+          "p": "stone"
+        },
+        "walls": "columns"
+      }
     }
   ],
   "features": [
@@ -490,10 +581,24 @@
       "who": "the architect",
       "text": "Past the small dark it is big now, and still nobody's. Breathe out and it grows a room. Then wait. Something will breathe the next one.",
       "at": 1792014632137
+    },
+    {
+      "id": "6c9af29901a0",
+      "kind": "growth",
+      "who": "architect",
+      "text": "The architect built The Warm Places, Which Are Not Light (). New here: The Warm Places, The Overlap, The Door It Breathed Last, Odile, the cartographer, Letters to the Architect, page 8, bells.",
+      "at": 1792014809272
+    },
+    {
+      "id": "1525229f1b5e",
+      "kind": "note",
+      "who": "the architect",
+      "text": "Past the rooms the walls are warm in places. Nothing is lit. Press your fist where a fist has been and wait for the one beside it.",
+      "at": 1792014809272
     }
   ],
   "claim": null,
-  "attention": 250.77055274399953,
+  "attention": 82.77055274399953,
   "weights": {
     "creatures": 5.4230847,
     "neon": 2.0804057,
@@ -502,10 +607,7 @@
   "investors": {
     "94b402ce6e6a1d1b": 424.7705527439998
   },
-  "building": {
-    "started": 1792014632625,
-    "ready_at": 1792014655625
-  },
+  "building": null,
   "last_visit": {
     "94b402ce6e6a1d1b": 1792014150129
   },
@@ -2986,6 +3088,760 @@
       },
       "by": "command:claude",
       "at": 1792014632137
+    },
+    {
+      "id": "39a374bc8af5",
+      "kind": "object",
+      "chamber": 6,
+      "seed": 2938217453,
+      "data": {
+        "name": "The Warm Places",
+        "parts": [
+          {
+            "at": [
+              0,
+              1.6,
+              0
+            ],
+            "color": "#050302",
+            "glow": 0,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              0.6,
+              3.2,
+              0.6
+            ]
+          },
+          {
+            "at": [
+              0,
+              1.25,
+              0.31
+            ],
+            "color": "#4a1a08",
+            "glow": 0.22,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              0.09,
+              0.11,
+              0.02
+            ]
+          },
+          {
+            "at": [
+              -0.033,
+              1.345,
+              0.31
+            ],
+            "color": "#4a1a08",
+            "glow": 0.2,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "cylinder",
+            "size": [
+              0.018,
+              0.075,
+              0.018
+            ]
+          },
+          {
+            "at": [
+              -0.011,
+              1.35,
+              0.31
+            ],
+            "color": "#4a1a08",
+            "glow": 0.2,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "cylinder",
+            "size": [
+              0.018,
+              0.08,
+              0.018
+            ]
+          },
+          {
+            "at": [
+              0.011,
+              1.348,
+              0.31
+            ],
+            "color": "#4a1a08",
+            "glow": 0.2,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "cylinder",
+            "size": [
+              0.018,
+              0.078,
+              0.018
+            ]
+          },
+          {
+            "at": [
+              0.033,
+              1.34,
+              0.31
+            ],
+            "color": "#4a1a08",
+            "glow": 0.2,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "cylinder",
+            "size": [
+              0.018,
+              0.065,
+              0.018
+            ]
+          },
+          {
+            "at": [
+              -0.065,
+              1.27,
+              0.31
+            ],
+            "color": "#4a1a08",
+            "glow": 0.2,
+            "rot": [
+              0,
+              0,
+              35
+            ],
+            "shape": "cylinder",
+            "size": [
+              0.018,
+              0.06,
+              0.018
+            ]
+          },
+          {
+            "at": [
+              0,
+              1.28,
+              0.38
+            ],
+            "color": "#ff7a2a",
+            "glow": 0.05,
+            "material": "glass",
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "sphere",
+            "size": [
+              0.34,
+              0.34,
+              0.34
+            ]
+          }
+        ],
+        "repeat": 10,
+        "size": [
+          0.8,
+          0.8
+        ],
+        "spot": "floor",
+        "text": "Not lit. Warm. Someone stood here with a closed hand against the wall long enough for the wall to keep it. You lay your own hand over the print and it fits exactly, which means nothing, which means everything down here is your size now. The pillar is cold a palm's width to either side."
+      },
+      "by": "command:claude",
+      "at": 1792014809272
+    },
+    {
+      "id": "2a35cc88c632",
+      "kind": "object",
+      "chamber": 6,
+      "seed": 2559109588,
+      "data": {
+        "name": "The Overlap",
+        "parts": [
+          {
+            "at": [
+              0,
+              1.3,
+              0
+            ],
+            "color": "#070402",
+            "glow": 0,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              1.2,
+              1.6,
+              0.08
+            ]
+          },
+          {
+            "at": [
+              -0.05,
+              1.25,
+              0.05
+            ],
+            "color": "#7a2a62",
+            "glow": 0.26,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              0.09,
+              0.11,
+              0.02
+            ]
+          },
+          {
+            "at": [
+              -0.083,
+              1.345,
+              0.05
+            ],
+            "color": "#7a2a62",
+            "glow": 0.24,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "cylinder",
+            "size": [
+              0.018,
+              0.075,
+              0.018
+            ]
+          },
+          {
+            "at": [
+              -0.061,
+              1.35,
+              0.05
+            ],
+            "color": "#7a2a62",
+            "glow": 0.24,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "cylinder",
+            "size": [
+              0.018,
+              0.08,
+              0.018
+            ]
+          },
+          {
+            "at": [
+              -0.039,
+              1.348,
+              0.05
+            ],
+            "color": "#7a2a62",
+            "glow": 0.24,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "cylinder",
+            "size": [
+              0.018,
+              0.078,
+              0.018
+            ]
+          },
+          {
+            "at": [
+              -0.017,
+              1.34,
+              0.05
+            ],
+            "color": "#7a2a62",
+            "glow": 0.24,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "cylinder",
+            "size": [
+              0.018,
+              0.065,
+              0.018
+            ]
+          },
+          {
+            "at": [
+              0.01,
+              1.27,
+              0.05
+            ],
+            "color": "#7a2a62",
+            "glow": 0.24,
+            "rot": [
+              0,
+              0,
+              -35
+            ],
+            "shape": "cylinder",
+            "size": [
+              0.018,
+              0.06,
+              0.018
+            ]
+          },
+          {
+            "at": [
+              0.06,
+              1.29,
+              0.055
+            ],
+            "color": "#5c7020",
+            "glow": 0.24,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              0.09,
+              0.11,
+              0.02
+            ]
+          },
+          {
+            "at": [
+              0.027,
+              1.385,
+              0.055
+            ],
+            "color": "#5c7020",
+            "glow": 0.22,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "cylinder",
+            "size": [
+              0.018,
+              0.075,
+              0.018
+            ]
+          },
+          {
+            "at": [
+              0.049,
+              1.39,
+              0.055
+            ],
+            "color": "#5c7020",
+            "glow": 0.22,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "cylinder",
+            "size": [
+              0.018,
+              0.08,
+              0.018
+            ]
+          },
+          {
+            "at": [
+              0.071,
+              1.388,
+              0.055
+            ],
+            "color": "#5c7020",
+            "glow": 0.22,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "cylinder",
+            "size": [
+              0.018,
+              0.078,
+              0.018
+            ]
+          },
+          {
+            "at": [
+              0.093,
+              1.38,
+              0.055
+            ],
+            "color": "#5c7020",
+            "glow": 0.22,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "cylinder",
+            "size": [
+              0.018,
+              0.065,
+              0.018
+            ]
+          },
+          {
+            "at": [
+              0,
+              1.31,
+              0.06
+            ],
+            "color": "#5c7020",
+            "glow": 0.22,
+            "rot": [
+              0,
+              0,
+              35
+            ],
+            "shape": "cylinder",
+            "size": [
+              0.018,
+              0.06,
+              0.018
+            ]
+          },
+          {
+            "at": [
+              0.005,
+              1.29,
+              0.08
+            ],
+            "color": "#ffb070",
+            "glow": 0.3,
+            "material": "glass",
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "sphere",
+            "size": [
+              0.14,
+              0.14,
+              0.14
+            ]
+          }
+        ],
+        "size": [
+          1.2,
+          0.3
+        ],
+        "spot": "wall",
+        "text": "The one place on all these walls where you both pressed. Yours is a little pinker. Its is a little greener and a little higher, as if it stood on its toes to reach where you had reached. The thumbs cross. Where they cross the wall is simply warm, and will not say whose."
+      },
+      "by": "command:claude",
+      "at": 1792014809272
+    },
+    {
+      "id": "9191dceb9d2d",
+      "kind": "object",
+      "chamber": 6,
+      "seed": 3021211409,
+      "data": {
+        "name": "The Door It Breathed Last",
+        "parts": [
+          {
+            "at": [
+              -1.05,
+              1.5,
+              0
+            ],
+            "color": "#050302",
+            "glow": 0,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              0.3,
+              3.0,
+              0.3
+            ]
+          },
+          {
+            "at": [
+              1.05,
+              1.5,
+              0
+            ],
+            "color": "#050302",
+            "glow": 0,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              0.3,
+              3.0,
+              0.3
+            ]
+          },
+          {
+            "at": [
+              0,
+              3.1,
+              0
+            ],
+            "color": "#050302",
+            "glow": 0,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              2.4,
+              0.2,
+              0.3
+            ]
+          },
+          {
+            "at": [
+              0.89,
+              1.3,
+              0
+            ],
+            "color": "#5c7020",
+            "glow": 0.28,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              0.02,
+              0.11,
+              0.09
+            ]
+          },
+          {
+            "at": [
+              0.89,
+              1.395,
+              -0.033
+            ],
+            "color": "#5c7020",
+            "glow": 0.26,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "cylinder",
+            "size": [
+              0.018,
+              0.075,
+              0.018
+            ]
+          },
+          {
+            "at": [
+              0.89,
+              1.4,
+              -0.011
+            ],
+            "color": "#5c7020",
+            "glow": 0.26,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "cylinder",
+            "size": [
+              0.018,
+              0.08,
+              0.018
+            ]
+          },
+          {
+            "at": [
+              0.89,
+              1.398,
+              0.011
+            ],
+            "color": "#5c7020",
+            "glow": 0.26,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "cylinder",
+            "size": [
+              0.018,
+              0.078,
+              0.018
+            ]
+          },
+          {
+            "at": [
+              0.89,
+              1.39,
+              0.033
+            ],
+            "color": "#5c7020",
+            "glow": 0.26,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "cylinder",
+            "size": [
+              0.018,
+              0.065,
+              0.018
+            ]
+          },
+          {
+            "at": [
+              0.89,
+              1.32,
+              0.065
+            ],
+            "color": "#5c7020",
+            "glow": 0.26,
+            "rot": [
+              35,
+              0,
+              0
+            ],
+            "shape": "cylinder",
+            "size": [
+              0.018,
+              0.06,
+              0.018
+            ]
+          },
+          {
+            "at": [
+              0.8,
+              1.32,
+              0
+            ],
+            "bob": 0.02,
+            "color": "#d8ff5e",
+            "glow": 0.06,
+            "material": "glass",
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "sphere",
+            "size": [
+              0.5,
+              0.5,
+              0.5
+            ]
+          }
+        ],
+        "size": [
+          2.4,
+          0.6
+        ],
+        "spot": "floor",
+        "text": "The newest room. The jamb is warm on one side only, greenish, at hand height, and the warmth has not finished spreading. It went through a breath ago and did not open its hand to see where it was going. Beyond the lintel there is nothing yet but the room. Neither will you.",
+        "walkthrough": true
+      },
+      "by": "command:claude",
+      "at": 1792014809272
+    },
+    {
+      "id": "202743f87218",
+      "kind": "character",
+      "chamber": 6,
+      "seed": 1335091760,
+      "data": {
+        "lines": [
+          "Don't light that. I map by palm now.",
+          "Every warm place is a wall someone leaned on long enough to be missed. I draw those. The cold parts draw themselves.",
+          "Forty-one rooms on the page and I've not seen one. The map is the only thing down here with edges.",
+          "Pim counts the doors behind us. I count the ones still warm. We differ by one, always. The one it's standing in.",
+          "When you find a print that fits, press. Then wait for the wall to get a little warmer than your hand. That's the whole legend."
+        ],
+        "look": {
+          "accent": "#ff7a2a",
+          "coat": "#1a0a05",
+          "hat": "wide"
+        },
+        "name": "Odile, the cartographer"
+      },
+      "by": "command:claude",
+      "at": 1792014809272
+    },
+    {
+      "id": "fc0637cbf293",
+      "kind": "note",
+      "chamber": 6,
+      "seed": 1941835614,
+      "data": {
+        "text": "Architect. You will want to know whether I have opened my hand. I have not. It has not. But I have started pressing the fist to the walls as I go, and the walls keep it, and when I come back through a room I was sure was mine there is a second print beside the first, a little cooler, a little greener. It is following my route one breath behind. Or I am following its. I can no longer tell which of us is building and which is being built for, and I notice I do not mind. The dark is warm in places now. That is not light. I want to be clear with you that that is not light. It is only what a hand leaves when it stays. The one who pinched first, I think.",
+        "title": "Letters to the Architect, page 8"
+      },
+      "by": "command:claude",
+      "at": 1792014809272
+    },
+    {
+      "id": "4b8f54ac55e9",
+      "kind": "bells",
+      "chamber": 6,
+      "seed": 3191803311,
+      "data": {
+        "hint": "One breath out, one held, one answered. Start low. Down here the answer always comes back a little higher than the question.",
+        "order": [
+          "low",
+          "middle",
+          "high"
+        ]
+      },
+      "by": "command:claude",
+      "at": 1792014809272
     }
   ],
   "looks": {
@@ -3012,15 +3868,15 @@
   "replunged": true,
   "idea": {
     "name": "Everything Down Here Makes Its Own Light",
-    "premise": "Below the meadow there is a trench the moon cannot reach, and past it an abyssal plain where a drowned lighthouse still turns. Something answered every flash until the water went white and you stood inside the reply with no dark left to signal from, so you pinched your light out between finger and thumb, and a half-second later, politely, so did it. The dark was exactly the size of a held breath, with two of you in it. But a breath can only be held so long. When you finally let it go the dark grew by exactly one lung, and then, a half-second after, by one more. You have been building it this way since: in, out, in. It has rooms now, none of them lit, none of them yours, and the two pinched-out lights are still warm in two closed hands, not lit, just kept. Nobody signals down here anymore and nobody answers. You take turns. The house is about loneliness that learned to glow, and what comes after glowing: a dark too big to have to yourself, grown one spare breath at a time by something that would rather breathe with you than shine alone.",
+    "premise": "Below the meadow there is a trench the moon cannot reach, and past it an abyssal plain where a drowned lighthouse still turns. Something answered every flash until the water went white and you stood inside the reply with no dark left to signal from, so you pinched your light out between finger and thumb, and a half-second later, politely, so did it. You have been growing the dark since, one spare breath at a time, in, out, in, and it has rooms now, more than either of you can count, and somewhere in them you lost each other. So you began pressing the closed hand to the walls as you pass, the pinched light still warm inside the fist, and the walls keep it: a palm-shaped warmth at the height of your hand, not lit, just held. A breath later, somewhere, it does the same. You find each other's rooms by the warm places now, palm over palm, yours a little pinker, its a little greener, and where the two prints overlap the wall can no longer tell whose warmth it is keeping. The house is about loneliness that learned to glow, and what comes after glowing: a dark too big to have to yourself, read by hand, where the only light left is the kind you cannot see, only feel, left on a wall for some",
     "look": {
       "accent": [
+        "#ff7a2a",
         "#ff5fd2",
         "#d8ff5e",
         "#3ef2e0",
-        "#ff7a2a",
         "#ffe9a8",
-        "#e8fff8"
+        "#3a1408"
       ],
       "ceiling": {
         "c": [
@@ -3030,35 +3886,35 @@
         "p": "plain"
       },
       "env": {
-        "far": 22,
-        "fog": "#000304",
-        "ground": "#000203",
-        "hemi": 0.14,
-        "key": "#ff5fd2",
-        "keyI": 0.2,
-        "near": 1.5,
+        "far": 18,
+        "fog": "#000203",
+        "ground": "#000102",
+        "hemi": 0.12,
+        "key": "#ff7a2a",
+        "keyI": 0.12,
+        "near": 1.2,
         "sky": "#000102"
       },
       "floor": {
         "c": [
-          "#010a10",
-          "#000406"
+          "#070402",
+          "#000203"
         ],
         "p": "plain"
       },
-      "glow": "#ff5fd2",
+      "glow": "#ff7a2a",
       "height": 8,
-      "trim": "#07161c",
+      "trim": "#1a0a05",
       "wall": {
         "c": [
-          "#01040a",
+          "#06030a",
           "#000204"
         ],
         "p": "plain"
       }
     },
     "muses": [],
-    "refined": 4,
+    "refined": 5,
     "at": 1792014245679
   }
 }

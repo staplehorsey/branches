@@ -1,12 +1,5 @@
 [
   {
-    "heading": 0.677,
-    "revisit": 0.792,
-    "speed": 3.178,
-    "straight": 0.345,
-    "turn": 0.365
-  },
-  {
     "heading": -0.372,
     "revisit": 0.908,
     "speed": 2.804,
@@ -278,5 +271,12 @@
     "speed": 3.547,
     "straight": 0.701,
     "turn": 0.148
+  },
+  {
+    "heading": 2.796,
+    "revisit": 0.775,
+    "speed": 3.568,
+    "straight": 0.687,
+    "turn": 0.151
   }
 ]
