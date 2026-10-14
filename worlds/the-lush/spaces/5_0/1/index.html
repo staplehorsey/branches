@@ -1,0 +1,101 @@
+<!doctype html><meta charset=utf-8><title>The Lady's Street</title>
+<style>
+html,body{margin:0;height:100%;background:#0e0c0a;color:#d9d2c3;font:19px/1.6 Georgia,serif}
+#w{max-width:680px;margin:0 auto;padding:36px 24px 80px;min-height:100%}
+#top{display:flex;justify-content:space-between;font:13px/1 ui-monospace,monospace;letter-spacing:.12em;text-transform:uppercase;color:#7d7566;border-bottom:1px solid #2b2722;padding-bottom:12px}
+#rage{color:#a3261b}
+h1{font-weight:normal;font-size:26px;margin:34px 0 6px;color:#efe8d8}
+p{margin:14px 0}
+button{display:block;width:100%;text-align:left;background:none;border:1px solid #3a352d;color:#d9d2c3;font:inherit;padding:11px 16px;margin:10px 0;cursor:pointer}
+button:hover{border-color:#a3261b;color:#fff}
+button[disabled]{opacity:.35;cursor:default;border-color:#2b2722}
+.red{color:#c0392b}.dim{color:#7d7566}
+#m{font:15px/1.3 ui-monospace,monospace;color:#b8ae98;white-space:pre;margin:20px 0;border-left:2px solid #a3261b;padding-left:14px}
+.ln{font-size:16px;color:#9a917e}
+</style>
+<div id=w><div id=top><span id=st></span><span id=rage></span></div><div id=c></div></div>
+<script>
+const B=window.branches||{say(){},onward(){},back(){},carry(){},carried:[]};
+let coin=7,rage=0,have={},ledger=[],i=-1,used={};
+const S=[
+{n:"Joost's yard",part:"frame",
+t:"Station one. Joost the carpenter is knocking together a scaffold for the Lady's feast: two long oak beams, squared and pegged, already cross-braced. They would hold a weight. He doesn't look up. 'Paid for by the guild. Not mine to lend.'",
+o:[{k:"ask",l:"Ask him for the beams",r:"'Not mine to lend,' he says again, and goes on planing. He has said it so long it has stopped meaning anything.",get:0,rg:1},
+{k:"pay",l:"Pay him 3 coin",r:"He weighs the coin in his hand like someone who has weighed it before. 'The guild will ask.' 'Tell them the street took it.' He nods at the beams without a word.",get:1,c:-3,led:"Joost: a scaffold that will not be built, and 3 coin that will not mend it"},
+{k:"take",l:"Take the beams",r:"You shoulder them. He shouts your father's name, not yours. Splinters in both palms. They are lighter than they look.",get:1,rg:2,led:"Joost: his beams, and his name for you"}]},
+{n:"The widow's well",part:"drum",
+t:"Station two. In a courtyard behind the dyer's, a well with a wooden windlass: an oak drum on an iron axle, worn bright where hands have turned it. A widow is drawing water. Forty years of her wrists are in that drum. She sees what you are looking at.",
+o:[{k:"ask",l:"Ask her for the drum",r:"'The water or the Lady?' she says. 'It is the same bucket, child.' She unpins the axle herself, slowly, and sets it in your arms. Then she carries water in her hands to the trough, a little at a time.",get:1,led:"The widow: the windlass of her well; she carries water in her hands now"},
+{k:"pay",l:"Pay her 2 coin",r:"She looks at the coin as if you had offered to pay for the weather. 'Put it away.' She will not discuss it again.",get:0},
+{k:"take",l:"Unpin it while her back is turned",r:"It comes away with a shriek of dry iron. She turns. She does not shout. She says only: 'Whose is the hand that will turn it?'",get:1,rg:2,led:"The widow: the windlass, taken in front of her"}]},
+{n:"The tower clock",part:"pawl",
+t:"Station three. Under the church tower a door stands open; the clock's works are behind it, a great toothed wheel and the iron pawl that stops it slipping backward. A boy named Lucas winds it daily for a stuiver. If the pawl goes, the hour will be a rumour.",
+o:[{k:"ask",l:"Ask Lucas for the pawl",r:"'You want me to stop the hour?' He laughs, then sees you are not joking. He unscrews it. 'The wheel will run down by evening. I'll say it was the damp.'",get:1,led:"Lucas: the pawl; the clock will run down by evening"},
+{k:"pay",l:"Pay him 1 coin",r:"'One!' He pockets it, delighted, and fetches the spanner. He does not ask what for. You find you wish he had.",get:1,c:-1,led:"Lucas: one coin, and no questions asked"},
+{k:"take",l:"Wrench it out yourself",r:"The wheel lurches back a tooth with a crack like a gunshot. Lucas stands in the doorway holding the stuiver you never gave him. The tower strikes four at three.",get:1,rg:1,led:"The clock: its pawl; the hour is wrong now"}]},
+{n:"The ropewalk",part:"rope",
+t:"Station four. A quarter mile of shed, and at the far end a rope-maker's mate walking backward, paying out hemp. On a rack at the door, one finished hawser as thick as your arm, coiled for a Hanse ship. The price is chalked on the post: 4 coin.",
+o:[{k:"ask",l:"Ask for a length of it",r:"'Ask the Hanse,' says the mate, without breaking stride. The hemp keeps coming out of his hands like a long grey sentence.",get:0,rg:1},
+{k:"pay",l:"Pay the 4 coin",r:"He counts it twice, chalks a line through the price. 'It was sold,' he says. 'It'll be sold again.' Honest work. It costs you exactly what it should.",get:1,c:-4,led:"The ropewalk: a hawser meant for a Hanse ship, paid for in full"},
+{k:"take",l:"Cut a length off the rack",r:"Your knife takes ten minutes. He walks backward the whole time and never turns around; you can't tell if he knows.",get:1,rg:1,led:"The ropewalk: an arm's thickness of hawser, cut"}]},
+{n:"The smithy",part:"hook",
+t:"Station five. The smith has a grapnel hook of black iron on the anvil, and a chain to go with it: the chain that hangs the sanctuary lamp before the Lady's niche. It has burned there every night since before the smith's grandfather. 'They sent it to have a link mended,' he says. 'I could mend it. Or I could lose it.'",
+o:[{k:"ask",l:"Ask him to give you the hook and chain",r:"He sets down the hammer. 'My brother Hans was at the market with yours,' he says. 'I mended that lamp every year after. Take it.' The lamp goes out tonight and he knows it.",get:1,led:"The smith: hook and chain; the lamp goes dark tonight"},
+{k:"pay",l:"Pay him 2 coin",r:"'No.' It is the first time anyone has refused your money for the right reason. He gives you the hook and closes your fingers back over the coin.",get:1,led:"The smith: the hook, free, and your coin returned to your sleeve"},
+{k:"take",l:"Lift it off the anvil",r:"He lets you. That is worse. 'Go on,' he says. 'It'll still be heavy.'",get:1,rg:1,led:"The smith: chain and hook, with his permission and none of his blessing"}]},
+{n:"The sacristy",part:"crank",
+t:"Station six. Old Mevrouw Aert, who has washed and dressed the Lady every Saturday for thirty years, sits with the processional pole across her knees. It has an iron handle at the head, a turning crank for the banner. She is mending a hem. 'I know what you have in the street,' she says. 'Everyone has heard the iron.'",
+o:[{k:"ask",l:"Ask for the crank",r:"'Take it,' she says. 'My husband forged it, and a thing that has only been carried should be used once.' She doesn't look up from the hem. 'She is heavier than she looks, mind. Everything we have kept is.'",get:1,led:"Mevrouw Aert: the crank of the banner-pole, given"},
+{k:"pay",l:"Offer her your coin",r:"'Don't insult the hem,' she says. 'Ask me properly or take it.'",get:0},
+{k:"take",l:"Unscrew it from the pole",r:"She lets you do it. She keeps sewing. You are struck that nobody in this street has once tried to stop you, and you cannot tell if that is mercy or shame.",get:1,rg:1,led:"Mevrouw Aert: the banner-crank, unscrewed while she sewed"}]}
+];
+const need={frame:[],drum:["frame"],pawl:["drum"],crank:["drum"],rope:["drum"],hook:["rope"]};
+const nm={frame:"the oak frame",drum:"the well-drum",pawl:"the clock pawl",rope:"the hawser",hook:"the hook and chain",crank:"the crank"};
+const why={drum:"The drum has nothing to turn in. Raise the frame first.",pawl:"The pawl has no wheel to catch. The drum must be standing.",crank:"The crank has no axle to bite. The drum must be standing.",rope:"The rope has nothing to wind on. Set the drum first.",hook:"A hook with no rope is only a threat."};
+const c=document.getElementById("c");
+function hud(){document.getElementById("st").textContent=i<0?"The Lady's Street":i<S.length?"Station "+(i+1)+" / 6":"The square";
+document.getElementById("rage").textContent="rage "+"▮".repeat(rage)+"▯".repeat(6-rage)+"   coin "+coin}
+function show(h,btns){c.innerHTML=h;btns.forEach(([l,f,d])=>{const b=document.createElement("button");b.textContent=l;b.disabled=!!d;b.onclick=f;c.appendChild(b)});hud();scrollTo(0,0)}
+function machine(f){
+const L=[];
+L.push(f.hook?"        (J)":"         .");
+L.push(f.rope?"         |":"         .");
+L.push((f.frame?"   |":"    ")+(f.rope?"~~~~~|":"      ")+(f.crank?"  +-":"    ")+(f.frame?"   |":""));
+L.push((f.frame?"   |":"    ")+(f.drum?" [=====O=====]":"             ")+(f.frame?"|":""));
+L.push((f.frame?"   |":"    ")+(f.pawl?"     ^ pawl":"           ")+(f.frame?"     |":""));
+L.push(f.frame?"   +------------------+":"    ..................");
+return L.join("\n")}
+function start(){
+const k=(B.carried||[]).length?`<p class=dim>You came in carrying ${B.carried.join(", ")}. It is no use here.</p>`:"";
+show(`<h1>The Lady's Street</h1><p>Antwerp. August, 1566. The street ends in a niche, and in the niche a wooden Lady in blue and gilt, with a lamp. Every Saturday the same neighbours dress her. In 1561 the same neighbours stood in the market and watched your brother drowned in a barrel for singing a psalm.</p><p>You have seven coin and a morning. Six doors lie between you and her. Behind each is one part of a machine.</p>${k}`,[["Walk down the street",()=>go(0)]])}
+function go(n){i=n;if(n>=S.length)return square();used={};ask(S[n])}
+function ask(s,msg){
+const lab={ask:"",pay:"",take:""};
+const opts=s.o.map(o=>[o.l,()=>pick(s,o),used[o.k]||(o.k=="pay"&&o.c&&-o.c>coin)]);
+show(`<h1>${s.n}</h1><p>${s.t}</p>${msg?`<p class=red>${msg}</p>`:""}`,opts)}
+function pick(s,o){used[o.k]=1;
+coin+=o.c||0;rage=Math.min(6,rage+(o.rg||0));
+if(o.get){have[s.part]=1;ledger.push(o.led);
+show(`<h1>${s.n}</h1><p>${o.r}</p><p class=dim>You have ${nm[s.part]}.</p>`,[[i<S.length-1?"On down the street":"To the square",()=>go(i+1)]])}
+else{hud();ask(s,o.r)}}
+function square(){
+const fit={};let msg="";
+function r(){
+const left=Object.keys(have).filter(x=>!fit[x]);
+if(!left.length)return pull();
+show(`<h1>The square</h1><p>The Lady stands at the head of it, forty feet off, in blue and gilt, her lamp already out. The crowd is thin and strange: nobody is shouting. You lay what you have on the cobbles and begin.</p><div id=m>${machine(fit)}</div>${msg?`<p class=red>${msg}</p>`:""}`,
+left.map(x=>["Fit "+nm[x],()=>{const m=need[x].filter(y=>!fit[y]);if(m.length)msg=why[x];else{fit[x]=1;msg=""}r()}]))}
+r()}
+function pull(){
+show(`<h1>It stands</h1><p>It is not beautiful. It is a frame, a drum, a rope, a chain and a hook, and every piece is a household's missing thing. The hook goes up the rope's whole length to the Lady's gilt shoulder and bites.</p><p>You read what the machine is made of:</p><p class=ln>${ledger.map(x=>"· "+x).join("<br>")}</p>${rage>=4?"<p class=red>Your hands are shaking and you did not notice when it began.</p>":"<p class=dim>Your hands are steady. You find that harder to forgive.</p>"}<p>Your hand is on the crank.</p>`,
+[["Turn it",()=>turn(true)],["Let go of the crank",()=>turn(false)]])}
+function turn(y){
+if(y)show(`<h1>She comes down</h1><p>The drum screams once, and then the pawl you took clicks each tooth, small and sober. She leans. For a long moment she is the most dignified thing in Antwerp. Then she is on the stones, and she is wood: hollow behind, the paint thin as an eggshell, a mouse's nest in her skirt.</p><p>${rage>=4?"You had expected something to leave you. Nothing does. You are exactly as angry as before, and there is no one left to be angry at but the street, and the street is standing behind you with its hands at its sides.":"Something does leave you, quietly, like a fever. What stays is that the widow is still carrying water in her hands."}</p><p class=dim>Mevrouw Aert comes forward and, without a word, begins to straighten the hem of the blue gown on the cobbles.</p>`,
+[["Go on",()=>finish("the Lady's gilt hand")]]);
+else show(`<h1>The crank hangs</h1><p>You let go. The pawl holds the weight, as pawls do, and the drum stays wound half a turn: a machine neither pulling nor undone. The hook sits in her shoulder. She leans six degrees.</p><p>The street can see exactly what you brought, and what it cost, and the whole of what you didn't do. Mevrouw Aert comes and stands beside you and puts her hand over yours on the crank, not to turn it, only to be seen holding it too.</p><p class=dim>'Someone will have to decide,' she says. 'It needn't be you alone. It needn't be today.'</p>`,
+[["Go on",()=>finish("the iron crank, still warm")]])}
+function finish(item){
+B.carry([item,"a ledger of what the street gave"]);
+show(`<h1>Onward</h1><p>The street is behind you. You carry ${item}, and a list of who has less.</p>`,[["Go on",()=>B.onward()],["Back to the house",()=>B.back()]])}
+start();
+</script>
