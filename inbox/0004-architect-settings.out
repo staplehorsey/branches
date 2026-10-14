@@ -12,3 +12,5 @@ Failed to authenticate. API Error: 401 API key expired.
 real	3m0.709s
 user	0m3.054s
 sys	0m0.717s
+
+== exit 0 after 183s
