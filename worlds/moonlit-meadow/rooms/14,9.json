@@ -1,0 +1,841 @@
+{
+  "x": 14,
+  "z": 9,
+  "seed": 2591178776,
+  "theme": "night-aquarium",
+  "chambers": [
+    {
+      "name": "Entry Hall",
+      "tag": "water",
+      "seed": 2591178776,
+      "by": "generator",
+      "at": 0
+    },
+    {
+      "name": "The Trench Where Everything Signals",
+      "tag": "creatures",
+      "seed": 142449789,
+      "by": "command:claude",
+      "at": 1792014245679,
+      "form": {
+        "ceiling": {
+          "c": [
+            "#000102",
+            "#000102"
+          ],
+          "p": "plain"
+        },
+        "env": {
+          "far": 30,
+          "fog": "#000509",
+          "ground": "#000406",
+          "hemi": 0.15,
+          "key": "#3ef2e0",
+          "keyI": 0.2,
+          "near": 2,
+          "sky": "#000204"
+        },
+        "floor": {
+          "c": [
+            "#01141f",
+            "#000810"
+          ],
+          "p": "plain"
+        },
+        "floor_kind": "water",
+        "height": 12,
+        "lights": [
+          {
+            "at": [
+              0.3,
+              0.35
+            ],
+            "color": "#ff5fd2",
+            "intensity": 1.6,
+            "y": 5
+          },
+          {
+            "at": [
+              0.68,
+              0.62
+            ],
+            "color": "#d8ff5e",
+            "intensity": 2.2,
+            "y": 6.5
+          },
+          {
+            "at": [
+              0.15,
+              0.8
+            ],
+            "color": "#ff7a2a",
+            "intensity": 1.2,
+            "y": 1.2
+          },
+          {
+            "at": [
+              0.85,
+              0.15
+            ],
+            "color": "#3ef2e0",
+            "intensity": 0.8,
+            "y": 3
+          }
+        ],
+        "particles": {
+          "color": "#6fe6ff",
+          "count": 320,
+          "kind": "bubbles"
+        },
+        "size": [
+          52,
+          52
+        ],
+        "trim": "#061a22",
+        "wall": {
+          "c": [
+            "#000204",
+            "#000204"
+          ],
+          "p": "plain"
+        },
+        "walls": "none"
+      }
+    }
+  ],
+  "features": [
+    {
+      "id": "046570763224",
+      "tag": "creatures",
+      "chamber": 1,
+      "seed": 3954707496,
+      "by": "command:claude",
+      "at": 1792014245679
+    },
+    {
+      "id": "673ee7a86217",
+      "tag": "creatures",
+      "chamber": 0,
+      "seed": 1990591515,
+      "by": "command:claude",
+      "at": 1792014245679
+    }
+  ],
+  "portals": [],
+  "log": [
+    {
+      "id": "5055fce46ec4",
+      "kind": "visit",
+      "who": "drift-57",
+      "player": "94b402ce6e6a1d1b",
+      "text": "stopped by",
+      "at": 1792014150129
+    },
+    {
+      "id": "51f5490e2a3a",
+      "kind": "growth",
+      "who": "architect",
+      "text": "The architect built The Trench Where Everything Signals (creatures). New here: Drift of Medusae, The Lure, Black Smoker, Auntie Coral, Letters to the Architect, page 3, lanterns. Brought forward from worlds/moonlit-meadow/v0.1.0.",
+      "at": 1792014245679
+    },
+    {
+      "id": "96ece5ec0cc2",
+      "kind": "note",
+      "who": "the architect",
+      "text": "Below here nothing has ever been lit by anything but itself. Bring a light and see what comes up to look.",
+      "at": 1792014245679
+    }
+  ],
+  "claim": null,
+  "attention": 77.69954617300012,
+  "weights": {
+    "creatures": 2.132381,
+    "neon": 1.9967399,
+    "water": 2.0571856
+  },
+  "investors": {
+    "94b402ce6e6a1d1b": 95.69954617300012
+  },
+  "building": {
+    "started": 1792014246620,
+    "ready_at": 1792014254620
+  },
+  "last_visit": {
+    "94b402ce6e6a1d1b": 1792014150129
+  },
+  "things": [
+    {
+      "id": "ac158882a0e5",
+      "kind": "object",
+      "chamber": 1,
+      "seed": 163129832,
+      "data": {
+        "name": "Drift of Medusae",
+        "parts": [
+          {
+            "at": [
+              0,
+              4.2,
+              0
+            ],
+            "bob": 0.5,
+            "color": "#ff5fd2",
+            "glow": 0.9,
+            "material": "glass",
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "sphere",
+            "size": [
+              1.4,
+              0.9,
+              1.4
+            ]
+          },
+          {
+            "at": [
+              0,
+              4.1,
+              0
+            ],
+            "bob": 0.5,
+            "color": "#ffd2f2",
+            "glow": 1,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "sphere",
+            "size": [
+              0.5,
+              0.4,
+              0.5
+            ]
+          },
+          {
+            "at": [
+              0.35,
+              2.6,
+              0.2
+            ],
+            "bob": 0.5,
+            "color": "#ff9de8",
+            "glow": 0.5,
+            "rot": [
+              6,
+              0,
+              -4
+            ],
+            "shape": "cylinder",
+            "size": [
+              0.04,
+              2.6,
+              0.04
+            ]
+          },
+          {
+            "at": [
+              -0.3,
+              2.4,
+              -0.25
+            ],
+            "bob": 0.5,
+            "color": "#ff9de8",
+            "glow": 0.5,
+            "rot": [
+              -5,
+              0,
+              7
+            ],
+            "shape": "cylinder",
+            "size": [
+              0.04,
+              3,
+              0.04
+            ]
+          },
+          {
+            "at": [
+              0.1,
+              2.9,
+              -0.45
+            ],
+            "bob": 0.5,
+            "color": "#ffb9ee",
+            "glow": 0.4,
+            "rot": [
+              8,
+              0,
+              2
+            ],
+            "shape": "cylinder",
+            "size": [
+              0.04,
+              2.2,
+              0.04
+            ]
+          },
+          {
+            "at": [
+              -0.45,
+              2.5,
+              0.35
+            ],
+            "bob": 0.5,
+            "color": "#ffb9ee",
+            "glow": 0.4,
+            "rot": [
+              -3,
+              0,
+              -8
+            ],
+            "shape": "cylinder",
+            "size": [
+              0.04,
+              2.8,
+              0.04
+            ]
+          },
+          {
+            "at": [
+              0.5,
+              3,
+              -0.1
+            ],
+            "bob": 0.5,
+            "color": "#ffdcf6",
+            "glow": 0.3,
+            "rot": [
+              4,
+              0,
+              -10
+            ],
+            "shape": "cylinder",
+            "size": [
+              0.03,
+              1.9,
+              0.03
+            ]
+          }
+        ],
+        "repeat": 9,
+        "size": [
+          2,
+          2
+        ],
+        "spot": "floor",
+        "text": "They pulse in no rhythm you can learn. Each one is saying I am here, I am here, to a dark that has never once said it back. They keep saying it anyway.",
+        "walkthrough": true
+      },
+      "by": "command:claude",
+      "at": 1792014245679
+    },
+    {
+      "id": "8f5d1c209767",
+      "kind": "object",
+      "chamber": 1,
+      "seed": 3402253787,
+      "data": {
+        "name": "The Lure",
+        "parts": [
+          {
+            "at": [
+              0,
+              1.2,
+              0.6
+            ],
+            "color": "#040208",
+            "glow": 0,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "sphere",
+            "size": [
+              3,
+              2.2,
+              3.4
+            ]
+          },
+          {
+            "at": [
+              0,
+              1.1,
+              -1.1
+            ],
+            "color": "#07030c",
+            "glow": 0,
+            "rot": [
+              90,
+              0,
+              0
+            ],
+            "shape": "torus",
+            "size": [
+              2.2,
+              2.2,
+              0.5
+            ]
+          },
+          {
+            "at": [
+              -0.7,
+              1.0,
+              -1.2
+            ],
+            "color": "#c9d6d8",
+            "glow": 0.05,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "octahedron",
+            "size": [
+              0.25,
+              0.6,
+              0.15
+            ]
+          },
+          {
+            "at": [
+              0.2,
+              0.9,
+              -1.3
+            ],
+            "color": "#c9d6d8",
+            "glow": 0.05,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "octahedron",
+            "size": [
+              0.25,
+              0.7,
+              0.15
+            ]
+          },
+          {
+            "at": [
+              0.8,
+              1.1,
+              -1.15
+            ],
+            "color": "#c9d6d8",
+            "glow": 0.05,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "octahedron",
+            "size": [
+              0.2,
+              0.5,
+              0.15
+            ]
+          },
+          {
+            "at": [
+              0.3,
+              4.3,
+              -0.3
+            ],
+            "color": "#0b0712",
+            "glow": 0,
+            "rot": [
+              -18,
+              0,
+              6
+            ],
+            "shape": "cylinder",
+            "size": [
+              0.08,
+              5.5,
+              0.08
+            ]
+          },
+          {
+            "at": [
+              1.1,
+              6.9,
+              -1.2
+            ],
+            "bob": 0.15,
+            "color": "#d8ff5e",
+            "glow": 1,
+            "material": "glass",
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "sphere",
+            "size": [
+              0.7,
+              0.7,
+              0.7
+            ]
+          },
+          {
+            "at": [
+              1.1,
+              6.9,
+              -1.2
+            ],
+            "bob": 0.15,
+            "color": "#ffffff",
+            "glow": 1,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "sphere",
+            "size": [
+              0.25,
+              0.25,
+              0.25
+            ]
+          },
+          {
+            "at": [
+              -1.2,
+              1.9,
+              -0.4
+            ],
+            "color": "#1a1f2a",
+            "glow": 0.15,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "sphere",
+            "size": [
+              0.35,
+              0.35,
+              0.35
+            ]
+          },
+          {
+            "at": [
+              1.2,
+              1.9,
+              -0.4
+            ],
+            "color": "#1a1f2a",
+            "glow": 0.15,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "sphere",
+            "size": [
+              0.35,
+              0.35,
+              0.35
+            ]
+          }
+        ],
+        "size": [
+          3,
+          3
+        ],
+        "spot": "floor",
+        "text": "It is not hunting. It has held its one light up for so long it has forgotten which of you is the bait, and it would be grateful, honestly, if you came close enough to tell it."
+      },
+      "by": "command:claude",
+      "at": 1792014245679
+    },
+    {
+      "id": "bbcdeeb5fb29",
+      "kind": "object",
+      "chamber": 1,
+      "seed": 3965325075,
+      "data": {
+        "name": "Black Smoker",
+        "parts": [
+          {
+            "at": [
+              0,
+              0.6,
+              0
+            ],
+            "color": "#1a1416",
+            "glow": 0,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "cylinder",
+            "size": [
+              1.6,
+              1.2,
+              1.6
+            ]
+          },
+          {
+            "at": [
+              0.1,
+              1.9,
+              -0.05
+            ],
+            "color": "#14100f",
+            "glow": 0,
+            "rot": [
+              0,
+              0,
+              4
+            ],
+            "shape": "cylinder",
+            "size": [
+              1.1,
+              1.6,
+              1.1
+            ]
+          },
+          {
+            "at": [
+              0.05,
+              3.5,
+              0.05
+            ],
+            "color": "#0f0c0c",
+            "glow": 0,
+            "rot": [
+              0,
+              0,
+              -3
+            ],
+            "shape": "cylinder",
+            "size": [
+              0.7,
+              1.8,
+              0.7
+            ]
+          },
+          {
+            "at": [
+              0.05,
+              4.6,
+              0.05
+            ],
+            "color": "#ff7a2a",
+            "glow": 0.8,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "cylinder",
+            "size": [
+              0.3,
+              0.6,
+              0.3
+            ]
+          },
+          {
+            "at": [
+              0.55,
+              1.8,
+              0
+            ],
+            "color": "#ff6a1a",
+            "glow": 0.9,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              0.08,
+              1.4,
+              0.5
+            ]
+          },
+          {
+            "at": [
+              0,
+              0.8,
+              0.8
+            ],
+            "color": "#ff8a3a",
+            "glow": 0.7,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              0.5,
+              0.9,
+              0.08
+            ]
+          },
+          {
+            "at": [
+              -0.9,
+              0.3,
+              0.6
+            ],
+            "color": "#f4f0e8",
+            "glow": 0.1,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "sphere",
+            "size": [
+              0.5,
+              0.5,
+              0.5
+            ]
+          },
+          {
+            "at": [
+              0.9,
+              0.25,
+              0.7
+            ],
+            "color": "#efe9e0",
+            "glow": 0.1,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "sphere",
+            "size": [
+              0.35,
+              0.35,
+              0.35
+            ]
+          }
+        ],
+        "repeat": 3,
+        "size": [
+          3,
+          3
+        ],
+        "spot": "floor",
+        "text": "Stone that has never cooled. The only warmth in the trench comes from a crack in the floor of the world, and whole cities of pale things cluster round it, not for the light, for the heat."
+      },
+      "by": "command:claude",
+      "at": 1792014245679
+    },
+    {
+      "id": "0ee41eb7130e",
+      "kind": "character",
+      "chamber": 1,
+      "seed": 1207283403,
+      "data": {
+        "lines": [
+          "Mind your feet. The floor is only water pretending very hard to be floor.",
+          "Everything down here glows for one of three reasons: come closer, go away, or simply I'm here. It is mostly the third.",
+          "Lumen keeps asking how they light themselves without a wick. I tell him: loneliness, and a little chemistry.",
+          "The moth collector came down once with a jar. Went back up with it empty. Said it wasn't fair to the dark.",
+          "If you see a light that answers yours, don't blink. They don't get second chances and neither do you."
+        ],
+        "look": {
+          "accent": "#ff5fd2",
+          "coat": "#0b2b3a",
+          "hat": "net"
+        },
+        "name": "Auntie Coral"
+      },
+      "by": "command:claude",
+      "at": 1792014245679
+    },
+    {
+      "id": "388107bf1182",
+      "kind": "note",
+      "chamber": 1,
+      "seed": 3515247908,
+      "data": {
+        "text": "You asked what I wanted the deepest room to be. Not a room. A dark so complete that the only way to be found is to make yourself a lamp. Put something in it that has been shining for a thousand years with no reply, and make it still beautiful. Then let a visitor walk in with a lantern and watch what rises to meet them. — M.H., formerly of the lifeguard tower",
+        "title": "Letters to the Architect, page 3"
+      },
+      "by": "command:claude",
+      "at": 1792014245679
+    },
+    {
+      "id": "c2c9eb72a3f9",
+      "kind": "lanterns",
+      "chamber": 1,
+      "seed": 2897226829,
+      "data": {
+        "count": 5,
+        "reward": "Somewhere beneath the floor, a slow green pulse answers: once, exactly once, for you."
+      },
+      "by": "command:claude",
+      "at": 1792014245679
+    }
+  ],
+  "looks": {
+    "theme:creatures": 73.7,
+    "theme:water": 0.7
+  },
+  "touches": {},
+  "replunged": true,
+  "idea": {
+    "name": "Everything Down Here Makes Its Own Light",
+    "premise": "Below the meadow there is a trench the moon cannot reach, and nothing there has ever seen light it did not make itself. Every creature carries a small neon of its own, not to see by but to be seen: a lure, a warning, a plea. The house is about loneliness that learns to glow, and the terrible hope of signalling into black water and waiting for something to answer.",
+    "look": {
+      "accent": [
+        "#ff5fd2",
+        "#d8ff5e",
+        "#3ef2e0",
+        "#ff7a2a"
+      ],
+      "ceiling": {
+        "c": [
+          "#000204",
+          "#010409"
+        ],
+        "p": "plain"
+      },
+      "env": {
+        "far": 38,
+        "fog": "#010610",
+        "ground": "#000608",
+        "hemi": 0.25,
+        "key": "#1de9b6",
+        "keyI": 0.35,
+        "near": 3,
+        "sky": "#010308"
+      },
+      "floor": {
+        "c": [
+          "#02121c",
+          "#000a10"
+        ],
+        "p": "plain"
+      },
+      "glow": "#3ef2e0",
+      "height": 8,
+      "trim": "#0a3340",
+      "wall": {
+        "c": [
+          "#030711",
+          "#000306"
+        ],
+        "p": "plain"
+      }
+    },
+    "muses": [],
+    "refined": 0,
+    "at": 1792014245679
+  }
+}
