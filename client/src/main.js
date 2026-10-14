@@ -15,6 +15,7 @@ import { XR } from './xr.js';
 import { Signals, tone } from './play.js';
 import { disposeTree, label as makeLabel } from './geo.js';
 import * as ui from './ui.js';
+import * as workshop from './workshop.js';
 import { CELL, HOUSE_D, DOOR_W, DOOR_H, pocketY, houseCenter, cellOf } from './layout.js';
 
 const $ = (id) => document.getElementById(id);
@@ -597,6 +598,9 @@ function connect() {
     admired(m) {
       ui.toast('The architect noticed', m.tags.length ? `more ${m.tags.join(', ')}` : '');
     },
+    workshop(m) {
+      workshop.onWorkshop(m);
+    },
     setup_ai(m) {
       if (S.app) ui.setupAi(r.host, m);
     },
@@ -944,6 +948,11 @@ addEventListener('keydown', (e) => {
     return;
   }
   if (isTyping(e) || ui.isPanelOpen() || ui.isGameOpen()) return;
+  if (e.code === 'Backquote' && workshop.workshopAvailable()) {
+    workshop.toggle();
+    e.preventDefault();
+    return;
+  }
   if (e.code === 'KeyE') interact();
   if (e.code === 'KeyF') admire();
   if (e.code === 'KeyV') player.thirdPerson = !player.thirdPerson;
@@ -1217,8 +1226,10 @@ async function boot() {
     $('hud').hidden = false;
     S.started = true;
     connect();
-    if (S.app) welcomeToApp();
-    else if (S.home === LOCAL_ORIGIN) offerSavedApp();
+    if (S.app) {
+      welcomeToApp();
+      workshop.initWorkshop({ where: whereAmI });
+    } else if (S.home === LOCAL_ORIGIN) offerSavedApp();
     player.lock();
     ui.chatLine('', '', 'Walk up to any house. Go inside. Stay a while.', true);
   };
@@ -1229,6 +1240,24 @@ async function boot() {
   };
   navigator.xr?.isSessionSupported('immersive-vr').then((ok) => ($('enter-vr').hidden = !ok)).catch(() => {});
   $('name').addEventListener('keydown', (e) => e.code === 'Enter' && enter());
+  // Back from a reload the workshop asked for: straight into the game.
+  try {
+    if (sessionStorage.getItem('branches.reenter')) {
+      sessionStorage.removeItem('branches.reenter');
+      enter();
+    }
+  } catch {}
+}
+
+// Where you are, in words, for Claude in the workshop.
+function whereAmI() {
+  const id = identity();
+  const r = S.primary;
+  const world = `${r?.manifest?.name || '?'} (${r?.manifest?.id || '?'})`;
+  const at = `${Math.round(player.pos.x)},${Math.round(player.pos.z)}`;
+  if (!S.inside) return { who: id.name, place: `outside in the world ${world}, near ${at}` };
+  const ch = S.inside.built.chambers[Math.max(0, S.chamber)];
+  return { who: id.name, place: `inside the house at ${S.inside.addr} in ${world}, theme ${S.inside.room.theme_name}, in the chamber "${ch?.name || 'entry hall'}"` };
 }
 
 boot();

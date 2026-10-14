@@ -26,6 +26,10 @@ stop() {
     echo "stopped"
   fi
   rm -f "$PIDFILE"
+  # One started some other way (by hand, or the app) still holds the port.
+  for p in $(lsof -tnP -iTCP:7878 -sTCP:LISTEN 2>/dev/null); do
+    ps -o command= -p "$p" | grep -q branches-server && kill "$p" && sleep 1 && echo "stopped $p"
+  done
   other=$(lsof -tnP -iTCP:7878 -sTCP:LISTEN 2>/dev/null)
   [ -n "$other" ] && echo "port 7878 is still taken by: $(ps -o pid=,command= -p $other)"
 }

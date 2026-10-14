@@ -378,7 +378,7 @@ export async function appSettings(host, el) {
       <label class="sub"><input type="radio" name="arch" value="heuristic" ${s.settings.architect !== 'command' ? 'checked' : ''}/> built in: quick, always available</label>
       <label class="sub"><input type="radio" name="arch" value="command" ${s.settings.architect === 'command' ? 'checked' : ''}/> a program you choose, for example Claude Code</label>
       <input id="arch-cmd" value="${esc(s.settings.command)}" placeholder="claude -p" />
-      <div class="sub">It gets a description of the house and what visitors want on stdin and prints a JSON plan. Quick sketches always use the built-in architect; your program gets the rooms people linger in. ${s.claude ? `Claude Code is installed (<code>${esc(s.claude)}</code>); <code>claude -p</code> uses your Claude subscription.` : 'Claude Code is not installed yet.'}</div>
+      <div class="sub">It gets a description of the house and what visitors want on stdin and prints a JSON plan, and it builds everything. When it can't, the house waits and it tries again a minute later. ${s.claude ? `Claude Code is installed (<code>${esc(s.claude)}</code>); <code>claude -p</code> uses your Claude subscription.` : 'Claude Code is not installed yet.'}</div>
       <div class="btns"><button class="btn" id="arch-save">save</button><button class="btn" id="arch-test">test it</button></div>
       <div id="arch-msg"></div>
     </div>

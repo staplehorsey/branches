@@ -18,6 +18,7 @@ mod state;
 mod stories;
 mod store;
 mod sync;
+mod workshop;
 mod ws;
 
 use axum::Router;
@@ -144,6 +145,7 @@ async fn main() {
     uni.seed_builtins();
     let client = cfg.client_dir.clone();
     tracing::info!("worlds in {} (a git repository); client from {}", cfg.data_dir.display(), client.display());
+    workshop::boot();
     let app = App::new(cfg, uni, store);
     app.touch();
     app.note_commit("Open the worlds".into());

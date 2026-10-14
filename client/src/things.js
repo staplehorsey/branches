@@ -351,6 +351,73 @@ function attraction(t, ctx, out) {
   });
 }
 
+// An object the architect sculpted from primitive parts: anything at all,
+// from a piano to a shrine. Sizes are clamped so a wild plan can't fill the
+// house, and moving parts (spin, bob) become their own meshes.
+const SHAPES = { box: G.box, sphere: G.ballSmooth, cylinder: G.cyl, cone: G.cone, torus: G.torus, octahedron: G.octa };
+const HEX = /^#[0-9a-f]{3}([0-9a-f]{3})?$/i;
+
+function sculpted(t, ctx, out) {
+  const d = t.data || {};
+  const parts = (Array.isArray(d.parts) ? d.parts : []).slice(0, 24);
+  if (!parts.length) return curious(t, ctx, out);
+  const num = (v, lo, hi, dflt) => (Number.isFinite(+v) ? Math.min(hi, Math.max(lo, +v)) : dflt);
+  const vec = (v, lo, hi, dflt) => [0, 1, 2].map((i) => num(Array.isArray(v) ? v[i] : undefined, lo, hi, dflt));
+  const [w, dd] = [num(d.size?.[0], 0.3, 3, 1), num(d.size?.[1], 0.3, 3, 1)];
+  const s = place(ctx, ['floor', 'wall', 'corner'].includes(d.spot) ? d.spot : 'floor', w, dd);
+  if (!s) return;
+  const f = ctx.frame(s);
+  const height = Math.min(ctx.h - 0.1, 3.2);
+  let top = 0;
+  for (const p of parts) {
+    const geo = SHAPES[p.shape] || G.box;
+    const [sx, sy, sz] = vec(p.size, 0.02, 3, 0.3);
+    const [x, y, z] = [num(p.at?.[0], -w, w, 0), num(p.at?.[1], 0, height, sy / 2), num(p.at?.[2], -dd, dd, 0)];
+    const [rx, ry, rz] = vec(p.rot, -360, 360, 0).map((a) => (a * Math.PI) / 180);
+    const color = HEX.test(p.color || '') ? p.color : ctx.th.trim;
+    const glow = num(p.glow, 0, 1, 0);
+    const spin = num(p.spin, -2, 2, 0), bob = num(p.bob, 0, 0.5, 0);
+    top = Math.max(top, y + sy / 2);
+    if (!spin && !bob) {
+      f.put(glow > 0.3 ? ctx.glow : ctx.solid, geo, color, x, y, z, { rx, ry, rz, sx, sy, sz });
+      continue;
+    }
+    const m = new THREE.Mesh(geo, mat(color, glow ? { emissive: new THREE.Color(color), emissiveIntensity: glow } : {}));
+    m.scale.set(sx, sy, sz);
+    m.rotation.set(rx, ry, rz);
+    m.position.copy(f.world(x, y, z)).sub(ctx.originV);
+    const y0 = m.position.y, phase = ctx.rand.next() * 6.28;
+    ctx.group.add(m);
+    ctx.anim((time) => {
+      if (spin) m.rotation.y = ry + time * spin * Math.PI * 2;
+      if (bob) m.position.y = y0 + Math.sin(time * 1.3 + phase) * bob;
+    });
+  }
+  for (const p of parts) {
+    if (num(p.glow, 0, 1, 0) > 0.5) {
+      const at = f.world(num(p.at?.[0], -w, w, 0), num(p.at?.[1], 0, height, 0.5), num(p.at?.[2], -dd, dd, 0)).sub(ctx.originV);
+      ctx.light(at.x, at.y, at.z, HEX.test(p.color || '') ? p.color : ctx.th.glow, 0.6);
+      break;
+    }
+  }
+  ctx.collide(s, w, dd);
+  const name = d.name || d.title || 'something';
+  const tag = label(name, { size: 0.16 });
+  tag.position.copy(f.world(0, Math.min(top + 0.35, ctx.h - 0.2), 0)).sub(ctx.originV);
+  ctx.group.add(tag);
+  out.push({
+    id: t.id,
+    kind: 'object',
+    pos: f.world(0, Math.min(top, 1.5) / 2 + 0.5, 0),
+    radius: Math.max(2, Math.max(w, dd) + 1),
+    hint: `look closer at ${name}`,
+    use(api) {
+      api.read(name, d.text || d.description || d.says || '', '');
+      api.touch(t.id);
+    },
+  });
+}
+
 function shadeHex(hex) {
   const c = new THREE.Color(hex);
   c.multiplyScalar(0.6);
@@ -383,7 +450,7 @@ function curious(t, ctx, out) {
   });
 }
 
-const KINDS = { character, note, lanterns, bells, cat, attraction };
+const KINDS = { character, note, lanterns, bells, cat, attraction, object: sculpted };
 
 export function buildThing(t, ctx, out) {
   (KINDS[t.kind] || curious)(t, ctx, out);

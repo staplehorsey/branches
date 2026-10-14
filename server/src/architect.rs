@@ -16,8 +16,11 @@
 //!
 //! `Architect` is the seam: the built-in `Heuristic`, or `Command`, which
 //! hands a prompt to any program (`claude -p`, a local model, a script) and
-//! reads back a JSON plan. Builds run off the main loop, so a slow creative
-//! architect never stalls the world.
+//! reads back a JSON plan. When a program is the architect it builds
+//! everything, quick sketches included, and a build it can't make waits and
+//! tries again rather than falling back to the heuristic's stock pieces.
+//! Builds run off the main loop, so a slow creative architect never stalls
+//! the world.
 
 use crate::model::*;
 use crate::procgen::{self, Rng};
@@ -104,7 +107,7 @@ pub struct Plan {
 
 pub trait Architect: Send + Sync {
     fn id(&self) -> String;
-    fn plan(&self, ctx: &PlanContext, seed: u64) -> Plan;
+    fn plan(&self, ctx: &PlanContext, seed: u64) -> Result<Plan, String>;
 }
 
 pub struct Heuristic;
@@ -130,7 +133,13 @@ impl Architect for Heuristic {
         "reference-heuristic@2".into()
     }
 
-    fn plan(&self, ctx: &PlanContext, seed: u64) -> Plan {
+    fn plan(&self, ctx: &PlanContext, seed: u64) -> Result<Plan, String> {
+        Ok(self.sketch(ctx, seed))
+    }
+}
+
+impl Heuristic {
+    fn sketch(&self, ctx: &PlanContext, seed: u64) -> Plan {
         let mut rng = Rng::new(seed);
         let requested: Vec<&str> = ctx.requests.iter().take(2).flat_map(|t| procgen::tags_in_text(t)).collect();
         let chamber_tag = if !requested.is_empty() && rng.f32() < 0.5 {
@@ -238,8 +247,13 @@ Fresh requests in the visitor book: {requests:?}
 Recent visitor-book notes: {notes:?}
 Budget: {budget}. Mode: {mode}.
 
-Feature tags the renderer knows: {tags}.
-Thing kinds the renderer knows (invent freely within these shapes):
+Make this place its own: invent, don't reach for stock pieces. The feature tags below are only background dressing; what makes a chamber memorable is the things you design for it, above all objects you sculpt yourself.
+
+Feature tags (background dressing, use 0-3): {tags}.
+Thing kinds (up to 6 things):
+  object {{"name": str, "text": "what you find when you look closer (a sentence or two, or a short poem)", "parts": [up to 24 parts], "size": [width, depth] in metres (footprint, max 3x3), "spot": "floor"|"wall"|"corner"}}
+    each part: {{"shape": box|sphere|cylinder|cone|torus|octahedron, "size": [x, y, z] metres, "at": [x, y, z] metres from the centre of the footprint at floor level (y up), "rot": [x, y, z] degrees, "color": "#hex", "glow": 0-1, "spin": turns per second about y (optional), "bob": metres (optional)}}
+    Sculpt anything this way: a piano, a fountain, a tree of lamps, a boat, a shrine, a vending machine for memories. Use several parts; make them sit on each other believably.
   character {{"name": str, "lines": [3-6 short spoken lines, in order], "look": {{"coat": "#hex", "accent": "#hex", "hat": one of wide|cap|visor|straw|tall|none|scarf|beret|beanie|bowler|net}}}}
   note {{"title": str, "text": str}}
   lanterns {{"count": 3-6, "reward": str}}
@@ -309,7 +323,7 @@ pub fn parse_plan(text: &str, by: &str) -> Option<Plan> {
         chamber_tag: tag,
         features: raw.features.into_iter().filter(known).take(6).collect(),
         enrich: raw.enrich.into_iter().filter(|e| known(&e.tag)).take(6).map(|e| (e.chamber, e.tag)).collect(),
-        things: raw.things.into_iter().take(4).filter(|t| !t.kind.is_empty() && t.kind.len() < 24).map(|t| (t.kind, t.data, t.chamber)).collect(),
+        things: raw.things.into_iter().take(6).filter(|t| !t.kind.is_empty() && t.kind.len() < 24).map(|t| (t.kind, t.data, t.chamber)).collect(),
         note: raw.note.map(|n| n.chars().take(280).collect()),
         by: by.into(),
     })
@@ -320,27 +334,13 @@ impl Architect for Command {
         format!("command:{}", self.cmd.split_whitespace().next().unwrap_or("?"))
     }
 
-    fn plan(&self, ctx: &PlanContext, seed: u64) -> Plan {
-        let run = || -> Option<Plan> {
-            match crate::agent::run(&self.cmd, &prompt(ctx), Some(&self.dir), std::time::Duration::from_secs(300)) {
-                Ok(out) => parse_plan(&out, &self.id()),
-                Err(e) => {
-                    tracing::warn!("architect `{}`: {e}", self.cmd);
-                    None
-                }
-            }
-        };
-        match run() {
-            Some(p) if ctx.detail || !p.chamber_name.is_empty() => p,
-            Some(mut p) => {
-                p.chamber_name = procgen::chamber_name(&p.chamber_tag, &mut Rng::new(seed));
-                p
-            }
-            None => {
-                tracing::warn!("architect command `{}` gave no usable plan; using the heuristic", self.cmd);
-                Heuristic.plan(ctx, seed)
-            }
+    fn plan(&self, ctx: &PlanContext, seed: u64) -> Result<Plan, String> {
+        let out = crate::agent::run(&self.cmd, &prompt(ctx), Some(&self.dir), std::time::Duration::from_secs(300))?;
+        let mut p = parse_plan(&out, &self.id()).ok_or_else(|| format!("no usable plan in: {}", out.trim().chars().take(200).collect::<String>()))?;
+        if !ctx.detail && p.chamber_name.is_empty() {
+            p.chamber_name = procgen::chamber_name(&p.chamber_tag, &mut Rng::new(seed));
         }
+        Ok(p)
     }
 }
 
@@ -469,7 +469,8 @@ pub fn tick(app: &Arc<App>) {
                     }
                     Some(b) if now >= b.ready_at => {
                         let job = format!("{wid}/{key}");
-                        if app.in_flight.lock().unwrap().insert(job.clone()) {
+                        let mut in_flight = app.in_flight.lock().unwrap();
+                        if in_flight.len() < MAX_BUILDS && in_flight.insert(job.clone()) {
                             jobs.push((job, context(app, &uni, &wid, &key, budget)));
                         }
                     }
@@ -485,12 +486,39 @@ pub fn tick(app: &Arc<App>) {
         let app = app.clone();
         tokio::spawn(async move {
             let seed = procgen::splitmix(ctx.room.seed as u64 ^ ((ctx.room.chambers.len() as u64) << 32) ^ now_ms());
-            let architect = app.architect_for(ctx.budget);
+            let architect = app.architect_for();
             let c = ctx.clone();
-            let plan = tokio::task::spawn_blocking(move || architect.plan(&c, seed)).await.unwrap_or_else(|_| Heuristic.plan(&ctx, seed));
-            apply(&app, &ctx, plan, seed);
+            let plan = tokio::task::spawn_blocking(move || architect.plan(&c, seed)).await.unwrap_or_else(|e| Err(e.to_string()));
+            match plan {
+                Ok(plan) => apply(&app, &ctx, plan, seed),
+                Err(e) => retry_later(&app, &ctx, &e),
+            }
             app.in_flight.lock().unwrap().remove(&job);
         });
+    }
+}
+
+/// Builds in progress at once (each may be a Claude Code run).
+const MAX_BUILDS: usize = 3;
+/// How long a build the architect couldn't make waits before trying again.
+const RETRY_MS: u64 = 60_000;
+
+/// The architect couldn't build: leave the house as it is, keep its
+/// attention, and try again in a minute. Say so in the game, now and then.
+fn retry_later(app: &Arc<App>, ctx: &PlanContext, why: &str) {
+    use std::sync::atomic::{AtomicU64, Ordering};
+    static LAST_TOLD: AtomicU64 = AtomicU64::new(0);
+    tracing::warn!("architect couldn't build {} {},{}: {why}", ctx.world, ctx.room.x, ctx.room.z);
+    let now = now_ms();
+    {
+        let mut uni = app.uni.lock().unwrap();
+        if let Some(r) = uni.worlds.get_mut(&ctx.world).and_then(|w| w.rooms.get_mut(&crate::model::addr(ctx.room.x, ctx.room.z))) {
+            r.building = Some(Build { started: now, ready_at: now + RETRY_MS });
+        }
+    }
+    if now.saturating_sub(LAST_TOLD.swap(now, Ordering::Relaxed)) > 10 * 60_000 {
+        let why: String = why.chars().take(200).collect();
+        app.broadcast(&ctx.world, &json!({ "t": "error", "error": format!("The architect couldn't build just now, and will try again in a minute: {why}") }));
     }
 }
 
@@ -711,7 +739,7 @@ mod tests {
                 room: room.clone(),
             };
             for seed in 0..50 {
-                let plan = Heuristic.plan(&ctx, seed);
+                let plan = Heuristic.plan(&ctx, seed).unwrap();
                 assert!(!plan.features.is_empty());
                 assert!(!plan.chamber_name.is_empty());
                 assert!(procgen::TAGS.contains(&plan.chamber_tag.as_str()));

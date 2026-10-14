@@ -115,7 +115,11 @@ pub const RING: f64 = 6.0;
 
 impl App {
     pub fn new(cfg: Config, uni: Universe, store: Store) -> Arc<Self> {
-        let settings = std::fs::read(store.root.join(".branches/settings.json")).ok().and_then(|b| serde_json::from_slice(&b).ok()).unwrap_or_default();
+        // In the app, Claude Code builds when it is installed, unless you chose otherwise.
+        let settings = std::fs::read(store.root.join(".branches/settings.json")).ok().and_then(|b| serde_json::from_slice(&b).ok()).unwrap_or_else(|| {
+            let claude = cfg.app && crate::agent::find_claude().is_some();
+            Settings { architect: if claude { "command" } else { "heuristic" }.into(), asked: claude, ..Default::default() }
+        });
         Arc::new(App {
             cfg,
             uni: Mutex::new(uni),
@@ -144,9 +148,9 @@ impl App {
 
     /// Quick sketches always use the built-in architect; the configured one
     /// (perhaps a model) gets the builds people are lingering for.
-    pub fn architect_for(&self, budget: Budget) -> Arc<dyn Architect> {
+    pub fn architect_for(&self) -> Arc<dyn Architect> {
         let s = self.settings.lock().unwrap().clone();
-        if budget == Budget::Sketch || s.architect != "command" || s.command.trim().is_empty() {
+        if s.architect != "command" || s.command.trim().is_empty() {
             Arc::new(architect::Heuristic)
         } else {
             Arc::new(architect::Command { cmd: s.command, dir: crate::agent::workdir(&self.store.root) })

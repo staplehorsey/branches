@@ -43,10 +43,11 @@ you are.
 
 Open **L** (worlds), then the settings at the bottom:
 
-* **Architect:** the built-in one, or any program. `claude -p` makes Claude
-  Code the architect: it gets a description of the house and what visitors
-  want, and prints a JSON plan. Quick sketches always use the built-in
-  architect; your program gets the rooms people linger in.
+* **Architect:** Claude Code when it's installed (`claude -p`), or any
+  program, or the built-in one. The program gets a description of the house
+  and what visitors want, and prints a JSON plan, including objects it
+  sculpts from simple shapes. It builds everything; when it can't, the house
+  waits and it tries again a minute later.
 * **Night shift:** while nobody is playing, inside hours you choose, an
   agent builds something bigger, such as a zoo tycoon or a go-kart track.
   The default is `claude -p --permission-mode acceptEdits`, run in a folder
@@ -80,10 +81,18 @@ Open **L** (worlds), then the settings at the bottom:
 ## Build from source
 
 ```sh
+scripts/dev.sh                               # build and (re)start the app in the background
+scripts/dev.sh log                           # its log; also stop and status
+scripts/inbox.sh                             # let a cloud Claude Code session drive this checkout
 cd server && cargo run --release -- --app   # the app, at http://localhost:7878
 cd server && cargo run --release            # a plain host, at :8080
 cd server && cargo test
 ```
+
+Running from source, press **`** (backquote) in the game to open the
+**workshop**: talk to Claude Code about the game itself while you play. It
+works in this repository and commits what it changes; the page reloads for
+client changes, and the app rebuilds and restarts for server changes.
 
 `scripts/build-page.sh <dir> [--standalone]` packages the browser version.
 `scripts/export-offline.sh` refreshes its copy of the starter worlds from a

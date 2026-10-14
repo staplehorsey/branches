@@ -51,6 +51,9 @@ pub fn router() -> Router<Arc<App>> {
         .route("/api/app/github/pages", post(github_pages))
         .route("/api/app/sync", post(sync))
         .route("/api/app/agent/check", post(agent_check))
+        .route("/api/app/workshop", get(workshop_status).post(workshop_ask))
+        .route("/api/app/workshop/new", post(workshop_new))
+        .route("/api/app/workshop/stop", post(workshop_stop))
         .route("/api/residents", get(residents_list).post(resident_spawn))
         .route("/api/residents/fund", post(residents_fund))
         .route("/api/residents/{id}", get(resident_get).delete(resident_retire))
@@ -628,6 +631,51 @@ async fn put_settings(State(app): AppState, headers: HeaderMap, Json(s): Json<cr
     let mut s = s;
     s.asked = true;
     app.save_settings(s);
+    Ok(Json(json!({ "ok": true })))
+}
+
+async fn workshop_status(State(app): AppState) -> Res {
+    Ok(Json(crate::workshop::status(&app)))
+}
+
+#[derive(Deserialize)]
+struct WorkshopAsk {
+    text: String,
+    #[serde(default)]
+    who: String,
+    #[serde(default)]
+    place: String,
+}
+
+/// The workshop runs Claude Code on this computer's copy of the game, so
+/// only the app's own page may use it (never a page elsewhere on the web).
+fn workshop_guard(app: &App, headers: &HeaderMap) -> Result<(), ApiError> {
+    if !app.cfg.app || !same_origin(app, headers) {
+        return Err(err(StatusCode::FORBIDDEN, "the workshop only works from the app's own page"));
+    }
+    Ok(())
+}
+
+async fn workshop_ask(State(app): AppState, headers: HeaderMap, Json(b): Json<WorkshopAsk>) -> Res {
+    workshop_guard(&app, &headers)?;
+    let text = b.text.trim();
+    if text.is_empty() {
+        return Err(err(StatusCode::BAD_REQUEST, "say something"));
+    }
+    let who = if b.who.trim().is_empty() { "someone" } else { b.who.trim() };
+    crate::workshop::ask(&app, text, who, &b.place).map_err(|e| err(StatusCode::CONFLICT, e))?;
+    Ok(Json(json!({ "ok": true })))
+}
+
+async fn workshop_new(State(app): AppState, headers: HeaderMap) -> Res {
+    workshop_guard(&app, &headers)?;
+    crate::workshop::reset(&app);
+    Ok(Json(json!({ "ok": true })))
+}
+
+async fn workshop_stop(State(app): AppState, headers: HeaderMap) -> Res {
+    workshop_guard(&app, &headers)?;
+    crate::workshop::stop();
     Ok(Json(json!({ "ok": true })))
 }
 

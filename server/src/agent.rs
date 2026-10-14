@@ -21,6 +21,7 @@ fn extra_dirs() -> Vec<PathBuf> {
     let mut dirs = vec![
         h.join(".claude/local"),
         h.join(".local/bin"),
+        h.join(".cargo/bin"),
         PathBuf::from("/opt/homebrew/bin"),
         PathBuf::from("/usr/local/bin"),
         h.join(".npm-global/bin"),
