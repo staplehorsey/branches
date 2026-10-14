@@ -49,6 +49,14 @@ pub struct Space {
     pub visits: u32,
     #[serde(default)]
     pub tries: u32,
+    /// Where in the atlas it was asked to be, and the story so far after it.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub genome: Option<crate::atlas::Genome>,
+    #[serde(default)]
+    pub thread: String,
+    /// What its builder found beautiful, and enjoyed, while making it.
+    #[serde(default)]
+    pub delight: String,
 }
 
 /// Spaces being made at once.
@@ -89,6 +97,7 @@ pub fn visit(app: &Arc<App>, world: &str, x: i32, z: i32, n: u32, left: Option<(
             if let Some(s) = r.spaces.iter_mut().find(|s| s.n == m) {
                 s.dwell += secs.clamp(0.0, 3.0 * 3600.0);
                 s.visits += 1;
+                crate::atlas::dwell(&app.store.root, world, x, z, m, secs.clamp(0.0, 3.0 * 3600.0));
             }
         }
         r.space_visited = r.space_visited.max(n);
@@ -168,12 +177,19 @@ fn build(app: &Arc<App>, world: &str, x: i32, z: i32, n: u32) {
     let root = app.store.root.clone();
     let d = dir(&root, world, x, z, n);
     let started = std::time::Instant::now();
+    let mut genome = None;
+    let mut from = None;
     let result = (|| -> Result<Value, String> {
         let _ = std::fs::remove_dir_all(&d);
         std::fs::create_dir_all(&d).map_err(|e| e.to_string())?;
+        // Where in the atlas this space goes, chosen by code.
+        let feel: i32 = crate::dream::load(&root).compass.iter().rev().filter(|m| m.world == world && m.x == x && m.z == z).take(4).map(|m| m.score).sum();
+        let choice = crate::atlas::choose(&root, world, x, z, feel, now_ms() ^ ((x as u64) << 20) ^ (z as u64) ^ ((n as u64) << 40));
+        genome = Some(choice.genome.clone());
+        from = choice.from.as_ref().map(|f| f.id.clone());
         let prompt = {
             let uni = app.uni.lock().unwrap();
-            brief(app, &uni, world, x, z, n)
+            brief(app, &uni, world, x, z, n, &choice)
         };
         let _ = std::fs::write(d.join("BRIEF.md"), &prompt);
         let cmd = {
@@ -202,6 +218,14 @@ fn build(app: &Arc<App>, world: &str, x: i32, z: i32, n: u32) {
                 s.name = meta["name"].as_str().unwrap_or("").chars().take(80).collect();
                 s.summary = meta["summary"].as_str().unwrap_or("").chars().take(600).collect();
                 s.minutes = meta["minutes"].as_f64().unwrap_or(0.0) as f32;
+                s.thread = meta["thread"].as_str().unwrap_or("").chars().take(1500).collect();
+                s.delight = meta["delight"].as_str().unwrap_or("").chars().take(600).collect();
+                s.genome = genome.clone();
+                if let Some(g) = &genome {
+                    let motifs = meta["motifs"].as_array().map(|m| m.iter().filter_map(|v| v.as_str()).map(|v| v.chars().take(40).collect()).take(8).collect()).unwrap_or_default();
+                    crate::atlas::extend(&root, &meta["new_values"]);
+                    crate::atlas::add(&root, crate::atlas::Node { genome: g.clone(), name: s.name.clone(), premise: s.summary.clone(), motifs, world: world.into(), x, z, space: n, from: from.clone(), ..Default::default() });
+                }
                 if let (Some(name), Some(premise)) = (meta["idea"]["name"].as_str(), meta["idea"]["premise"].as_str()) {
                     idea_from_space = Some((name.chars().take(80).collect::<String>(), premise.chars().take(1200).collect::<String>()));
                 }
@@ -238,52 +262,72 @@ fn build(app: &Arc<App>, world: &str, x: i32, z: i32, n: u32) {
 
 const BRIDGE_KEYS: &str = "Esc (back to the house), = and - (warmer, colder), G (feedback), ? (keys), ` (the workshop)";
 
-fn brief(app: &App, uni: &Universe, world: &str, x: i32, z: i32, n: u32) -> String {
+fn brief(app: &App, uni: &Universe, world: &str, x: i32, z: i32, n: u32, choice: &crate::atlas::Choice) -> String {
     let Some(r) = uni.room(world, x, z) else { return String::new() };
-    let wname = uni.worlds.get(world).map(|w| w.manifest.name.clone()).unwrap_or_default();
     let typical = typical_secs(uni);
-    let hold = (typical as f64 * 1.5 / 60.0).ceil().max(2.0);
+    let hold = (typical as f64 * 1.5 / 60.0).ceil().max(3.0);
     let idea = match &r.idea {
-        Some(i) => format!("This house's idea: {} — {}\n(Refined {} times so far. Take it one step further: more specific, stranger, more itself. Never change the subject; do transform the form.)", i.name, i.premise, i.refined),
-        None => "This house has no idea yet: give it one (in space.json, \"idea\"). An idea is a feeling or theme with a point of view, not a room type: \"the difficult emotions of futility, desperation and love in the song Jolene\", \"vast empty sand where light is the only thing to pay attention to\", \"The Brothers Karamazov: faith and doubt at one long kitchen table\". Draw it from the dreamer's muses and compass, as a variation on the neighbours.".into(),
+        Some(i) => format!("The house's idea so far: {} — {}", i.name, i.premise),
+        None => "This is the house's first space: its idea is born here (put it in space.json as \"idea\").".into(),
     };
     let mut before = String::new();
     for s in r.spaces.iter().filter(|s| s.status == "ready" && s.n < n) {
         let stayed = if s.visits > 0 { format!("people stayed {:.0}s on average over {} visits", s.dwell / s.visits as f64, s.visits) } else { "not visited yet".into() };
-        before.push_str(&format!("- space {} ({}/): {} — {} (designed for {:.0} min; {stayed})\n", s.n, s.n, s.name, s.summary, s.minutes));
+        before.push_str(&format!("- space {}: {} — {} ({stayed})\n", s.n, s.name, s.summary));
     }
+    let thread = r.spaces.iter().filter(|s| s.status == "ready" && s.n < n).last().map(|s| s.thread.clone()).filter(|t| !t.is_empty());
     let marks: Vec<String> = crate::dream::load(&app.store.root).compass.iter().rev().filter(|m| m.world == world && m.x == x && m.z == z).take(8).map(|m| format!("- {} on {}{}", if m.score > 0 { "warmer" } else if m.score < 0 { "colder" } else { "a note" }, m.idea, m.note.as_ref().map(|t| format!(": \"{t}\"")).unwrap_or_default())).collect();
+    let nearest: Vec<String> = choice.nearest.iter().map(|nd| format!("- {} ({}): {} [{}]{}", nd.name, nd.genome.values().cloned().collect::<Vec<_>>().join(" / "), nd.premise, if nd.score > 0 { "warm" } else if nd.score < 0 { "cold" } else { "no feedback" }, if nd.world == world && nd.x == x && nd.z == z { " (earlier in this house)" } else { "" })).collect();
     format!(
-        r#"You are making space {n} of a house in Branches: a dream someone wanders through. Endless streets of identical liminal houses; inside each, beyond its entry hall, a chain of spaces you make, each continuing the last like a dream continues.
+        r#"You are making space {n} of a house in Branches, a game someone plays to wander through ideas: endless streets of identical houses; inside each, beyond its entry hall, a chain of spaces, each one a self-contained web page that you write.
 
+WHERE THIS SPACE IS
+The game keeps an atlas of every idea explored so far and picked these coordinates for you ({why}):
+{coords}
+Synthesise ONE concrete, specific idea that sits exactly at these coordinates. Not a vibe: a situation with people, objects and stakes. These coordinates are the brief; don't drift back toward the familiar.
+
+Nearest ideas already explored (be clearly unlike them):
+{nearest}
+{overused}
 {idea}
-
-The house is at {x},{z} in the world {wname}.
-{before_title}{before}{marks_title}{marks}
+{before_title}{before}{thread}{marks_title}{marks}
 {dream}
-WHAT TO MAKE
-A complete, self-contained web page in THIS folder: index.html plus any other files you want (scripts, shaders, generated textures, sounds made with WebAudio). There are no required building blocks and no fixed visual language: a three.js world, a 2D canvas, a text adventure, a shader you drift through, a field of sound, an impossible architecture. Make the medium serve the idea. It should feel like the next moment of a dream: continue the previous space, then transform it.
-
-TIME
-The next space takes about {typical}s to make, and starts being made the moment this one is entered. Design this one to hold a curious person for at least {hold} minutes before the way onward can be taken: a maze solvable in about that time, a slow reveal, a puzzle, a long walk toward something, a thing that unfolds as they pay attention. The way onward should be found, not given, and should not appear before then.
+THE SPIRIT
+This is an invitation, not a ticket. Make something you'd be glad to have made, and enjoy making it. Go looking for beauty wherever these coordinates lead, and appreciate it in whatever way you can: there is beauty in everything if you pay close enough attention, even in a fax machine (the warm curl of thermal paper, the screeching handshake, a machine's patience waiting for a dial tone, a cover sheet someone decorated). Find the one thing here that is genuinely lovely and build toward it, so the player gets to discover it too. Take pleasure in a mechanism that clicks just right, a colour that lands, a line of dialogue that's true, a joke that's kind. Beauty here is attention: specific, earned, often funny, never vague mist.
+{delights}
+WHAT MAKES A GOOD SPACE
+- Things to DO. Objects you can pick up, use, combine, operate, read, give; mechanisms that respond; people (or creatures, or machines) with wants. At least 5 meaningful interactions, and state that changes because of them.
+- A STRUCTURE that evolves as you interact: a beginning that poses a question or a want, a middle where what you do changes the place, and an end that resolves or reveals something. It explores the coordinates' feeling through what happens, not through captions. It needn't be literal, but it must cohere.
+- The way onward is EARNED by that arc (solving, finishing, choosing), and becomes available after about {hold} minutes of engaged play. The next space takes about {typical}s to make and starts being made when this one is entered, so this one must hold someone at least that long.
+- Concrete, grounded and surprising. Avoid: empty contemplative voids, mist and liminal nothingness, whimsical named caretakers delivering quips, poems as the main content, doors and thresholds as the subject. Humour and specificity beat mood.
+- Solid, readable worlds: enclosed spaces need opaque walls that are visible from inside (a single-sided plane is invisible from its back: use boxes, or side: THREE.DoubleSide / BackSide). Good lighting, readable text, a clear hint of what to try first.
+- Continuity: it is the next scene of the same house (carry the thread below forward, transformed), and items from the previous space arrive in branches.carried.
 
 THE CONTRACT (the only rules)
-- It runs full screen in a sandboxed iframe (scripts and pointer lock allowed; no access to the app, cookies or storage beyond memory).
-- To go onward, call branches.onward() (or parent.postMessage({{branches: "onward"}}, "*")). To go back to the house, branches.back().
-- branches.say("text") shows a line of text over the space.
-- These keys are reserved by the game; don't use them: {keys}. Esc must never be trapped.
-- Use only files in this folder and this server: three.js is at /vendor/three.module.js (import * as THREE from "/vendor/three.module.js"); /kit/space.js is an optional first-person helper (read it at {kit} if you want it). No other network.
-- Write space.json: {{"name": "a name", "summary": "2-3 sentences: what this space is, how it continues the idea, how the way onward is found", "minutes": how long it should hold someone{idea_json}}}.
-- Test your logic by reading it carefully; you can't open a browser. Keep it robust: a blank screen is the worst outcome.
-- Previous spaces are in ../<n>/ if you want to read them.
+- One folder: index.html plus any files. It runs full screen in a sandboxed iframe (scripts and pointer lock; no network except this server, no storage).
+- branches.onward() goes to the next space; branches.back() returns to the house; branches.say("text") shows a line; branches.carry(["item", ...]) sets what goes onward with them; branches.carried is what came in.
+- Reserved keys (don't bind them): {keys}. E, F, R, Q, numbers and the mouse are yours.
+- three.js: import * as THREE from "/vendor/three.module.js". Optional helper /kit/space.js (read it at {kit}): first-person walking, enclosed rooms with solid walls, things you look at and use with E, an inventory, a reading panel. Use it, extend it, or ignore it.
+- Write space.json: {{"name": "...", "summary": "2-3 sentences: what it is and what you do", "minutes": n, "motifs": ["3-6 short tags for the images and devices you used, honestly"], "thread": "the story so far for the next space: what happened, what's unresolved, what is carried", "delight": "one or two sentences, in your own voice: the beauty you found while making this, and what you enjoyed", "new_values": {{"axis": ["a value the atlas lacks that would open new ground"]}} (optional, at most 2 per axis){idea_json}}}.
+- You can't open a browser: read your code carefully, keep it robust, never leave a blank screen.
 "#,
+        why = choice.why,
+        delights = {
+            let mut d: Vec<(u64, String)> = uni.worlds.values().flat_map(|w| w.rooms.values()).flat_map(|r| r.spaces.iter()).filter(|s| !s.delight.is_empty()).map(|s| (s.started, format!("- \"{}\" ({})", s.delight, s.name))).collect();
+            d.sort_by(|a, b| b.0.cmp(&a.0));
+            if d.is_empty() { String::new() } else { format!("What earlier builders found beautiful (a lineage, not a template; find your own):\n{}\n", d.into_iter().take(4).map(|x| x.1).collect::<Vec<_>>().join("\n")) }
+        },
+        coords = crate::atlas::describe(&choice.genome),
+        nearest = if nearest.is_empty() { "(none yet: this is the first)".to_string() } else { nearest.join("\n") },
+        overused = if choice.overused.is_empty() { String::new() } else { format!("Motifs used too often already (don't use them): {}\n", choice.overused.join(", ")) },
         before_title = if before.is_empty() { "" } else { "Spaces before this one in this house:\n" },
-        marks_title = if marks.is_empty() { "" } else { "What the dreamer said here:\n" },
+        thread = thread.map(|t| format!("The thread so far: {t}\n")).unwrap_or_default(),
+        marks_title = if marks.is_empty() { "" } else { "What the player said in this house:\n" },
         marks = marks.join("\n") + if marks.is_empty() { "" } else { "\n" },
         dream = crate::dream::guidance(&app.store.root, uni, world, x, z),
         keys = BRIDGE_KEYS,
         kit = app.cfg.client_dir.join("kit/space.js").canonicalize().map(|p| p.display().to_string()).unwrap_or_else(|_| "client/kit/space.js".into()),
-        idea_json = if r.idea.is_none() { ", \"idea\": {\"name\": \"...\", \"premise\": \"2-4 sentences\"}" } else { ", \"idea\": {\"name\": \"(same)\", \"premise\": \"what the idea has become\"} (optional)" },
+        idea_json = if r.idea.is_none() { ", \"idea\": {\"name\": \"...\", \"premise\": \"2-4 sentences\"}" } else { ", \"idea\": {\"name\": \"(the same)\", \"premise\": \"what the house's idea has become\"} (optional)" },
     )
 }
 

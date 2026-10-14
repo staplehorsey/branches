@@ -246,6 +246,9 @@ pub fn mark(app: &App, world: &str, x: i32, z: i32, score: i32, space: Option<u3
         (idea.clone(), premise, idea)
     };
     app.touch();
+    if let Some(n) = space {
+        crate::atlas::feel(&app.store.root, world, x, z, n, score);
+    }
     update(&app.store.root, |d| {
         d.compass.push(Mark { world: world.into(), x, z, idea, premise, score, at: now, space, note: note.clone() });
         let n = d.compass.len();

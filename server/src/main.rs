@@ -7,6 +7,7 @@
 mod agent;
 mod api;
 mod architect;
+mod atlas;
 mod dream;
 mod genesis;
 mod github;

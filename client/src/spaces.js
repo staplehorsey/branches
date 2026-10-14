@@ -32,6 +32,7 @@ export function initSpaces(h) {
     else if (m.branches === 'back') back();
     else if (m.branches === 'key') key_(m.code);
     else if (m.branches === 'lock') el?.classList.toggle('locked', !!m.locked);
+    else if (m.branches === 'carry' && here) here.carry = m.items;
     else if (m.branches === 'error') console.warn('space error:', m.message);
   });
   addEventListener(
@@ -90,7 +91,7 @@ export function onSpaceEvent(world, m) {
     if (m.status === 'ready') {
       const w = waiting;
       waiting = null;
-      show(w.world, w.x, w.z, w.n, w.idea);
+      show(w.world, w.x, w.z, w.n, w.idea, w.carried);
     } else if (m.status === 'failed') {
       wait(waiting, 'That space came apart while it was being made. Another is being made now…');
     }
@@ -108,8 +109,9 @@ export async function enter(world, x, z, n, idea) {
   try {
     const r = await post(`/api/app/spaces/${encodeURIComponent(world)}/${x}/${z}/visit`, { n, ...left });
     setKnown(world, x, z, r.spaces);
-    if (ready(world, x, z, n)) return show(world, x, z, n, idea);
-    wait({ world, x, z, n, idea, typical: r.typical_secs });
+    const carried = prev?.carry || prev?.carried || [];
+    if (ready(world, x, z, n)) return show(world, x, z, n, idea, carried);
+    wait({ world, x, z, n, idea, typical: r.typical_secs, carried });
   } catch (e) {
     handlers.toast?.('Hmm', e.message);
   }
@@ -125,9 +127,9 @@ function ensureEl() {
   document.exitPointerLock?.();
 }
 
-function show(world, x, z, n, idea) {
+function show(world, x, z, n, idea, carried = []) {
   ensureEl();
-  here = { world, x, z, n, at: performance.now(), idea };
+  here = { world, x, z, n, at: performance.now(), idea, carried };
   const s = ready(world, x, z, n);
   el.querySelector('.space-wait').hidden = true;
   el.querySelector('.space-where').innerHTML = `${idea ? `<i>${esc(idea)}</i> · ` : ''}space ${n}${s?.name ? `: <b>${esc(s.name)}</b>` : ''}`;
@@ -135,7 +137,7 @@ function show(world, x, z, n, idea) {
   frame = document.createElement('iframe');
   frame.setAttribute('sandbox', 'allow-scripts allow-pointer-lock');
   frame.setAttribute('allow', 'autoplay');
-  frame.src = `/space/${encodeURIComponent(world)}/${x},${z}/${n}/`;
+  frame.src = `/space/${encodeURIComponent(world)}/${x},${z}/${n}/${carried.length ? `?carried=${encodeURIComponent(JSON.stringify(carried))}` : ''}`;
   el.prepend(frame);
   el.classList.add('fresh');
   setTimeout(() => el?.classList.remove('fresh'), 4000);
@@ -147,7 +149,7 @@ function wait(w, text) {
   waiting = w;
   frame?.remove();
   frame = null;
-  here = { world: w.world, x: w.x, z: w.z, n: w.n, at: performance.now(), idea: w.idea };
+  here = { world: w.world, x: w.x, z: w.z, n: w.n, at: performance.now(), idea: w.idea, carried: w.carried || [] };
   const box = el.querySelector('.space-wait');
   box.hidden = false;
   box.innerHTML = `<div><p>${esc(text || 'The next space is still taking shape.')}</p><p class="sub">${w.typical ? `Spaces take about ${Math.round(w.typical)}s to make. ` : ''}You'll go in the moment it's ready, or Esc to go back to the house.</p></div>`;

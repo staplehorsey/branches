@@ -6,7 +6,15 @@
   const RESERVED = new Set(['Escape', 'Equal', 'Minus', 'NumpadAdd', 'NumpadSubtract', 'Backquote', 'KeyG']);
   let sayEl = null;
   let sayTimer = 0;
+  let carried = [];
+  try {
+    carried = JSON.parse(new URLSearchParams(location.search).get('carried') || '[]');
+  } catch {}
   window.branches = {
+    carried: Array.isArray(carried) ? carried.map(String).slice(0, 20) : [],
+    carry(items) {
+      post({ t: 'carry', items: (Array.isArray(items) ? items : [items]).map(String).slice(0, 20) });
+    },
     onward() {
       post({ t: 'onward' });
     },
