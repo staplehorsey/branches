@@ -406,8 +406,10 @@ export function buildInterior({ room, origin, biome, frontier = true }) {
   // The frontier: where the next chamber will be built.
   const last = chambers[chambers.length - 1];
   let frontierMist = null;
+  let frontierAt = null;
   if (frontier) {
     const fx = last.backX, fz = last.z0;
+    frontierAt = new THREE.Vector3(origin.x + fx, origin.y, origin.z + fz);
     const mistMat = new THREE.ShaderMaterial({
       transparent: true,
       depthWrite: false,
@@ -429,7 +431,7 @@ export function buildInterior({ room, origin, biome, frontier = true }) {
     group.add(frontierMist);
     anims.push((t) => (mistMat.uniforms.uTime.value = t));
     addCollider(fx - ARCH_W / 2, fz - 0.3, fx + ARCH_W / 2, fz + 0.05);
-    const text = room.building ? 'under construction…' : 'the architect is listening';
+    const text = room.spaces_on ? 'walk on, into the dream' : room.building ? 'under construction…' : 'the architect is listening';
     const fl = label(text, { size: 0.22 });
     fl.position.set(fx, ARCH_H + 0.5, fz + 0.2);
     group.add(fl);
@@ -458,6 +460,7 @@ export function buildInterior({ room, origin, biome, frontier = true }) {
     gaze,
     chambers: chambers.map((c, i) => ({ ...c, name: room.chambers[i]?.name || '' })),
     guestbook: new THREE.Vector3(origin.x + gb.x, origin.y + 1, origin.z + gb.z),
+    frontier: frontierAt,
     chamberAt(x, z) {
       const lx = x - origin.x, lz = z - origin.z;
       for (let i = chambers.length - 1; i >= 0; i--) {

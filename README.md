@@ -35,13 +35,23 @@ bike · **F** more of this · **Q** scooter · **R** residents · **M** map · *
 **enter** chat · **L** worlds and settings · **N** notifications · **H**
 wake up at home.
 
-In the app: **I** muses · **=** warmer · **-** colder · **`** the workshop.
+**?** shows every key. In the app: **=** warmer · **-** colder · **G**
+feedback in your own words · **I** muses · **`** the workshop.
 
 In VR: left stick walk (click to go faster), right stick turn, **A** use,
 **B** more of this, **Y** leave VR. A card on your left wrist shows where
 you are.
 
 ## In the app
+
+**Spaces.** In the app with Claude Code, the mist at the back of a house
+leads into its *spaces*: pages Claude writes from scratch, each in its own
+folder, in whatever medium serves the idea (a three.js world, a canvas, a
+shader, sound, words). The game only moves you in, onward and back (**Esc**).
+They are made ahead of you: walking into a house starts its first space,
+entering space *n* starts space *n+1*, and each space is asked to hold you
+longer than the next one takes to make. Spaces run sandboxed, and live with
+your worlds in `worlds/<world>/spaces/`.
 
 **The dream.** Every house grows an *idea* (a premise with a point of view,
 like "vast empty sand where light is the only thing to pay attention to")

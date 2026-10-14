@@ -39,9 +39,14 @@ pub struct Mark {
     pub z: i32,
     pub idea: String,
     pub premise: String,
-    /// +1 warmer, -1 colder.
+    /// +1 warmer, -1 colder, 0 just a note.
     pub score: i32,
     pub at: u64,
+    /// Which space it was said in (none: the house itself), and any words.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub space: Option<u32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub note: Option<String>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, Default)]
@@ -208,29 +213,41 @@ pub fn remove_muse(app: &App, id: &str) {
 
 /// Warmer (+1) or colder (-1), here. Warmer also gives the house a push
 /// toward its next refinement.
-pub fn mark(app: &App, world: &str, x: i32, z: i32, score: i32) -> Result<Value, String> {
+pub fn mark(app: &App, world: &str, x: i32, z: i32, score: i32, space: Option<u32>, note: Option<String>) -> Result<Value, String> {
     let score = score.signum();
-    if score == 0 {
-        return Err("warmer or colder?".into());
+    let note = note.map(|n| n.trim().chars().take(500).collect::<String>()).filter(|n| !n.is_empty());
+    if score == 0 && note.is_none() {
+        return Err("warmer, colder, or a few words".into());
     }
     let now = now_ms();
     let (idea, premise, name) = {
         let mut uni = app.uni.lock().unwrap();
         let threshold = app.threshold(uni.room(world, x, z).map(|r| r.growth()).unwrap_or(0));
-        let r = uni.worlds.get_mut(world).and_then(|w| w.rooms.get_mut(&addr(x, z))).ok_or("no house there")?;
-        let (idea, premise) = match &r.idea {
+        let r = uni.room_mut(world, x, z).ok_or("no house there")?;
+        let (mut idea, mut premise) = match &r.idea {
             Some(i) => (i.name.clone(), i.premise.clone()),
             None => (procgen::theme(&r.theme).map(|t| t.name).unwrap_or("this house").to_string(), "(no idea yet: only its starting theme)".to_string()),
         };
+        if let Some(s) = space.and_then(|n| r.spaces.iter().find(|s| s.n == n)) {
+            idea = format!("{} (space {}: {})", idea, s.n, s.name);
+            premise = format!("{} This space: {}", premise, s.summary);
+        }
         if score > 0 {
             r.attention += threshold * 0.35;
         }
-        push_log(&mut r.log, LogEntry { id: new_id(), kind: "compass".into(), who: "the dreamer".into(), player: None, text: if score > 0 { "warmer".into() } else { "colder".into() }, at: now });
+        let said = match (score, &note) {
+            (1, Some(n)) => format!("warmer: {n}"),
+            (-1, Some(n)) => format!("colder: {n}"),
+            (_, Some(n)) => n.clone(),
+            (1, None) => "warmer".into(),
+            _ => "colder".into(),
+        };
+        push_log(&mut r.log, LogEntry { id: new_id(), kind: "compass".into(), who: "the dreamer".into(), player: None, text: said, at: now });
         (idea.clone(), premise, idea)
     };
     app.touch();
     update(&app.store.root, |d| {
-        d.compass.push(Mark { world: world.into(), x, z, idea, premise, score, at: now });
+        d.compass.push(Mark { world: world.into(), x, z, idea, premise, score, at: now, space, note: note.clone() });
         let n = d.compass.len();
         if n > 400 {
             d.compass.drain(..n - 400);
@@ -260,6 +277,12 @@ pub fn guidance(root: &Path, uni: &Universe, world: &str, x: i32, z: i32) -> Str
             Some(f) => f.2 += m.score,
             None => felt.push((m.idea.clone(), m.premise.clone(), m.score, m.at)),
         }
+    }
+    let notes: Vec<String> = d.compass.iter().rev().filter_map(|m| m.note.as_ref().map(|n| format!("- on {}: \"{n}\"", m.idea))).take(8).collect();
+    if !notes.is_empty() {
+        out.push_str("What the dreamer said, in their words (most recent first):\n");
+        out.push_str(&notes.join("\n"));
+        out.push('\n');
     }
     let warm: Vec<_> = felt.iter().filter(|f| f.2 > 0).take(8).collect();
     let cold: Vec<_> = felt.iter().filter(|f| f.2 < 0).take(6).collect();

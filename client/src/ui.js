@@ -20,7 +20,8 @@ export function toast(title, body = '', onClick) {
     el.style.cursor = 'pointer';
     el.onclick = onClick;
   }
-  $('toasts').prepend(el);
+  // Inside a space, toasts show over it.
+  (document.querySelector('#space .space-toasts') || $('toasts')).prepend(el);
   setTimeout(() => el.remove(), 7200);
 }
 

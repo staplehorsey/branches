@@ -58,6 +58,9 @@ pub fn router() -> Router<Arc<App>> {
         .route("/api/app/muses", post(muse_add))
         .route("/api/app/muses/{id}", axum::routing::delete(muse_remove))
         .route("/api/app/compass", post(compass_mark))
+        .route("/api/app/spaces/{w}/{x}/{z}/visit", post(space_visit))
+        .route("/space/{w}/{at}/{n}/", get(crate::spaces::serve_index))
+        .route("/space/{w}/{at}/{n}/{*path}", get(crate::spaces::serve))
         .route("/api/residents", get(residents_list).post(resident_spawn))
         .route("/api/residents/fund", post(residents_fund))
         .route("/api/residents/{id}", get(resident_get).delete(resident_retire))
@@ -704,12 +707,32 @@ struct CompassMark {
     world: String,
     x: i32,
     z: i32,
+    #[serde(default)]
     score: i32,
+    #[serde(default)]
+    space: Option<u32>,
+    #[serde(default)]
+    note: Option<String>,
+}
+
+#[derive(Deserialize)]
+struct SpaceVisit {
+    n: u32,
+    #[serde(default)]
+    left: Option<u32>,
+    #[serde(default)]
+    seconds: f64,
+}
+
+async fn space_visit(State(app): AppState, headers: HeaderMap, Path((w, x, z)): Path<(String, i32, i32)>, Json(b): Json<SpaceVisit>) -> Res {
+    workshop_guard(&app, &headers)?;
+    let v = crate::spaces::visit(&app, &w, x, z, b.n, b.left.map(|l| (l, b.seconds))).map_err(|e| err(StatusCode::BAD_REQUEST, e))?;
+    Ok(Json(v))
 }
 
 async fn compass_mark(State(app): AppState, headers: HeaderMap, Json(b): Json<CompassMark>) -> Res {
     workshop_guard(&app, &headers)?;
-    let v = crate::dream::mark(&app, &b.world, b.x, b.z, b.score).map_err(|e| err(StatusCode::BAD_REQUEST, e))?;
+    let v = crate::dream::mark(&app, &b.world, b.x, b.z, b.score, b.space, b.note).map_err(|e| err(StatusCode::BAD_REQUEST, e))?;
     Ok(Json(v))
 }
 

@@ -192,6 +192,14 @@ pub struct Room {
     /// The idea this house keeps refining, once an architect has given it one.
     #[serde(default)]
     pub idea: Option<Idea>,
+    /// The spaces beyond the entry hall that Claude has written (or is writing).
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub spaces: Vec<crate::spaces::Space>,
+    /// The furthest space anyone has entered (0: the entry hall), and when.
+    #[serde(default)]
+    pub space_visited: u32,
+    #[serde(default)]
+    pub space_seen_at: u64,
 }
 
 /// What a house is about: a premise every build takes one step deeper, and

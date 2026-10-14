@@ -17,6 +17,7 @@ import { disposeTree, label as makeLabel } from './geo.js';
 import * as ui from './ui.js';
 import * as workshop from './workshop.js';
 import * as dream from './dream.js';
+import * as spaces from './spaces.js';
 import { CELL, HOUSE_D, DOOR_W, DOOR_H, pocketY, houseCenter, cellOf } from './layout.js';
 
 const $ = (id) => document.getElementById(id);
@@ -602,6 +603,9 @@ function connect() {
     workshop(m) {
       workshop.onWorkshop(m);
     },
+    space(m) {
+      spaces.onSpaceEvent(r.manifest.id, m);
+    },
     setup_ai(m) {
       if (S.app) ui.setupAi(r.host, m);
     },
@@ -928,7 +932,11 @@ function admire() {
 
 const chatInput = $('chat-input');
 addEventListener('keydown', (e) => {
-  if (!S.started) return;
+  if (!S.started || spaces.isOpen()) return;
+  if (e.key === '?' && !isTyping(e)) {
+    dream.openHelp({ app: S.app });
+    return;
+  }
   if (e.code === 'Escape') {
     if (ui.isPanelOpen()) ui.closePanel();
     chatInput.blur();
@@ -957,6 +965,11 @@ addEventListener('keydown', (e) => {
   if (S.app && (e.code === 'Equal' || e.code === 'Minus' || e.code === 'NumpadAdd' || e.code === 'NumpadSubtract')) {
     if (S.inside?.realm === S.primary) dream.feel(S.primary.manifest.id, S.inside.x, S.inside.z, e.code === 'Equal' || e.code === 'NumpadAdd' ? 1 : -1);
     else ui.hint('go inside a house to say warmer or colder');
+    return;
+  }
+  if (S.app && e.code === 'KeyG') {
+    if (S.inside?.realm === S.primary) dream.openFeedback({ world: S.primary.manifest.id, x: S.inside.x, z: S.inside.z, about: S.inside.room.idea?.name || S.inside.room.theme_name });
+    else ui.hint('go inside a house to give feedback on it');
     return;
   }
   if (S.app && e.code === 'KeyI') {
@@ -1044,7 +1057,7 @@ function step(dt) {
   t += dt;
   time.value = t;
 
-  player.enabled = S.started && !S.waking && !ui.isGameOpen() && (xr.active || (!ui.isPanelOpen() && document.activeElement !== chatInput));
+  player.enabled = S.started && !S.waking && !ui.isGameOpen() && !spaces.isOpen() && (xr.active || (!ui.isPanelOpen() && document.activeElement !== chatInput));
   if (xr.active) xr.beforeUpdate();
   const before = player.eye;
   const space = spaceOf(before);
@@ -1080,11 +1093,21 @@ function step(dt) {
     S.chamber = -1;
     if (S.inside && (!prevInside || prevInside.addr !== S.inside.addr)) {
       const r = S.inside.room;
-      ui.banner(r.claim?.title || r.theme_name);
+      ui.banner(r.claim?.title || r.idea?.name || r.theme_name);
+      // Start making this house's first space while you look around.
+      if (S.app && r.spaces_on && S.inside.realm === S.primary) spaces.enteredHouse(S.primary.manifest.id, S.inside.x, S.inside.z);
     }
     manage();
   }
   if (S.inside) {
+    // The mist at the back of a house leads into its spaces.
+    const fr = S.inside.built.frontier;
+    if (fr && S.inside.room.spaces_on && !spaces.isOpen() && S.inside.realm === S.primary && Math.hypot(player.pos.x - fr.x, player.pos.z - fr.z) < 1.25 && Math.abs(player.pos.y - fr.y) < 2) {
+      const it = S.inside;
+      document.exitPointerLock?.();
+      player.place(fr.x, fr.y, fr.z + 2.2, player.yaw);
+      spaces.enter(S.primary.manifest.id, it.x, it.z, 1, it.room.idea?.name);
+    }
     const ch = S.inside.built.chamberAt(player.pos.x, player.pos.z);
     if (ch !== S.chamber) {
       if (S.chamber >= 0 && ch > 0) ui.banner(S.inside.built.chambers[ch].name);
@@ -1239,11 +1262,26 @@ async function boot() {
     if (S.app) {
       welcomeToApp();
       workshop.initWorkshop({ where: whereAmI });
+      spaces.initSpaces({
+        toast: ui.toast,
+        onKey(code, h) {
+          if (!h) return;
+          if (code === 'Equal' || code === 'NumpadAdd') dream.feel(h.world, h.x, h.z, 1, h.n);
+          if (code === 'Minus' || code === 'NumpadSubtract') dream.feel(h.world, h.x, h.z, -1, h.n);
+          if (code === 'KeyG') dream.openFeedback({ world: h.world, x: h.x, z: h.z, space: h.n, about: `space ${h.n}${h.idea ? ` of ${h.idea}` : ''}` });
+          if (code === 'Help') dream.openHelp({ app: true });
+          if (code === 'Backquote') workshop.toggle();
+        },
+        onBack() {
+          player.lock();
+        },
+      });
     } else if (S.home === LOCAL_ORIGIN) offerSavedApp();
     player.lock();
     ui.chatLine('', '', 'Walk up to any house. Go inside. Stay a while.', true);
   };
   $('enter').onclick = enter;
+  $('keys-btn').onclick = () => dream.openHelp({ app: S.app });
   $('enter-vr').onclick = () => {
     enter();
     xr.enter();

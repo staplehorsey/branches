@@ -504,6 +504,7 @@ pub fn tick(app: &Arc<App>) {
     let now = now_ms();
     let mut broadcasts = Vec::new();
     let mut jobs = Vec::new();
+    let spaces_on = crate::spaces::enabled(app);
     {
         let mut uni = app.uni.lock().unwrap();
         let world_ids: Vec<String> = uni.worlds.keys().cloned().collect();
@@ -517,6 +518,8 @@ pub fn tick(app: &Arc<App>) {
                     (r.growth(), r.attention, r.building.clone())
                 };
                 match building {
+                    // With Claude in the app, spaces replace grown chambers.
+                    None if spaces_on => {}
                     None if attention >= app.threshold(growth) * budget.cost() => {
                         if hold_for_setup(app, now, &mut broadcasts, &world_ids_all) {
                             continue;

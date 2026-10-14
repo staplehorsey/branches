@@ -15,6 +15,7 @@ mod nightshift;
 mod pages;
 mod procgen;
 mod residents;
+mod spaces;
 mod state;
 mod stories;
 mod store;
@@ -150,6 +151,7 @@ async fn main() {
     let app = App::new(cfg, uni, store);
     app.touch();
     app.note_commit("Open the worlds".into());
+    spaces::recover(&app);
 
     tokio::spawn(ws::presence_loop(app.clone()));
     {

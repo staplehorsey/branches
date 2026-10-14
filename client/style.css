@@ -125,3 +125,30 @@ body.in-vr #chat, body.in-vr #hint, body.in-vr #crosshair { display: none; }
 .muse .sub { margin-top: 4px; line-height: 1.45; }
 .btn.small { padding: 1px 8px; font-size: 11px; margin-left: 6px; }
 #panel textarea { width: 100%; font: inherit; border-radius: 8px; border: 1px solid rgba(0, 0, 0, 0.12); padding: 6px 8px; margin-top: 6px; }
+
+/* Spaces: Claude's pages, full screen, with a bar that fades while you're in them. */
+#space { position: fixed; inset: 0; z-index: 6; background: #000; }
+#space iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; display: block; }
+#space .space-bar { position: absolute; top: 0; left: 0; right: 0; display: flex; gap: 14px; align-items: center; padding: 8px 14px; background: linear-gradient(rgba(0, 0, 0, 0.55), transparent); color: #fff; font-size: 13px; opacity: 1; transition: opacity 1.2s; z-index: 2; pointer-events: auto; }
+#space.locked:not(.fresh) .space-bar { opacity: 0; pointer-events: none; }
+#space .space-where { font-family: var(--serif); font-size: 16px; }
+#space .space-keys { opacity: 0.75; flex: 1; }
+#space .space-back { border: 0; border-radius: 999px; padding: 4px 12px; background: rgba(255, 255, 255, 0.85); color: var(--ink); }
+#space .space-wait { position: absolute; inset: 0; display: grid; place-items: center; color: #eee; font-family: var(--serif); font-size: 20px; text-align: center; padding: 24px; background: radial-gradient(#26222e, #0b0a10); }
+#space .space-wait .sub { font-family: var(--sans); font-size: 13px; opacity: 0.7; }
+#space .space-wait p:first-child { animation: breathe 3s ease-in-out infinite; }
+@keyframes breathe { 50% { opacity: 0.45; } }
+#space .space-toasts { position: absolute; right: 16px; top: 52px; display: flex; flex-direction: column; gap: 8px; align-items: flex-end; z-index: 3; }
+#workshop { z-index: 7; }
+
+/* Feedback (G) and the keys (?) */
+#feedback, #keyhelp { position: fixed; inset: 0; z-index: 9; display: grid; place-items: center; background: rgba(10, 10, 20, 0.25); }
+#feedback .card, #keyhelp .card { background: var(--paper); backdrop-filter: blur(10px); border-radius: 16px; padding: 16px 18px; width: min(440px, calc(100vw - 32px)); box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25); font-size: 14px; }
+#feedback textarea { width: 100%; margin: 10px 0; font: inherit; border-radius: 10px; border: 1px solid rgba(0, 0, 0, 0.12); padding: 8px; resize: none; }
+#feedback .btns { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 6px; }
+#keyhelp table { width: 100%; border-collapse: collapse; margin: 6px 0 10px; }
+#keyhelp td { padding: 3px 6px; vertical-align: top; text-align: left; }
+#keyhelp td:first-child { white-space: nowrap; width: 1%; }
+#keyhelp kbd { font-family: ui-monospace, Menlo, monospace; font-size: 12px; background: rgba(0, 0, 0, 0.07); border-radius: 5px; padding: 1px 6px; }
+#keyhelp .sub, #feedback .sub { opacity: 0.65; font-size: 12px; }
+#keyhelp h3 { margin: 0 0 4px; font-family: var(--serif); font-style: italic; font-weight: normal; }

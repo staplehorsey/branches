@@ -311,6 +311,8 @@ pub fn room_view(app: &App, uni: &Universe, world: &str, x: i32, z: i32) -> Opti
         "x": x, "z": z, "seed": shown.seed, "theme": shown.theme,
         "theme_name": procgen::theme(&shown.theme).map(|t| t.name).unwrap_or("Unknown"),
         "idea": shown.idea,
+        "spaces": r.spaces,
+        "spaces_on": crate::spaces::enabled(app),
         "chambers": shown.chambers,
         "features": shown.features,
         "things": shown.things,
