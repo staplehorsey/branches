@@ -24,6 +24,13 @@
       "seed": 2280773997,
       "by": "reference-heuristic@2",
       "at": 1792011407356
+    },
+    {
+      "name": "The Hollow Ballroom",
+      "tag": "music",
+      "seed": 3148829526,
+      "by": "reference-heuristic@2",
+      "at": 1792011456354
     }
   ],
   "features": [
@@ -90,6 +97,14 @@
       "seed": 134507516,
       "by": "reference-heuristic@2",
       "at": 1792011429356
+    },
+    {
+      "id": "b07d81f10e27",
+      "tag": "music",
+      "chamber": 3,
+      "seed": 1723821716,
+      "by": "reference-heuristic@2",
+      "at": 1792011456354
     }
   ],
   "portals": [],
@@ -122,19 +137,26 @@
       "who": "architect",
       "text": "The architect added detail (stone). New here: A poem.",
       "at": 1792011429356
+    },
+    {
+      "id": "3de40a8ef141",
+      "kind": "growth",
+      "who": "architect",
+      "text": "The architect built The Hollow Ballroom (music).",
+      "at": 1792011456354
     }
   ],
   "claim": null,
-  "attention": 26.042578000999967,
+  "attention": 11.459093912999942,
   "weights": {
-    "creatures": 0.00841192,
-    "music": 0.00841192,
+    "creatures": 0.2501633,
+    "music": 0.25857705,
     "plants": 2.4474003,
     "stone": 2.4790974,
-    "water": 2.5844748
+    "water": 2.8262277
   },
   "investors": {
-    "94b402ce6e6a1d1b": 143.64257800099998
+    "94b402ce6e6a1d1b": 168.65909391300005
   },
   "building": null,
   "last_visit": {
@@ -190,7 +212,9 @@
     }
   ],
   "looks": {
+    "66ee023a4c81": 2.1,
     "827711a19819": 0.6,
+    "98f31595c342": 19.3,
     "eaa1fb19f311": 0.8,
     "guestbook": 2.4,
     "theme:plants": 100.1,
