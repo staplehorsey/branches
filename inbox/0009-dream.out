@@ -2,3 +2,10 @@
 == started 2026-10-14 17:33:19 on msainzmbp, Darwin arm64
 == in /Users/msainz/Projects/branches at 985789c
 
+{"app":true,"endpoints":{"chunk":"/api/worlds/{world}/chunk?x0&z0&x1&z1","live":"/ws/{world}","room":"/api/worlds/{world}/rooms/{x}/{z}","world":"/api/worlds/{world}"},"generators":["liminal-houses@1"],"protocol":"branches/0.1","software":"branches-server","version":"0.1.0","worlds":[{"id":"dusk-orchard","name":"Dusk Orchard","path":"/w/dusk-orchard/0,0"},{"id":"fog-pines","name":"Fog Pines","path":"/w/fog-pines/0,0"},{"id":"hushed-meridian-3f02","name":"The Hushed Meridian","path":"/w/hushed-meridian-3f02/0,0"},{"id":"moonlit-meadow","name":"Moonlit Meadow","path":"/w/moonlit-meadow/0,0"},{"id":"salt-flat-noon","name":"Salt Flat Noon","path":"/w/salt-flat-noon/0,0"},{"id":"the-lush","name":"The Lush","path":"/w/the-lush/0,0"}]}
+-- log
+2026-10-14T21:33:31.259627Z  INFO branches_server: worlds in /Users/msainz/Library/Application Support/Branches (a git repository); client from ../client
+2026-10-14T21:33:31.261372Z  INFO branches_server: branches listening on http://localhost:7878/
+{"compass":[],"muses":[]}
+
+== exit 0 after 12s
