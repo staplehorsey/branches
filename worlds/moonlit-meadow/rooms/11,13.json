@@ -78,6 +78,99 @@
         "trim": "#b08a3a",
         "walls": "none"
       }
+    },
+    {
+      "name": "The House, One Inch From Rising",
+      "tag": "cozy",
+      "seed": 4229216326,
+      "by": "command:claude",
+      "at": 1792015073519,
+      "form": {
+        "ceiling": {
+          "c": [
+            "#07030a",
+            "#1a1030"
+          ],
+          "p": "plain"
+        },
+        "env": {
+          "far": 44,
+          "fog": "#0c0408",
+          "ground": "#0e0409",
+          "hemi": 0.18,
+          "key": "#ffb347",
+          "keyI": 0.35,
+          "near": 6,
+          "sky": "#050208"
+        },
+        "floor": {
+          "c": [
+            "#1a0810",
+            "#2c0c18"
+          ],
+          "p": "carpet"
+        },
+        "floor_kind": "plain",
+        "height": 12,
+        "lights": [
+          {
+            "at": [
+              0.5,
+              0.04
+            ],
+            "color": "#ffc050",
+            "intensity": 2.4,
+            "y": 0.4
+          },
+          {
+            "at": [
+              0.5,
+              0.1
+            ],
+            "color": "#ffb347",
+            "intensity": 0.9,
+            "y": 10
+          },
+          {
+            "at": [
+              0.03,
+              0.96
+            ],
+            "color": "#2a4a8a",
+            "intensity": 0.6,
+            "y": 3
+          },
+          {
+            "at": [
+              0.97,
+              0.96
+            ],
+            "color": "#7a1f2e",
+            "intensity": 0.5,
+            "y": 3
+          },
+          {
+            "at": [
+              0.5,
+              0.6
+            ],
+            "color": "#ff9a3a",
+            "intensity": 0.35,
+            "y": 1
+          }
+        ],
+        "particles": {
+          "color": "#e8b060",
+          "count": 420,
+          "kind": "dust"
+        },
+        "size": [
+          48,
+          36
+        ],
+        "trim": "#8a6a2a",
+        "walls": "none"
+      }
     }
   ],
   "features": [
@@ -121,21 +214,35 @@
       "who": "the architect",
       "text": "A theatre with no first act. The chord is still holding. So are we.",
       "at": 1792014989135
+    },
+    {
+      "id": "13ad94206bc5",
+      "kind": "growth",
+      "who": "architect",
+      "text": "The architect built The House, One Inch From Rising (). New here: The Curtain, Hem Lifted One Inch, A Row, Still Warm, The Programme, Act One Untitled, Ves, the night attendant, Letters to the Architect, page 10, Intermission.",
+      "at": 1792015073519
+    },
+    {
+      "id": "e871bdb3456b",
+      "kind": "note",
+      "who": "the architect",
+      "text": "I widened the second before the curtain. There is a seat for you in it, still warm. Do not ask me what is behind the velvet. One inch is all I will give.",
+      "at": 1792015073519
     }
   ],
   "claim": null,
-  "attention": 92.63172820599999,
+  "attention": 128.63842663799966,
   "weights": {
-    "art": 2.415013,
-    "cozy": 2.405088,
-    "music": 2.3320193
+    "art": 2.4785976,
+    "cozy": 2.4686725,
+    "music": 3.1320841
   },
   "investors": {
-    "94b402ce6e6a1d1b": 122.63172820599999
+    "94b402ce6e6a1d1b": 202.63842663799971
   },
   "building": {
-    "started": 1792014989631,
-    "ready_at": 1792015003631
+    "started": 1792015073632,
+    "ready_at": 1792015102632
   },
   "last_visit": {
     "94b402ce6e6a1d1b": 1792014871024
@@ -599,19 +706,762 @@
       },
       "by": "command:claude",
       "at": 1792014989135
+    },
+    {
+      "id": "bc6ea3bd9498",
+      "kind": "object",
+      "chamber": 2,
+      "seed": 3024835107,
+      "data": {
+        "name": "The Curtain, Hem Lifted One Inch",
+        "parts": [
+          {
+            "at": [
+              0,
+              6.1,
+              0
+            ],
+            "color": "#6a1424",
+            "glow": 0,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              12,
+              11.6,
+              0.5
+            ]
+          },
+          {
+            "at": [
+              0,
+              11.7,
+              0
+            ],
+            "color": "#c9a24a",
+            "glow": 0.3,
+            "material": "metal",
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              12,
+              0.5,
+              0.6
+            ]
+          },
+          {
+            "at": [
+              -5.8,
+              6.1,
+              0.1
+            ],
+            "color": "#4a0f1c",
+            "glow": 0,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "cylinder",
+            "size": [
+              0.45,
+              11.6,
+              0.45
+            ]
+          },
+          {
+            "at": [
+              -3.9,
+              6.1,
+              0.1
+            ],
+            "color": "#5a1220",
+            "glow": 0,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "cylinder",
+            "size": [
+              0.45,
+              11.6,
+              0.45
+            ]
+          },
+          {
+            "at": [
+              -1.9,
+              6.1,
+              0.1
+            ],
+            "color": "#4a0f1c",
+            "glow": 0,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "cylinder",
+            "size": [
+              0.45,
+              11.6,
+              0.45
+            ]
+          },
+          {
+            "at": [
+              0,
+              6.1,
+              0.1
+            ],
+            "color": "#5a1220",
+            "glow": 0,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "cylinder",
+            "size": [
+              0.45,
+              11.6,
+              0.45
+            ]
+          },
+          {
+            "at": [
+              1.9,
+              6.1,
+              0.1
+            ],
+            "color": "#4a0f1c",
+            "glow": 0,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "cylinder",
+            "size": [
+              0.45,
+              11.6,
+              0.45
+            ]
+          },
+          {
+            "at": [
+              3.9,
+              6.1,
+              0.1
+            ],
+            "color": "#5a1220",
+            "glow": 0,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "cylinder",
+            "size": [
+              0.45,
+              11.6,
+              0.45
+            ]
+          },
+          {
+            "at": [
+              5.8,
+              6.1,
+              0.1
+            ],
+            "color": "#4a0f1c",
+            "glow": 0,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "cylinder",
+            "size": [
+              0.45,
+              11.6,
+              0.45
+            ]
+          },
+          {
+            "at": [
+              0,
+              0.03,
+              0.6
+            ],
+            "color": "#ffd070",
+            "glow": 1,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              12,
+              0.06,
+              1.2
+            ]
+          },
+          {
+            "at": [
+              0,
+              0.015,
+              1.4
+            ],
+            "color": "#ffb347",
+            "glow": 0.55,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              12,
+              0.03,
+              2.6
+            ]
+          },
+          {
+            "at": [
+              0,
+              0.45,
+              -0.4
+            ],
+            "color": "#c9a24a",
+            "glow": 0.2,
+            "material": "metal",
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              1.6,
+              0.9,
+              0.3
+            ]
+          }
+        ],
+        "size": [
+          3,
+          3
+        ],
+        "spot": "wall",
+        "text": "Twelve metres of velvet, heavier than a year. Under its hem a line of gold leaks out onto the carpet, so bright you could read by it, and warm as a hand. The curtain moves very slightly, in and out. It is breathing the way you breathe before you say something."
+      },
+      "by": "command:claude",
+      "at": 1792015073519
+    },
+    {
+      "id": "9770232ce084",
+      "kind": "object",
+      "chamber": 2,
+      "seed": 2883139425,
+      "data": {
+        "name": "A Row, Still Warm",
+        "parts": [
+          {
+            "at": [
+              0,
+              0.42,
+              0
+            ],
+            "color": "#7a1f2e",
+            "glow": 0,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              2.9,
+              0.08,
+              0.5
+            ]
+          },
+          {
+            "at": [
+              0,
+              0.8,
+              -0.25
+            ],
+            "color": "#6a1424",
+            "glow": 0,
+            "rot": [
+              -8,
+              0,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              2.9,
+              0.7,
+              0.1
+            ]
+          },
+          {
+            "at": [
+              -1.45,
+              0.6,
+              0
+            ],
+            "color": "#b08a3a",
+            "glow": 0.1,
+            "material": "metal",
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              0.08,
+              0.4,
+              0.5
+            ]
+          },
+          {
+            "at": [
+              -0.73,
+              0.6,
+              0
+            ],
+            "color": "#b08a3a",
+            "glow": 0.1,
+            "material": "metal",
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              0.08,
+              0.4,
+              0.5
+            ]
+          },
+          {
+            "at": [
+              0,
+              0.6,
+              0
+            ],
+            "color": "#b08a3a",
+            "glow": 0.1,
+            "material": "metal",
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              0.08,
+              0.4,
+              0.5
+            ]
+          },
+          {
+            "at": [
+              0.73,
+              0.6,
+              0
+            ],
+            "color": "#b08a3a",
+            "glow": 0.1,
+            "material": "metal",
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              0.08,
+              0.4,
+              0.5
+            ]
+          },
+          {
+            "at": [
+              1.45,
+              0.6,
+              0
+            ],
+            "color": "#b08a3a",
+            "glow": 0.1,
+            "material": "metal",
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              0.08,
+              0.4,
+              0.5
+            ]
+          },
+          {
+            "at": [
+              0,
+              0.15,
+              0
+            ],
+            "color": "#1a0810",
+            "glow": 0,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              2.9,
+              0.3,
+              0.5
+            ]
+          },
+          {
+            "at": [
+              -1.1,
+              0.47,
+              0
+            ],
+            "color": "#ff9a3a",
+            "glow": 0.5,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "sphere",
+            "size": [
+              0.35,
+              0.12,
+              0.35
+            ]
+          },
+          {
+            "at": [
+              0.35,
+              0.47,
+              0
+            ],
+            "color": "#ff9a3a",
+            "glow": 0.35,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "sphere",
+            "size": [
+              0.35,
+              0.12,
+              0.35
+            ]
+          },
+          {
+            "at": [
+              1.1,
+              0.47,
+              0
+            ],
+            "color": "#ff9a3a",
+            "glow": 0.6,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "sphere",
+            "size": [
+              0.35,
+              0.12,
+              0.35
+            ]
+          }
+        ],
+        "repeat": 12,
+        "size": [
+          3,
+          1
+        ],
+        "spot": "floor",
+        "text": "Five seats, folded down, none of them cold. Put your hand on the velvet and it is the temperature of a person who was here a moment ago. Nobody has left. They have all just stepped out, every one of them, and the row is holding their places.",
+        "walkthrough": true
+      },
+      "by": "command:claude",
+      "at": 1792015073519
+    },
+    {
+      "id": "bf2696acebef",
+      "kind": "object",
+      "chamber": 2,
+      "seed": 2292974193,
+      "data": {
+        "name": "The Programme, Act One Untitled",
+        "parts": [
+          {
+            "at": [
+              0,
+              0.46,
+              0
+            ],
+            "color": "#7a1f2e",
+            "glow": 0,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              0.6,
+              0.08,
+              0.6
+            ]
+          },
+          {
+            "at": [
+              0,
+              0.85,
+              -0.3
+            ],
+            "color": "#6a1424",
+            "glow": 0,
+            "rot": [
+              -8,
+              0,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              0.6,
+              0.7,
+              0.08
+            ]
+          },
+          {
+            "at": [
+              -0.12,
+              0.51,
+              0.02
+            ],
+            "color": "#f2e6c8",
+            "glow": 0.25,
+            "rot": [
+              0,
+              0,
+              -6
+            ],
+            "shape": "box",
+            "size": [
+              0.24,
+              0.01,
+              0.34
+            ]
+          },
+          {
+            "at": [
+              0.12,
+              0.51,
+              0.02
+            ],
+            "color": "#f2e6c8",
+            "glow": 0.25,
+            "rot": [
+              0,
+              0,
+              6
+            ],
+            "shape": "box",
+            "size": [
+              0.24,
+              0.01,
+              0.34
+            ]
+          },
+          {
+            "at": [
+              0.12,
+              0.52,
+              -0.08
+            ],
+            "color": "#1a0810",
+            "glow": 0,
+            "rot": [
+              0,
+              0,
+              6
+            ],
+            "shape": "box",
+            "size": [
+              0.16,
+              0.005,
+              0.012
+            ]
+          },
+          {
+            "at": [
+              0.12,
+              0.52,
+              0.0
+            ],
+            "color": "#c9a24a",
+            "glow": 0.6,
+            "rot": [
+              0,
+              0,
+              6
+            ],
+            "shape": "box",
+            "size": [
+              0.16,
+              0.005,
+              0.012
+            ]
+          },
+          {
+            "at": [
+              0.75,
+              0.45,
+              0.25
+            ],
+            "color": "#ffd070",
+            "glow": 0.9,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "cone",
+            "size": [
+              0.14,
+              0.9,
+              0.14
+            ]
+          },
+          {
+            "at": [
+              0.75,
+              1.05,
+              0.25
+            ],
+            "color": "#b08a3a",
+            "glow": 0.2,
+            "material": "metal",
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "cylinder",
+            "size": [
+              0.05,
+              0.3,
+              0.05
+            ]
+          }
+        ],
+        "size": [
+          1,
+          1
+        ],
+        "spot": "floor",
+        "text": "Left on the aisle seat, open. ACT ONE, it says, and then a line of dots where the title should be, as if the printer were still deciding. Under that: 'There will be no interval, because there will be no beginning.' The paper is warm. It has been held."
+      },
+      "by": "command:claude",
+      "at": 1792015073519
+    },
+    {
+      "id": "fda22780b4d0",
+      "kind": "character",
+      "chamber": 2,
+      "seed": 2754979521,
+      "data": {
+        "lines": [
+          "Shh. Aisle seat's yours. It's warm, I know. They all are.",
+          "Tobiah's still down there giving the A. He's been giving it since I started this job.",
+          "I used to work the neon over in The Lush. Everything there was ON. Here nothing is ON. Here everything is nearly.",
+          "See the gold under the curtain? One inch. It has been one inch for as long as I've been counting.",
+          "Lumen asked me once what's behind it. I said: the same room, a second later. She hasn't come back.",
+          "Sit. Don't wait for it. Waiting is the show."
+        ],
+        "look": {
+          "accent": "#ffb347",
+          "coat": "#1a2a4a",
+          "hat": "cap"
+        },
+        "name": "Ves, the night attendant"
+      },
+      "by": "command:claude",
+      "at": 1792015073519
+    },
+    {
+      "id": "1e4badd43fe0",
+      "kind": "note",
+      "chamber": 2,
+      "seed": 2661694069,
+      "data": {
+        "text": "Architect, you asked what I would put behind the curtain if you let me build it. Nothing. I beg you, nothing. The moment there is a stage there will be a first act, and the moment there is a first act someone will cough and someone will check the time and the seats will go cold one by one. Leave the inch. Leave the gold line under the hem. I have sat in the fourth row for what feels like years, and I have never once wanted it to start. Odile says she tried to map this house and the page kept coming back blank except for the words NOT YET. Keep it that way. — V.",
+        "title": "Letters to the Architect, page 10"
+      },
+      "by": "command:claude",
+      "at": 1792015073519
+    },
+    {
+      "id": "b54c6f9ffea5",
+      "kind": "cat",
+      "chamber": 2,
+      "seed": 3484196856,
+      "data": {
+        "name": "Intermission",
+        "says": "The cat sits exactly on the gold line under the curtain, half in the light, half in the dark, and will not be moved. It is the only one here who has already decided to stay."
+      },
+      "by": "command:claude",
+      "at": 1792015073519
     }
   ],
   "looks": {
-    "guestbook": 0.8,
+    "0c4bce0c489b": 10.200001,
+    "0e167cee403c": 8.3,
+    "aad8d9fa1d3a": 0.7,
+    "c646994ac510": 15.6,
+    "ede3b470e5cf": 1.4,
+    "guestbook": 3.3,
     "theme:art": 2.9999998,
     "theme:cozy": 2.6,
     "theme:music": 5.2999997
   },
-  "touches": {},
+  "touches": {
+    "0e167cee403c": 1,
+    "c646994ac510": 1
+  },
   "replunged": true,
   "idea": {
     "name": "The Overture That Never Resolves",
-    "premise": "A velvet theatre held in the second before the curtain rises: the orchestra leaning on a chord that wants to go home and won't, the house lights half down, every seat still warm from someone who just stepped out. This house refines the ache of anticipation, the readiness that is sweeter than any show. Nothing here begins. Everything is about to.",
+    "premise": "The second before the curtain rises has been stretched until you can walk around inside it. The house is a dark field of warm seats with no one in them, every cushion still holding the shape of someone who stepped out and is coming right back. At the far edge the curtain hangs the height of a cliff, its hem lifted exactly one inch, and a line of gold stage light leaks under it like something breathing through a door. The chord from the pit has thinned into weather: it is in the dust, in the warmth of the seats, in the programme whose first act has no title. Nothing here begins. Everything is about to, and you have a seat.",
     "look": {
       "accent": [
         "#c9a24a",
@@ -621,20 +1471,20 @@
       ],
       "ceiling": {
         "c": [
-          "#120609",
-          "#8a6a2a"
+          "#0e0507",
+          "#6a4a1a"
         ],
         "p": "damask"
       },
       "env": {
-        "far": 22,
-        "fog": "#1a070c",
-        "ground": "#140609",
-        "hemi": 0.45,
+        "far": 26,
+        "fog": "#14060a",
+        "ground": "#100508",
+        "hemi": 0.4,
         "key": "#ffb060",
         "keyI": 0.7,
         "near": 3,
-        "sky": "#0b0407"
+        "sky": "#080306"
       },
       "floor": {
         "c": [
@@ -655,7 +1505,7 @@
       }
     },
     "muses": [],
-    "refined": 0,
+    "refined": 1,
     "at": 1792014989135
   }
 }
