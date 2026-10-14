@@ -17,6 +17,13 @@
       "seed": 2772845337,
       "by": "reference-heuristic@2",
       "at": 1792011383356
+    },
+    {
+      "name": "The Pale Menagerie",
+      "tag": "creatures",
+      "seed": 2280773997,
+      "by": "reference-heuristic@2",
+      "at": 1792011407356
     }
   ],
   "features": [
@@ -43,6 +50,30 @@
       "seed": 3314699127,
       "by": "reference-heuristic@2",
       "at": 1792011383356
+    },
+    {
+      "id": "98f31595c342",
+      "tag": "creatures",
+      "chamber": 2,
+      "seed": 3200223691,
+      "by": "reference-heuristic@2",
+      "at": 1792011407356
+    },
+    {
+      "id": "2cb5d6927a3e",
+      "tag": "water",
+      "chamber": 2,
+      "seed": 1171295377,
+      "by": "reference-heuristic@2",
+      "at": 1792011407356
+    },
+    {
+      "id": "66ee023a4c81",
+      "tag": "music",
+      "chamber": 2,
+      "seed": 2871956725,
+      "by": "reference-heuristic@2",
+      "at": 1792011407356
     }
   ],
   "portals": [],
@@ -61,10 +92,17 @@
       "who": "architect",
       "text": "The architect built The Sunken Lagoon (water, plants, water). New here: Mrs. Halloway, retired lifeguard.",
       "at": 1792011383356
+    },
+    {
+      "id": "adeddb4a83fa",
+      "kind": "growth",
+      "who": "architect",
+      "text": "The architect built The Pale Menagerie (creatures, water, music). New here: Moth.",
+      "at": 1792011407356
     }
   ],
   "claim": null,
-  "attention": 101.66776154699997,
+  "attention": 53.66776154699997,
   "weights": {
     "plants": 2.3360643,
     "stone": 2.378343,
@@ -73,10 +111,7 @@
   "investors": {
     "94b402ce6e6a1d1b": 131.66776154699997
   },
-  "building": {
-    "started": 1792011384356,
-    "ready_at": 1792011407356
-  },
+  "building": null,
   "last_visit": {
     "94b402ce6e6a1d1b": 1792011128690
   },
@@ -103,6 +138,18 @@
       },
       "by": "reference-heuristic@2",
       "at": 1792011383356
+    },
+    {
+      "id": "bbc17f0c7dd3",
+      "kind": "cat",
+      "chamber": 2,
+      "seed": 1350107643,
+      "data": {
+        "name": "Moth",
+        "says": "Moth blinks slowly. You have been approved of."
+      },
+      "by": "reference-heuristic@2",
+      "at": 1792011407356
     }
   ],
   "looks": {
