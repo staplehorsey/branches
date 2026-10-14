@@ -7,71 +7,71 @@
     "kind": "liminal-houses@1",
     "params": {
       "flowers": [
-        "#8e99ff",
-        "#ffabef",
-        "#d0ffb7"
+        "#8894ff",
+        "#ffa5ee",
+        "#cdffb1"
       ],
       "fog": {
-        "color": "#3e1b55",
-        "far": 82.34987995408055,
-        "near": 12.135771782706607
+        "color": "#3b1952",
+        "far": 83.27197861742097,
+        "near": 12.271660006777827
       },
       "foliage": [
-        "#7e8bff",
-        "#ffabef",
-        "#ffb3ab",
-        "#abe4ff"
+        "#7886ff",
+        "#ffa5ee",
+        "#ffaea5",
+        "#a5e2ff"
       ],
       "grass": {
-        "base": "#132135",
-        "density": 1.0542592987736934,
-        "height": 0.47922795799507784,
-        "tip": "#436a96"
+        "base": "#111e31",
+        "density": 1.0732549504923634,
+        "height": 0.4986423103597578,
+        "tip": "#406794"
       },
-      "ground": "#142734",
-      "hedge": "#1a2b45",
+      "ground": "#122430",
+      "hedge": "#182842",
       "hemi": {
-        "ground": "#271e4c",
+        "ground": "#241c49",
         "intensity": 1.5,
-        "sky": "#ab74cd"
+        "sky": "#a96fcd"
       },
       "house": {
-        "door": "#cbff8a",
-        "roof": "#4c2f5d",
-        "trim": "#f9f0ff",
-        "wall": "#dfceec",
-        "window": "#ccff86"
+        "door": "#c9ff84",
+        "roof": "#492c5a",
+        "trim": "#f7eaff",
+        "wall": "#dcc9eb",
+        "window": "#caff80"
       },
-      "lamp": "#cbff8a",
-      "motes": "#8aff94",
+      "lamp": "#c9ff84",
+      "motes": "#84ff8f",
       "night": true,
-      "path": "#633e7c",
+      "path": "#603b7a",
       "places": {
-        "arch": 0.1368260234594345,
-        "cave": 0.25456687808036804,
-        "house": 0.43770748376846313,
-        "tower": 0.10435687005519868
+        "arch": 0.12615551054477692,
+        "cave": 0.27972203493118286,
+        "house": 0.4448871910572052,
+        "tower": 0.08725057542324066
       },
-      "ponds": 0.2577574853290339,
+      "ponds": 0.24802406607429248,
       "sky": {
-        "bottom": "#38184b",
-        "horizon": "#592e7b",
-        "top": "#260933"
+        "bottom": "#351647",
+        "horizon": "#562b78",
+        "top": "#23082f"
       },
       "start": "liminal",
       "sun": {
         "azimuth": 1.2,
-        "color": "#e0b7ff",
-        "elevation": 0.6931568527179176,
+        "color": "#ddb1ff",
+        "elevation": 0.6946963459595838,
         "intensity": 1.5
       },
       "terrain": {
         "amp": 0.0,
-        "scale": 43.4536751334917
+        "scale": 46.48405921256877
       },
       "trees": "mushroom",
-      "trunk": "#f4e9ff",
-      "water": "#642da4"
+      "trunk": "#f1e3ff",
+      "water": "#612aa1"
     }
   },
   "portal_policy": {

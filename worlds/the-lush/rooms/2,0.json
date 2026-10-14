@@ -1,0 +1,50 @@
+{
+  "x": 2,
+  "z": 0,
+  "seed": 3601047423,
+  "theme": "sunset-terrarium",
+  "chambers": [
+    {
+      "name": "Entry Hall",
+      "tag": "plants",
+      "seed": 3601047423,
+      "by": "generator",
+      "at": 0
+    }
+  ],
+  "features": [],
+  "portals": [],
+  "log": [],
+  "claim": null,
+  "attention": 0.0,
+  "weights": {
+    "light": 1.1782614,
+    "plants": 1.1121281,
+    "stone": 1.0664681
+  },
+  "investors": {},
+  "building": null,
+  "last_visit": {},
+  "things": [],
+  "looks": {},
+  "touches": {},
+  "replunged": false,
+  "idea": null,
+  "spaces": [
+    {
+      "n": 1,
+      "status": "building",
+      "name": "",
+      "summary": "",
+      "minutes": 0.0,
+      "started": 1792015503410,
+      "secs": 0,
+      "error": null,
+      "dwell": 0.0,
+      "visits": 0,
+      "tries": 1
+    }
+  ],
+  "space_visited": 0,
+  "space_seen_at": 1792015503410
+}

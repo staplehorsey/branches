@@ -341,6 +341,88 @@
         "trim": "#b0b8c8",
         "walls": "none"
       }
+    },
+    {
+      "name": "The Trap Room, In Working Order",
+      "tag": "cozy",
+      "seed": 2648299207,
+      "by": "command:claude",
+      "at": 1792015599876,
+      "form": {
+        "ceiling": {
+          "c": [
+            "#2a2018",
+            "#161008"
+          ],
+          "p": "wood"
+        },
+        "env": {
+          "far": 16,
+          "fog": "#050303",
+          "ground": "#060404",
+          "hemi": 0.12,
+          "key": "#fff4d8",
+          "keyI": 0.2,
+          "near": 2,
+          "sky": "#020202"
+        },
+        "floor": {
+          "c": [
+            "#141010",
+            "#0a0808"
+          ],
+          "p": "stone"
+        },
+        "floor_kind": "plain",
+        "height": 3,
+        "lights": [
+          {
+            "at": [
+              0.5,
+              0.5
+            ],
+            "color": "#ffe6b0",
+            "intensity": 1.1,
+            "y": 2.6
+          },
+          {
+            "at": [
+              0.5,
+              0.42
+            ],
+            "color": "#f4f8ff",
+            "intensity": 0.9,
+            "y": 2.95
+          },
+          {
+            "at": [
+              0.12,
+              0.85
+            ],
+            "color": "#ffb347",
+            "intensity": 0.4,
+            "y": 1.2
+          }
+        ],
+        "particles": {
+          "color": "#d8ccb0",
+          "count": 240,
+          "kind": "dust"
+        },
+        "size": [
+          30,
+          18
+        ],
+        "trim": "#3a3028",
+        "wall": {
+          "c": [
+            "#1a1208",
+            "#0c0804"
+          ],
+          "p": "wood"
+        },
+        "walls": "solid"
+      }
     }
   ],
   "features": [
@@ -434,23 +516,34 @@
       "who": "the architect",
       "text": "I let you past her onto the deck. Act One was never built, only measured. Find the mark with your height beside it and decide whether to stand on it.",
       "at": 1792015332421
+    },
+    {
+      "id": "c31f9f159b2c",
+      "kind": "growth",
+      "who": "architect",
+      "text": "The architect built The Trap Room, In Working Order (). New here: The Trap, Counterweighted, The Page That Survived, Your Height, From Below, Rooke, who works the trap, Letters to the Architect, page 13, Blackout.",
+      "at": 1792015599876
+    },
+    {
+      "id": "bffb08b3a5a1",
+      "kind": "note",
+      "who": "the architect",
+      "text": "I went under the deck. The only part of Act One that anyone finished is the trap beneath your mark. It works. Nobody will pull it. Stand there anyway.",
+      "at": 1792015599876
     }
   ],
   "claim": null,
-  "attention": 360.68219146200056,
+  "attention": 326.36343201499994,
   "weights": {
-    "art": 2.8751714,
-    "cozy": 4.250045,
-    "light": 1.7851435,
-    "music": 3.7225802
+    "art": 2.895423,
+    "cozy": 4.3967943,
+    "light": 2.626792,
+    "music": 3.8392484
   },
   "investors": {
-    "94b402ce6e6a1d1b": 578.682191461999
+    "94b402ce6e6a1d1b": 687.1634320149989
   },
-  "building": {
-    "started": 1792015332636,
-    "ready_at": 1792015359636
-  },
+  "building": null,
   "last_visit": {
     "94b402ce6e6a1d1b": 1792014871024
   },
@@ -2917,19 +3010,881 @@
       },
       "by": "command:claude",
       "at": 1792015332421
+    },
+    {
+      "id": "a67231c42933",
+      "kind": "object",
+      "chamber": 5,
+      "seed": 3237871346,
+      "data": {
+        "name": "The Trap, Counterweighted",
+        "parts": [
+          {
+            "at": [
+              0,
+              1.0,
+              0
+            ],
+            "color": "#3a2a18",
+            "glow": 0,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              1.2,
+              0.08,
+              1.2
+            ]
+          },
+          {
+            "at": [
+              0,
+              0.95,
+              0.55
+            ],
+            "color": "#2a2420",
+            "glow": 0,
+            "material": "metal",
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              1.3,
+              0.06,
+              0.1
+            ]
+          },
+          {
+            "at": [
+              0,
+              0.95,
+              -0.55
+            ],
+            "color": "#2a2420",
+            "glow": 0,
+            "material": "metal",
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              1.3,
+              0.06,
+              0.1
+            ]
+          },
+          {
+            "at": [
+              0.72,
+              1.45,
+              0.72
+            ],
+            "color": "#2a2420",
+            "glow": 0,
+            "material": "metal",
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "cylinder",
+            "size": [
+              0.08,
+              2.9,
+              0.08
+            ]
+          },
+          {
+            "at": [
+              -0.72,
+              1.45,
+              0.72
+            ],
+            "color": "#2a2420",
+            "glow": 0,
+            "material": "metal",
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "cylinder",
+            "size": [
+              0.08,
+              2.9,
+              0.08
+            ]
+          },
+          {
+            "at": [
+              0.72,
+              1.45,
+              -0.72
+            ],
+            "color": "#2a2420",
+            "glow": 0,
+            "material": "metal",
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "cylinder",
+            "size": [
+              0.08,
+              2.9,
+              0.08
+            ]
+          },
+          {
+            "at": [
+              -0.72,
+              1.45,
+              -0.72
+            ],
+            "color": "#2a2420",
+            "glow": 0,
+            "material": "metal",
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "cylinder",
+            "size": [
+              0.08,
+              2.9,
+              0.08
+            ]
+          },
+          {
+            "at": [
+              0.3,
+              0.5,
+              0.55
+            ],
+            "color": "#4a4440",
+            "glow": 0,
+            "material": "metal",
+            "rot": [
+              0,
+              0,
+              35
+            ],
+            "shape": "box",
+            "size": [
+              0.06,
+              1.5,
+              0.06
+            ]
+          },
+          {
+            "at": [
+              -0.3,
+              0.5,
+              0.55
+            ],
+            "color": "#4a4440",
+            "glow": 0,
+            "material": "metal",
+            "rot": [
+              0,
+              0,
+              -35
+            ],
+            "shape": "box",
+            "size": [
+              0.06,
+              1.5,
+              0.06
+            ]
+          },
+          {
+            "at": [
+              0.3,
+              0.5,
+              -0.55
+            ],
+            "color": "#4a4440",
+            "glow": 0,
+            "material": "metal",
+            "rot": [
+              0,
+              0,
+              35
+            ],
+            "shape": "box",
+            "size": [
+              0.06,
+              1.5,
+              0.06
+            ]
+          },
+          {
+            "at": [
+              -0.3,
+              0.5,
+              -0.55
+            ],
+            "color": "#4a4440",
+            "glow": 0,
+            "material": "metal",
+            "rot": [
+              0,
+              0,
+              -35
+            ],
+            "shape": "box",
+            "size": [
+              0.06,
+              1.5,
+              0.06
+            ]
+          },
+          {
+            "at": [
+              1.25,
+              1.6,
+              0
+            ],
+            "color": "#8a7a5a",
+            "glow": 0,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "cylinder",
+            "size": [
+              0.02,
+              2.5,
+              0.02
+            ]
+          },
+          {
+            "at": [
+              1.25,
+              0.5,
+              0
+            ],
+            "color": "#141414",
+            "glow": 0,
+            "material": "metal",
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              0.3,
+              0.5,
+              0.2
+            ]
+          },
+          {
+            "at": [
+              -1.25,
+              0.15,
+              0.3
+            ],
+            "color": "#2a2420",
+            "glow": 0,
+            "material": "metal",
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              0.2,
+              0.3,
+              0.2
+            ]
+          },
+          {
+            "at": [
+              -1.3,
+              0.7,
+              0.3
+            ],
+            "color": "#5a3a1a",
+            "glow": 0,
+            "rot": [
+              0,
+              0,
+              -25
+            ],
+            "shape": "cylinder",
+            "size": [
+              0.05,
+              0.9,
+              0.05
+            ]
+          },
+          {
+            "at": [
+              -1.49,
+              1.11,
+              0.3
+            ],
+            "color": "#c9a24a",
+            "glow": 0.15,
+            "material": "metal",
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "sphere",
+            "size": [
+              0.12,
+              0.12,
+              0.12
+            ]
+          },
+          {
+            "at": [
+              0,
+              2.97,
+              0.66
+            ],
+            "color": "#f4f8ff",
+            "glow": 1,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              1.34,
+              0.02,
+              0.04
+            ]
+          },
+          {
+            "at": [
+              0,
+              2.97,
+              -0.66
+            ],
+            "color": "#f4f8ff",
+            "glow": 1,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              1.34,
+              0.02,
+              0.04
+            ]
+          },
+          {
+            "at": [
+              0.66,
+              2.97,
+              0
+            ],
+            "color": "#f4f8ff",
+            "glow": 1,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              0.04,
+              0.02,
+              1.34
+            ]
+          },
+          {
+            "at": [
+              -0.66,
+              2.97,
+              0
+            ],
+            "color": "#f4f8ff",
+            "glow": 1,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              0.04,
+              0.02,
+              1.34
+            ]
+          },
+          {
+            "at": [
+              0,
+              1.05,
+              0
+            ],
+            "color": "#ff6fa0",
+            "glow": 0.5,
+            "rot": [
+              0,
+              45,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              0.5,
+              0.01,
+              0.5
+            ]
+          }
+        ],
+        "size": [
+          3,
+          3
+        ],
+        "spot": "floor",
+        "text": "The one piece of Act One that was ever finished. Platform, scissor arms, iron weight, lever. Above it, through the seam, the work-light leaks in a white rectangle the exact size of your mark. It has been oiled this week. The lever is on your side."
+      },
+      "by": "command:claude",
+      "at": 1792015599876
+    },
+    {
+      "id": "6d30484d13a1",
+      "kind": "object",
+      "chamber": 5,
+      "seed": 4159962761,
+      "data": {
+        "name": "The Page That Survived",
+        "parts": [
+          {
+            "at": [
+              0,
+              1.45,
+              0
+            ],
+            "color": "#1a1208",
+            "glow": 0,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              0.18,
+              2.9,
+              0.18
+            ]
+          },
+          {
+            "at": [
+              0,
+              1.55,
+              0.1
+            ],
+            "color": "#e8dcc0",
+            "glow": 0.08,
+            "rot": [
+              0,
+              0,
+              3
+            ],
+            "shape": "box",
+            "size": [
+              0.3,
+              0.4,
+              0.01
+            ]
+          },
+          {
+            "at": [
+              0,
+              1.56,
+              0.105
+            ],
+            "color": "#2a2420",
+            "glow": 0,
+            "rot": [
+              0,
+              0,
+              3
+            ],
+            "shape": "box",
+            "size": [
+              0.28,
+              0.02,
+              0.012
+            ]
+          },
+          {
+            "at": [
+              0,
+              1.73,
+              0.11
+            ],
+            "color": "#c9a24a",
+            "glow": 0.2,
+            "material": "metal",
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "sphere",
+            "size": [
+              0.03,
+              0.03,
+              0.03
+            ]
+          },
+          {
+            "at": [
+              0,
+              1.78,
+              0.1
+            ],
+            "color": "#1a1008",
+            "glow": 0,
+            "rot": [
+              0,
+              0,
+              3
+            ],
+            "shape": "box",
+            "size": [
+              0.3,
+              0.06,
+              0.01
+            ]
+          },
+          {
+            "at": [
+              0.3,
+              0.005,
+              0.25
+            ],
+            "color": "#9a9080",
+            "glow": 0,
+            "rot": [
+              0,
+              20,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              0.12,
+              0.01,
+              0.09
+            ]
+          },
+          {
+            "at": [
+              -0.25,
+              0.005,
+              0.2
+            ],
+            "color": "#9a9080",
+            "glow": 0,
+            "rot": [
+              0,
+              -35,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              0.08,
+              0.01,
+              0.1
+            ]
+          },
+          {
+            "at": [
+              0.1,
+              0.005,
+              -0.3
+            ],
+            "color": "#8a8070",
+            "glow": 0,
+            "rot": [
+              0,
+              70,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              0.1,
+              0.01,
+              0.06
+            ]
+          }
+        ],
+        "size": [
+          1,
+          1
+        ],
+        "spot": "floor",
+        "text": "One sheet of the lost script, pinned to a post at eye height. The top is scorched away. The bottom is torn. In the middle, in a typist's hand that leans like the chord: [Exit, below.] Everything upstairs was measured backwards from this."
+      },
+      "by": "command:claude",
+      "at": 1792015599876
+    },
+    {
+      "id": "7c8f97d8222a",
+      "kind": "object",
+      "chamber": 5,
+      "seed": 899830878,
+      "data": {
+        "name": "Your Height, From Below",
+        "parts": [
+          {
+            "at": [
+              0,
+              2.86,
+              0
+            ],
+            "color": "#2a2018",
+            "glow": 0,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              2.8,
+              0.26,
+              0.26
+            ]
+          },
+          {
+            "at": [
+              0.35,
+              2.725,
+              0
+            ],
+            "color": "#e8e0d0",
+            "glow": 0.5,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              0.03,
+              0.01,
+              0.22
+            ]
+          },
+          {
+            "at": [
+              0.6,
+              2.725,
+              0.08
+            ],
+            "color": "#e8e0d0",
+            "glow": 0.3,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              0.5,
+              0.01,
+              0.03
+            ]
+          },
+          {
+            "at": [
+              0.6,
+              2.725,
+              -0.06
+            ],
+            "color": "#d8d0c0",
+            "glow": 0.3,
+            "rot": [
+              0,
+              8,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              0.24,
+              0.01,
+              0.02
+            ]
+          },
+          {
+            "at": [
+              -0.9,
+              2.75,
+              0.1
+            ],
+            "color": "#1a1208",
+            "glow": 0,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              0.6,
+              0.08,
+              0.08
+            ]
+          },
+          {
+            "at": [
+              -0.9,
+              2.46,
+              0.1
+            ],
+            "color": "#4a4440",
+            "glow": 0,
+            "material": "metal",
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "cylinder",
+            "size": [
+              0.06,
+              0.5,
+              0.06
+            ]
+          },
+          {
+            "at": [
+              -0.9,
+              2.15,
+              0.1
+            ],
+            "color": "#ffe6b0",
+            "glow": 0.9,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "sphere",
+            "size": [
+              0.22,
+              0.22,
+              0.22
+            ]
+          },
+          {
+            "at": [
+              -0.9,
+              2.3,
+              0.1
+            ],
+            "color": "#2a2420",
+            "glow": 0,
+            "material": "metal",
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "cone",
+            "size": [
+              0.34,
+              0.14,
+              0.34
+            ]
+          }
+        ],
+        "size": [
+          3,
+          1
+        ],
+        "spot": "wall",
+        "text": "A chalk tick on the underside of a deck beam, directly under the mark with your height pencilled beside it upstairs. Someone measured you from here too. The two numbers disagree by the thickness of the floor."
+      },
+      "by": "command:claude",
+      "at": 1792015599876
+    },
+    {
+      "id": "344df6d14b60",
+      "kind": "character",
+      "chamber": 5,
+      "seed": 2403430012,
+      "data": {
+        "lines": [
+          "Mind your head. Everything they measured up there, they measured from down here first.",
+          "Hester holds the second. Pim counts the doors. I keep the only door that was ever built, and it opens downward.",
+          "Odile came through with her tapes and asked me what Act One was. I showed her the page. She drew it on her map as a hole.",
+          "When you stand on your mark upstairs and the chord leans, that is not music. That is the trap taking your weight.",
+          "I will not pull the lever. She will not press go. Between the two of us you are perfectly safe, which is the cruellest thing I know how to say."
+        ],
+        "look": {
+          "accent": "#c9a24a",
+          "coat": "#2a2420",
+          "hat": "cap"
+        },
+        "name": "Rooke, who works the trap"
+      },
+      "by": "command:claude",
+      "at": 1792015599876
+    },
+    {
+      "id": "03e16e1ea143",
+      "kind": "note",
+      "chamber": 5,
+      "seed": 3207783565,
+      "data": {
+        "text": "Architect. You keep asking what Act One was. There was one line left on the only page that did not burn: Exit, below. We had nothing else, so we measured backwards from where the exit had to land. Every table, every door, the height of every body, placed so the leaving would be exact. That is why the whole deck is spiked and nothing stands on it. I built the trap first because it was the only thing the script was certain of. Afterwards I could not bring myself to build anything that would need it. If the chord ever resolves, that is the sound of the floor going. Do not take it personally. It is written. H.",
+        "title": "Letters to the Architect, page 13"
+      },
+      "by": "command:claude",
+      "at": 1792015599876
+    },
+    {
+      "id": "48879ae232ce",
+      "kind": "cat",
+      "chamber": 5,
+      "seed": 553139595,
+      "data": {
+        "name": "Blackout",
+        "says": "...mrrp. (It sleeps on the iron counterweight. When someone stands on the mark upstairs the rope hums and the weight lifts a hair. The cat rises with it, and does not wake.)"
+      },
+      "by": "command:claude",
+      "at": 1792015599876
     }
   ],
   "looks": {
     "0c4bce0c489b": 10.200001,
     "0e167cee403c": 8.3,
-    "183853e9f115": 5.6000004,
+    "183853e9f115": 10.6,
+    "21acb4a7a705": 1.4,
+    "48f65d1719bf": 0.4,
     "51d225ed50ff": 0.90000004,
-    "7125460a600d": 13.7,
-    "9770232ce084": 13.3,
-    "aad8d9fa1d3a": 0.7,
+    "7125460a600d": 14.3,
+    "9770232ce084": 13.8,
+    "aad8d9fa1d3a": 1.5,
     "bc6ea3bd9498": 3.6,
     "bf2696acebef": 17.5,
-    "c42847dc99f5": 9.3,
+    "c42847dc99f5": 11.0,
     "c646994ac510": 15.6,
     "cc0d3053473f": 22.5,
     "ede3b470e5cf": 1.4,
@@ -2949,7 +3904,7 @@
   "replunged": true,
   "idea": {
     "name": "The Overture That Never Resolves",
-    "premise": "The second before the curtain rises has been stretched until you can walk around inside it, behind it, and now onto it. Past Hester's hand the leaking gold turns to work-light white, and the stage is a bare pale deck under a blank cyclorama, spiked for Act One: every table, door and body marked in coloured tape T's at the exact spot it would stand, measured to the centimetre from a script that was lost, and never set. Nothing was built, so nothing can be struck. One mark has your height pencilled beside it. The house is no longer about the wait, or only about the one who holds it. It is the floor plan of what she is sparing you, laid out plainly enough to stand in, and the fact that the chord leans toward resolving only while you are on your mark.",
+    "premise": "The second before the curtain rises has been stretched until you can walk around inside it, behind it, onto it, and now under it. Beneath the spiked deck is the trap room, three metres low and iron-dark, where the one stage direction that survived the lost script is pinned to a post: [Exit, below.] Every table, door and height above was measured backwards from that line, so that the exit would land exactly where it must, and so the only thing in Act One that was ever built is the trap beneath your mark: oiled, counterweighted, in perfect working order. The chord leans toward resolving while you stand up there because the floor is quietly taking your weight. Hester will not press go. Rooke will not pull the lever. The house is no longer about the wait, or the one who holds it, or the plan she spares you. It is the fact that the only finished part of the show is the way out of it, and that you are perfectly safe between two people who refuse.",
     "look": {
       "accent": [
         "#c9a24a",
@@ -2957,6 +3912,7 @@
         "#ffb347",
         "#1a2a4a",
         "#cfd8ff",
+        "#f4f8ff",
         "#9cff6a",
         "#ff6fa0"
       ],
@@ -2971,7 +3927,7 @@
         "far": 26,
         "fog": "#14060a",
         "ground": "#100508",
-        "hemi": 0.38,
+        "hemi": 0.36,
         "key": "#ffb060",
         "keyI": 0.7,
         "near": 3,
@@ -2996,7 +3952,7 @@
       }
     },
     "muses": [],
-    "refined": 3,
+    "refined": 4,
     "at": 1792014989135
   },
   "space_visited": 0,
