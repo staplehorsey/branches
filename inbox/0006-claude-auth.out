@@ -2,3 +2,44 @@
 == started 2026-10-14 17:20:49 on msainzmbp, Darwin arm64
 == in /Users/msainz/Projects/branches at 05b273d
 
+-- auth-related environment variables (names only)
+CLAUDE_OAUTH_TOKEN
+CAL_API_KEY
+CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY
+TELNYX_API_KEY
+PLACSES_API_KEY
+SUPABASE_API_KEY
+GAPI_KEY_2
+HUME_API_KEY
+EXA_API_KEY
+OPENROUTER_API_KEY
+ULTRAVOX_API_KEY
+ANTHROPIC_API_KEY
+OPEN_ROUTER_API_KEY
+SPOONACULAR_API_KEY
+ANTHROPIC_BASE_URL
+ANTHROPIC_AUTH_TOKEN
+GOOGLE_AI_API_KEY
+LANGSMITH_API_KEY
+-- settings files mentioning keys or helpers (keys only)
+/Users/msainz/.claude/settings.json:
+  top-level keys: ['agentPushNotifEnabled', 'alwaysThinkingEnabled', 'enableWorkflows', 'enabledPlugins', 'env', 'extraKnownMarketplaces', 'hooks', 'model', 'skipWorkflowUsageWarning', 'statusLine', 'tui']
+  env keys: ['CLAUDE_CODE_FORCE_SESSION_PERSISTENCE']
+  apiKeyHelper set: False
+-- ~/.claude.json auth fields (names only)
+['customApiKeyResponses', 'claudeCodeFirstTokenDate', 'oauthAccount']
+customApiKeyResponses: {'approved': 0, 'rejected': 1}
+-- shell profile lines that set ANTHROPIC vars (values hidden)
+/Users/msainz/.zshrc:76:export ANTHROPIC_API_KEY=***
+/Users/msainz/.zshrc:177:export CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY=***
+-- claude auth status
+{
+  "loggedIn": true,
+  "authMethod": "oauth_token",
+  "apiProvider": "firstParty",
+  "analyticsDisabled": false,
+  "projectsDirectory": "/Users/msainz/.claude/projects",
+  "configDirectory": "/Users/msainz/.claude"
+}
+
+== exit 0 after 2s
