@@ -159,8 +159,13 @@ pub fn push(root: &Path, a: &Account) -> Result<(), String> {
     push_refs(root, a, &specs)
 }
 
-/// Push refs from the worlds repository to the fork.
+/// Push refs from the worlds repository to the fork, with the git command
+/// line when the built-in transport can't (some builds lack HTTPS).
 pub fn push_refs(root: &Path, a: &Account, specs: &[String]) -> Result<(), String> {
+    push_refs_git2(root, a, specs).or_else(|e| push_with_git(root, a, specs).map_err(|g| format!("{e}; git: {g}")))
+}
+
+fn push_refs_git2(root: &Path, a: &Account, specs: &[String]) -> Result<(), String> {
     let fork = a.fork.as_deref().ok_or("not forked yet")?;
     let repo = git2::Repository::open(root).map_err(|e| e.to_string())?;
     let mut remote = repo.remote_anonymous(&format!("https://github.com/{fork}.git")).map_err(|e| e.to_string())?;
@@ -178,7 +183,7 @@ pub fn push_refs(root: &Path, a: &Account, specs: &[String]) -> Result<(), Strin
 /// The same push with the git command line, when it is installed (Xcode's
 /// command line tools or Homebrew). The token goes in an environment
 /// variable, never on the command line.
-fn push_with_git(root: &Path, a: &Account) -> Result<(), String> {
+fn push_with_git(root: &Path, a: &Account, specs: &[String]) -> Result<(), String> {
     let fork = a.fork.as_deref().ok_or("not forked yet")?;
     let git = ["/opt/homebrew/bin/git", "/usr/local/bin/git", "/Library/Developer/CommandLineTools/usr/bin/git", "/Applications/Xcode.app/Contents/Developer/usr/bin/git", "/usr/bin/git"]
         .into_iter()
@@ -187,7 +192,9 @@ fn push_with_git(root: &Path, a: &Account) -> Result<(), String> {
     let auth = format!("Authorization: Basic {}", b64_encode(format!("x-access-token:{}", a.token).as_bytes()));
     let out = std::process::Command::new(git)
         .current_dir(root)
-        .args(["push", "--force", &format!("https://github.com/{fork}.git"), "HEAD:refs/heads/worlds", "refs/tags/*:refs/tags/*"])
+        .arg("push")
+        .arg(format!("https://github.com/{fork}.git"))
+        .args(specs)
         .env("GIT_TERMINAL_PROMPT", "0")
         .env("GIT_CONFIG_COUNT", "1")
         .env("GIT_CONFIG_KEY_0", "http.extraHeader")
@@ -197,19 +204,13 @@ fn push_with_git(root: &Path, a: &Account) -> Result<(), String> {
     if out.status.success() { Ok(()) } else { Err(String::from_utf8_lossy(&out.stderr).trim().replace(&a.token, "***")) }
 }
 
-/// Push, retrying while a new fork settles, then with the git command line.
+/// Push, retrying while a new fork settles.
 pub fn push_patiently(root: &Path, a: &Account) -> Result<(), String> {
     let mut last = String::new();
     for i in 0..4 {
         match push(root, a) {
             Ok(()) => return Ok(()),
             Err(e) => last = e,
-        }
-        if i == 1 {
-            match push_with_git(root, a) {
-                Ok(()) => return Ok(()),
-                Err(e) => tracing::warn!("git push failed too: {e}"),
-            }
         }
         std::thread::sleep(std::time::Duration::from_secs(2 + 2 * i));
     }

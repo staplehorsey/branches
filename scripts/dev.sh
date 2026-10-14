@@ -14,6 +14,8 @@ PIDFILE=target/dev.pid
 LOG=target/dev.log
 URL=http://localhost:7878
 
+plain() { sed -e $'s/\x1b\\[[0-9;]*m//g'; }
+
 running() { [ -f "$PIDFILE" ] && kill -0 "$(cat "$PIDFILE")" 2>/dev/null; }
 
 stop() {
@@ -36,7 +38,7 @@ status() {
 case "${1:-start}" in
   stop) stop; exit ;;
   status) status; exit ;;
-  log) tail -n 80 "$LOG"; exit ;;
+  log) tail -n "${2:-80}" "$LOG" | plain; exit ;;
   start) ;;
   *) echo "usage: $0 [start|stop|status|log]"; exit 2 ;;
 esac
@@ -59,4 +61,4 @@ for _ in $(seq 1 30); do
 done
 status
 echo "-- log"
-tail -n 20 "$LOG"
+tail -n 20 "$LOG" | plain
