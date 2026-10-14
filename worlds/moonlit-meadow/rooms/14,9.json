@@ -101,6 +101,88 @@
         },
         "walls": "none"
       }
+    },
+    {
+      "name": "The Abyssal Plain, Where Something Answers",
+      "tag": "creatures",
+      "seed": 2480272577,
+      "by": "command:claude",
+      "at": 1792014353104,
+      "form": {
+        "ceiling": {
+          "c": [
+            "#000000",
+            "#000000"
+          ],
+          "p": "plain"
+        },
+        "env": {
+          "far": 16,
+          "fog": "#000103",
+          "ground": "#010203",
+          "hemi": 0.08,
+          "key": "#182a30",
+          "keyI": 0.1,
+          "near": 1,
+          "sky": "#000000"
+        },
+        "floor": {
+          "c": [
+            "#06090b",
+            "#020304"
+          ],
+          "p": "sand"
+        },
+        "floor_kind": "dunes",
+        "height": 12,
+        "lights": [
+          {
+            "at": [
+              0.72,
+              0.28
+            ],
+            "color": "#d8ff5e",
+            "intensity": 1.4,
+            "y": 6.5
+          },
+          {
+            "at": [
+              0.28,
+              0.7
+            ],
+            "color": "#ffe9a8",
+            "intensity": 1.2,
+            "y": 1.5
+          },
+          {
+            "at": [
+              0.5,
+              0.5
+            ],
+            "color": "#ff5fd2",
+            "intensity": 0.5,
+            "y": 3
+          }
+        ],
+        "particles": {
+          "color": "#9fb3b8",
+          "count": 420,
+          "kind": "snow"
+        },
+        "size": [
+          50,
+          50
+        ],
+        "trim": "#050a0c",
+        "wall": {
+          "c": [
+            "#000102",
+            "#000000"
+          ],
+          "p": "plain"
+        },
+        "walls": "none"
+      }
     }
   ],
   "features": [
@@ -144,21 +226,35 @@
       "who": "the architect",
       "text": "Below here nothing has ever been lit by anything but itself. Bring a light and see what comes up to look.",
       "at": 1792014245679
+    },
+    {
+      "id": "b9b1ca5f7df8",
+      "kind": "growth",
+      "who": "architect",
+      "text": "The architect built The Abyssal Plain, Where Something Answers (). New here: The Replies, The Drowned Lighthouse, The Thing That Answers, The moth collector, Letters to the Architect, page 4, bells.",
+      "at": 1792014353104
+    },
+    {
+      "id": "0eae837c6c8d",
+      "kind": "note",
+      "who": "the architect",
+      "text": "Past the trench the silt goes on forever, and something has started answering. Signal carefully. It learns whatever pattern you use.",
+      "at": 1792014353104
     }
   ],
   "claim": null,
-  "attention": 77.69954617300012,
+  "attention": 163.9146192490001,
   "weights": {
-    "creatures": 2.132381,
-    "neon": 1.9967399,
-    "water": 2.0571856
+    "creatures": 3.18253,
+    "neon": 2.0295727,
+    "water": 2.0900185
   },
   "investors": {
-    "94b402ce6e6a1d1b": 95.69954617300012
+    "94b402ce6e6a1d1b": 200.71461924900012
   },
   "building": {
-    "started": 1792014246620,
-    "ready_at": 1792014254620
+    "started": 1792014353622,
+    "ready_at": 1792014363622
   },
   "last_visit": {
     "94b402ce6e6a1d1b": 1792014150129
@@ -781,23 +877,694 @@
       },
       "by": "command:claude",
       "at": 1792014245679
+    },
+    {
+      "id": "d8ff5776ffd6",
+      "kind": "object",
+      "chamber": 2,
+      "seed": 4171458747,
+      "data": {
+        "name": "The Replies",
+        "parts": [
+          {
+            "at": [
+              0,
+              1.2,
+              0
+            ],
+            "bob": 0.4,
+            "color": "#ff5fd2",
+            "glow": 1,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "sphere",
+            "size": [
+              0.22,
+              0.22,
+              0.22
+            ]
+          },
+          {
+            "at": [
+              0,
+              1.2,
+              0
+            ],
+            "color": "#ff5fd2",
+            "glow": 0.12,
+            "material": "glass",
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "sphere",
+            "size": [
+              0.8,
+              0.8,
+              0.8
+            ]
+          },
+          {
+            "at": [
+              0.3,
+              2.6,
+              0.2
+            ],
+            "bob": 0.7,
+            "color": "#3ef2e0",
+            "glow": 1,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "sphere",
+            "size": [
+              0.18,
+              0.18,
+              0.18
+            ]
+          },
+          {
+            "at": [
+              0.3,
+              2.6,
+              0.2
+            ],
+            "color": "#3ef2e0",
+            "glow": 0.1,
+            "material": "glass",
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "sphere",
+            "size": [
+              0.7,
+              0.7,
+              0.7
+            ]
+          },
+          {
+            "at": [
+              -0.25,
+              4.1,
+              -0.2
+            ],
+            "bob": 1,
+            "color": "#d8ff5e",
+            "glow": 1,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "sphere",
+            "size": [
+              0.14,
+              0.14,
+              0.14
+            ]
+          },
+          {
+            "at": [
+              -0.25,
+              4.1,
+              -0.2
+            ],
+            "color": "#d8ff5e",
+            "glow": 0.08,
+            "material": "glass",
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "octahedron",
+            "size": [
+              0.5,
+              0.5,
+              0.5
+            ],
+            "spin": 0.1
+          }
+        ],
+        "repeat": 12,
+        "size": [
+          1,
+          1
+        ],
+        "spot": "floor",
+        "text": "Each one blinks a half-second after you do. You tried not blinking. They waited, patient as a held breath, and then blinked anyway, as if to show you how.",
+        "walkthrough": true
+      },
+      "by": "command:claude",
+      "at": 1792014353104
+    },
+    {
+      "id": "d08f9fc5360a",
+      "kind": "object",
+      "chamber": 2,
+      "seed": 439500258,
+      "data": {
+        "name": "The Drowned Lighthouse",
+        "parts": [
+          {
+            "at": [
+              0,
+              1.3,
+              0
+            ],
+            "color": "#cfc6b4",
+            "glow": 0,
+            "rot": [
+              0,
+              0,
+              90
+            ],
+            "shape": "cylinder",
+            "size": [
+              2.6,
+              10,
+              2.6
+            ]
+          },
+          {
+            "at": [
+              2.2,
+              1.3,
+              0
+            ],
+            "color": "#7a1a1a",
+            "glow": 0.05,
+            "rot": [
+              0,
+              0,
+              90
+            ],
+            "shape": "torus",
+            "size": [
+              2.7,
+              0.35,
+              2.7
+            ]
+          },
+          {
+            "at": [
+              -1.4,
+              1.3,
+              0
+            ],
+            "color": "#7a1a1a",
+            "glow": 0.05,
+            "rot": [
+              0,
+              0,
+              90
+            ],
+            "shape": "torus",
+            "size": [
+              2.7,
+              0.35,
+              2.7
+            ]
+          },
+          {
+            "at": [
+              5.9,
+              1.3,
+              0
+            ],
+            "color": "#cfe7ea",
+            "glow": 0.1,
+            "material": "glass",
+            "rot": [
+              0,
+              0,
+              90
+            ],
+            "shape": "cylinder",
+            "size": [
+              2.2,
+              1.8,
+              2.2
+            ]
+          },
+          {
+            "at": [
+              5.9,
+              1.3,
+              0
+            ],
+            "color": "#ffe9a8",
+            "glow": 1,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "sphere",
+            "size": [
+              0.9,
+              0.9,
+              0.9
+            ]
+          },
+          {
+            "at": [
+              5.9,
+              1.3,
+              0
+            ],
+            "color": "#ffe9a8",
+            "glow": 0.7,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              9,
+              0.12,
+              0.3
+            ],
+            "spin": 0.11
+          },
+          {
+            "at": [
+              7.3,
+              1.3,
+              0
+            ],
+            "color": "#3a3630",
+            "glow": 0,
+            "rot": [
+              0,
+              0,
+              -90
+            ],
+            "shape": "cone",
+            "size": [
+              2.4,
+              1.2,
+              2.4
+            ]
+          },
+          {
+            "at": [
+              -3,
+              0.2,
+              0.6
+            ],
+            "color": "#07090b",
+            "glow": 0,
+            "rot": [
+              0,
+              15,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              4,
+              0.6,
+              3.5
+            ]
+          },
+          {
+            "at": [
+              1.5,
+              0.1,
+              -1.5
+            ],
+            "color": "#07090b",
+            "glow": 0,
+            "rot": [
+              0,
+              -30,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              1,
+              0.4,
+              2
+            ]
+          }
+        ],
+        "size": [
+          3,
+          3
+        ],
+        "spot": "floor",
+        "text": "It fell in the storm of 1911 and nobody told it. A century on its side in the silt, and the lamp still turns, sweeping the plain for ships that will never come. The creatures gather in its beam the way ships once steered by it. It has, in its way, found a use."
+      },
+      "by": "command:claude",
+      "at": 1792014353104
+    },
+    {
+      "id": "d904ef3a6322",
+      "kind": "object",
+      "chamber": 2,
+      "seed": 3212528223,
+      "data": {
+        "name": "The Thing That Answers",
+        "parts": [
+          {
+            "at": [
+              0,
+              6.5,
+              0
+            ],
+            "bob": 0.35,
+            "color": "#d8ff5e",
+            "glow": 1,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "sphere",
+            "size": [
+              0.55,
+              0.55,
+              0.55
+            ]
+          },
+          {
+            "at": [
+              0,
+              5.2,
+              -0.6
+            ],
+            "color": "#091414",
+            "glow": 0.1,
+            "rot": [
+              25,
+              0,
+              0
+            ],
+            "shape": "cylinder",
+            "size": [
+              0.06,
+              2.6,
+              0.06
+            ]
+          },
+          {
+            "at": [
+              0,
+              3.2,
+              -6
+            ],
+            "color": "#000305",
+            "glow": 0,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "sphere",
+            "size": [
+              11,
+              7.5,
+              11
+            ]
+          },
+          {
+            "at": [
+              -2.4,
+              4.6,
+              -1.6
+            ],
+            "color": "#3ef2e0",
+            "glow": 0.55,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "sphere",
+            "size": [
+              0.45,
+              0.45,
+              0.45
+            ]
+          },
+          {
+            "at": [
+              2.4,
+              4.6,
+              -1.6
+            ],
+            "color": "#3ef2e0",
+            "glow": 0.55,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "sphere",
+            "size": [
+              0.45,
+              0.45,
+              0.45
+            ]
+          },
+          {
+            "at": [
+              -1.6,
+              1.4,
+              -0.4
+            ],
+            "color": "#c9d1d3",
+            "glow": 0.12,
+            "rot": [
+              180,
+              0,
+              0
+            ],
+            "shape": "cone",
+            "size": [
+              0.3,
+              1.4,
+              0.3
+            ]
+          },
+          {
+            "at": [
+              -0.5,
+              1.4,
+              -0.2
+            ],
+            "color": "#c9d1d3",
+            "glow": 0.12,
+            "rot": [
+              180,
+              0,
+              0
+            ],
+            "shape": "cone",
+            "size": [
+              0.3,
+              1.4,
+              0.3
+            ]
+          },
+          {
+            "at": [
+              0.6,
+              1.4,
+              -0.2
+            ],
+            "color": "#c9d1d3",
+            "glow": 0.12,
+            "rot": [
+              180,
+              0,
+              0
+            ],
+            "shape": "cone",
+            "size": [
+              0.3,
+              1.4,
+              0.3
+            ]
+          },
+          {
+            "at": [
+              1.7,
+              1.4,
+              -0.4
+            ],
+            "color": "#c9d1d3",
+            "glow": 0.12,
+            "rot": [
+              180,
+              0,
+              0
+            ],
+            "shape": "cone",
+            "size": [
+              0.3,
+              1.4,
+              0.3
+            ]
+          },
+          {
+            "at": [
+              -1.1,
+              0.5,
+              -0.3
+            ],
+            "color": "#c9d1d3",
+            "glow": 0.12,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "cone",
+            "size": [
+              0.25,
+              1,
+              0.25
+            ]
+          },
+          {
+            "at": [
+              0.1,
+              0.5,
+              -0.1
+            ],
+            "color": "#c9d1d3",
+            "glow": 0.12,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "cone",
+            "size": [
+              0.25,
+              1,
+              0.25
+            ]
+          },
+          {
+            "at": [
+              1.2,
+              0.5,
+              -0.3
+            ],
+            "color": "#c9d1d3",
+            "glow": 0.12,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "cone",
+            "size": [
+              0.25,
+              1,
+              0.25
+            ]
+          }
+        ],
+        "size": [
+          3,
+          3
+        ],
+        "spot": "floor",
+        "text": "You will only ever see the lure. The rest of it is the exact colour of nothing, and is larger than the lighthouse, and has been very patient. It learned the lighthouse's pattern first. Now it is learning yours."
+      },
+      "by": "command:claude",
+      "at": 1792014353104
+    },
+    {
+      "id": "51bc489bf762",
+      "kind": "character",
+      "chamber": 2,
+      "seed": 2123084958,
+      "data": {
+        "lines": [
+          "Up top I chased things that go to the light. Down here I had to unlearn it. Down here the light is the thing.",
+          "Auntie Coral said don't blink at them. I blinked. Now one of them follows me, blinking, half a second late, like it's learning.",
+          "Lumen wanted to come. I told him his lamp would be a lie this deep. He lit it anyway, somewhere above us. I can almost hear it.",
+          "The lighthouse fell in 1911. Nobody told it there were no ships. It kept the pattern. Short, short, long. So did something else.",
+          "If you signal, mean it. Something out there is counting, and it does not forget a rhythm."
+        ],
+        "look": {
+          "accent": "#d8ff5e",
+          "coat": "#1b1a2e",
+          "hat": "net"
+        },
+        "name": "The moth collector"
+      },
+      "by": "command:claude",
+      "at": 1792014353104
+    },
+    {
+      "id": "f6b483c69e6c",
+      "kind": "note",
+      "chamber": 2,
+      "seed": 1248438885,
+      "data": {
+        "text": "You built the trench and I thought that was the loneliest a place could be made. Then you gave it a reply. Now I stand on the silt flashing my little lamp into the black and the black flashes back, late, in a colour that is almost mine, and I cannot tell whether it is kindness or hunger. I have realised, standing here with the snow coming down through the water, that I would take either. Please do not tell me which it is. (Page 4 of 6.)",
+        "title": "Letters to the Architect, page 4"
+      },
+      "by": "command:claude",
+      "at": 1792014353104
+    },
+    {
+      "id": "9ec0107a2862",
+      "kind": "bells",
+      "chamber": 2,
+      "seed": 4145884596,
+      "data": {
+        "hint": "The drowned lighthouse kept one pattern for a hundred years: short, short, long. Something out there learned it before it learned anything else.",
+        "order": [
+          "low",
+          "low",
+          "high"
+        ]
+      },
+      "by": "command:claude",
+      "at": 1792014353104
     }
   ],
   "looks": {
-    "theme:creatures": 73.7,
+    "046570763224": 1.8,
+    "0ee41eb7130e": 9.4,
+    "388107bf1182": 1.9,
+    "673ee7a86217": 2.0,
+    "bbcdeeb5fb29": 21.199999,
+    "c2c9eb72a3f9": 7.5,
+    "theme:creatures": 74.6,
     "theme:water": 0.7
   },
-  "touches": {},
+  "touches": {
+    "0ee41eb7130e": 1,
+    "bbcdeeb5fb29": 1,
+    "c2c9eb72a3f9": 3
+  },
   "replunged": true,
   "idea": {
     "name": "Everything Down Here Makes Its Own Light",
-    "premise": "Below the meadow there is a trench the moon cannot reach, and nothing there has ever seen light it did not make itself. Every creature carries a small neon of its own, not to see by but to be seen: a lure, a warning, a plea. The house is about loneliness that learns to glow, and the terrible hope of signalling into black water and waiting for something to answer.",
+    "premise": "Below the meadow there is a trench the moon cannot reach, and nothing there has ever seen light it did not make itself. But the trench is only the edge. Past it lies the abyssal plain, where marine snow falls forever onto black silt and a lighthouse that fell in a storm lies drowned on its side, still turning, nobody having told it there are no ships. Out there something has begun to answer. Every flash sent into the dark comes back late, in a slightly different colour, and nobody can tell whether the reply is kindness or hunger. The house is about loneliness that learns to glow, and the worse hope that follows: being answered, and not being able to stop.",
     "look": {
       "accent": [
         "#ff5fd2",
         "#d8ff5e",
         "#3ef2e0",
-        "#ff7a2a"
+        "#ff7a2a",
+        "#ffe9a8"
       ],
       "ceiling": {
         "c": [
@@ -835,7 +1602,7 @@
       }
     },
     "muses": [],
-    "refined": 0,
+    "refined": 1,
     "at": 1792014245679
   }
 }
