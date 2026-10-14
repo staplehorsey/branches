@@ -3,3 +3,24 @@
 == in /Users/msainz/Projects/branches at ac4c48f
 
 -- claude -p without ANTHROPIC_API_KEY
+⚠ claude.ai connectors are disabled because ANTHROPIC_API_KEY or another auth source is set and takes precedence over your claude.ai login · Unset it to load your organization's connectors
+Failed to authenticate. API Error: 401 API key expired.
+
+real	3m4.123s
+user	0m2.624s
+sys	0m0.788s
+-- restart
+-- building
+    Finished `release` profile [optimized] target(s) in 9.10s
+-- restarting
+stopped
+running, pid 23865
+{"app":true,"endpoints":{"chunk":"/api/worlds/{world}/chunk?x0&z0&x1&z1","live":"/ws/{world}","room":"/api/worlds/{world}/rooms/{x}/{z}","world":"/api/worlds/{world}"},"generators":["liminal-houses@1"],"protocol":"branches/0.1","software":"branches-server","version":"0.1.0","worlds":[{"id":"dusk-orchard","name":"Dusk Orchard","path":"/w/dusk-orchard/0,0"},{"id":"fog-pines","name":"Fog Pines","path":"/w/fog-pines/0,0"},{"id":"hushed-meridian-3f02","name":"The Hushed Meridian","path":"/w/hushed-meridian-3f02/0,0"},{"id":"moonlit-meadow","name":"Moonlit Meadow","path":"/w/moonlit-meadow/0,0"},{"id":"salt-flat-noon","name":"Salt Flat Noon","path":"/w/salt-flat-noon/0,0"},{"id":"the-lush","name":"The Lush","path":"/w/the-lush/0,0"}]}
+-- log
+2026-10-14T21:20:14.084823Z  INFO branches_server: worlds in /Users/msainz/Library/Application Support/Branches (a git repository); client from ../client
+2026-10-14T21:20:14.088176Z  INFO branches_server: branches listening on http://localhost:7878/
+{"available":true,"boot":1792012814084,"busy":false,"history":[],"why":null}
+"settings":{"architect":"command","asked":true,"command":"claude -p","night":{"command":"claude -p --permission-mode acceptEdits","enabled":false,"end_hour":7,"idle_minutes":20,"max_minutes":120,"start_hour":1
+
+
+== exit 0 after 196s
