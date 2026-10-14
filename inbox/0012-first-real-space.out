@@ -3,3 +3,98 @@
 == in /Users/msainz/Projects/branches at 7426b1a
 
 {"spaces":[{"dwell":0.0,"error":null,"minutes":0.0,"n":1,"name":"","secs":0,"started":1792015503410,"status":"building","summary":"","tries":1,"visits":0}],"typical_secs":180}
+{
+ "idea": {
+  "at": 1792016247432,
+  "look": null,
+  "muses": [],
+  "name": "Kept at Golden Hour",
+  "premise": "A sealed glass garden where the sun has been stopped just above the horizon so that nothing inside will ever have to end. Whoever put the glass over it did it out of tenderness. The plants have grown toward that one light for so long they have forgotten there are others; the dreamer is the first thing in here that still remembers dusk. Every space asks the same thing: is keeping a kindness, and what does it cost the kept.",
+  "refined": 1
+ },
+ "spaces": [
+  {
+   "dwell": 0.0,
+   "error": null,
+   "minutes": 6.0,
+   "n": 1,
+   "name": "The Garden Under Glass",
+   "secs": 744,
+   "started": 1792015503410,
+   "status": "ready",
+   "summary": "The peach hall has dissolved into sand: you are a small thing inside a vast terrarium on a windowsill, with the sun stopped a finger above the horizon and five tall heliotropes straining toward it. Stand still near a flower and it slowly forgets the sun and turns to watch you instead; when all five have turned away, nothing is holding the sun up and it finally sets. In the dark, cold leaks in through a glowing crack in the glass on the far side; walking into it is the way onward.",
+   "tries": 1,
+   "visits": 0
+  }
+ ]
+}
+total 96
+drwxr-xr-x@ 5 msainz  staff    160 Oct 14 18:16 .
+drwxr-xr-x@ 3 msainz  staff     96 Oct 14 18:05 ..
+-rw-r--r--@ 1 msainz  staff   2867 Oct 14 18:05 BRIEF.md
+-rw-r--r--@ 1 msainz  staff  40240 Oct 14 18:16 index.html
+-rw-r--r--@ 1 msainz  staff   1051 Oct 14 18:16 space.json
+   44158 total
+-- index.html (first 60 lines)
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kept at Golden Hour</title>
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #f2b48a; }
+  canvas { display: block; }
+  #fade { position: fixed; inset: 0; background: #f2b48a; pointer-events: none; opacity: 1; transition: opacity 2.6s ease; z-index: 5; }
+  #vig { position: fixed; inset: 0; pointer-events: none; z-index: 4;
+         background: radial-gradient(ellipse at center, rgba(0,0,0,0) 55%, rgba(60,20,10,0.28) 100%); }
+  #hint { position: fixed; top: 16px; left: 50%; transform: translateX(-50%); color: rgba(90,40,20,.7);
+          font: 13px/1.4 Georgia, serif; letter-spacing: .12em; pointer-events: none; transition: opacity 1.6s; z-index: 6; text-align: center; }
+  #oops { position: fixed; left: 50%; top: 50%; transform: translate(-50%,-50%); color: #7a3a1e; font: 16px Georgia, serif; display: none; z-index: 7; }
+</style>
+</head>
+<body>
+<div id="fade"></div>
+<div id="vig"></div>
+<div id="hint">click to look &nbsp;·&nbsp; W A S D to walk</div>
+<div id="oops">The glass has fogged over. Press Esc to go back to the house.</div>
+<script type="module">
+import * as THREE from '/vendor/three.module.js';
+
+const B = window.branches || {
+  onward() { parent.postMessage({ branches: 'onward' }, '*'); },
+  back() { parent.postMessage({ branches: 'back' }, '*'); },
+  say(t) { console.log(t); },
+};
+const say = (t, s) => { try { B.say(t, s); } catch (e) {} };
+
+try { main(); } catch (e) {
+  document.getElementById('oops').style.display = 'block';
+  document.getElementById('fade').style.opacity = '0';
+  throw e;
+}
+
+function main() {
+  // ------------------------------------------------------------ rng
+  let seed = 3601047423;
+  const rnd = () => { seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0; return seed / 4294967296; };
+  const rr = (a, b) => a + (b - a) * rnd();
+  const smooth = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+  const lerp = (a, b, t) => a + (b - a) * t;
+
+  // ------------------------------------------------------------ world constants
+  const R = 14;          // glass radius
+  const RMAX = 13.35;    // how far you can walk
+  const GLASS_TOP = 18.5;
+  const SILL_Y = -0.5;
+  let sunElev = 0.1;
+  const SUN_AZ = 0;      // the sun lies toward +z
+  const sunDir = new THREE.Vector3();
+  const updateSunDir = () => sunDir.set(Math.cos(sunElev) * Math.sin(SUN_AZ), Math.sin(sunElev), Math.cos(sunElev) * Math.cos(SUN_AZ));
+  updateSunDir();
+
+  // ------------------------------------------------------------ renderer
+  const renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+
+== exit 1 after 745s
