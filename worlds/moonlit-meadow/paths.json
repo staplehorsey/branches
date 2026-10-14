@@ -40,5 +40,33 @@
     "speed": 2.941,
     "straight": 0.501,
     "turn": 0.31
+  },
+  {
+    "heading": -1.318,
+    "revisit": 0.858,
+    "speed": 2.727,
+    "straight": 0.425,
+    "turn": 0.435
+  },
+  {
+    "heading": 0.437,
+    "revisit": 0.8,
+    "speed": 2.97,
+    "straight": 0.108,
+    "turn": 0.321
+  },
+  {
+    "heading": 0.465,
+    "revisit": 0.825,
+    "speed": 2.921,
+    "straight": 0.184,
+    "turn": 0.32
+  },
+  {
+    "heading": 0.711,
+    "revisit": 0.692,
+    "speed": 4.128,
+    "straight": 0.516,
+    "turn": 0.202
   }
 ]
