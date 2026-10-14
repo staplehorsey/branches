@@ -264,6 +264,83 @@
         "trim": "#1a2a4a",
         "walls": "none"
       }
+    },
+    {
+      "name": "The Deck, Spiked For Act One",
+      "tag": "light",
+      "seed": 3192813631,
+      "by": "command:claude",
+      "at": 1792015332421,
+      "form": {
+        "env": {
+          "far": 42,
+          "fog": "#dbe1ec",
+          "ground": "#d2cdc3",
+          "hemi": 1.5,
+          "key": "#ffffff",
+          "keyI": 1.2,
+          "near": 9,
+          "sky": "#e4eaf4"
+        },
+        "floor": {
+          "c": [
+            "#dcd8d0",
+            "#c6c0b6"
+          ],
+          "p": "plain"
+        },
+        "floor_kind": "plain",
+        "height": 12,
+        "lights": [
+          {
+            "at": [
+              0.3,
+              0.4
+            ],
+            "color": "#f4f8ff",
+            "intensity": 1.4,
+            "y": 10.5
+          },
+          {
+            "at": [
+              0.7,
+              0.4
+            ],
+            "color": "#f4f8ff",
+            "intensity": 1.4,
+            "y": 10.5
+          },
+          {
+            "at": [
+              0.5,
+              0.08
+            ],
+            "color": "#9cff6a",
+            "intensity": 0.5,
+            "y": 0.4
+          },
+          {
+            "at": [
+              0.5,
+              0.96
+            ],
+            "color": "#ffb347",
+            "intensity": 0.3,
+            "y": 2
+          }
+        ],
+        "particles": {
+          "color": "#ffffff",
+          "count": 220,
+          "kind": "dust"
+        },
+        "size": [
+          46,
+          34
+        ],
+        "trim": "#b0b8c8",
+        "walls": "none"
+      }
     }
   ],
   "features": [
@@ -343,21 +420,36 @@
       "who": "the architect",
       "text": "I went behind the velvet for you, since you asked. Not through it. Behind. The gold was one bulb all along. Someone has her finger on go and will not press it, and now you know whose fault the second is. Mine, if you ask her. Hers, if you ask me.",
       "at": 1792015213203
+    },
+    {
+      "id": "0e5941d457ac",
+      "kind": "growth",
+      "who": "architect",
+      "text": "The architect built The Deck, Spiked For Act One (). New here: Spike Marks, Act One, Your Mark, The Prop Table, Outlined, The Cyclorama, Lit For Nothing, Pim, who counts doors, Letters to the Architect, page 12.",
+      "at": 1792015332421
+    },
+    {
+      "id": "48325db58431",
+      "kind": "note",
+      "who": "the architect",
+      "text": "I let you past her onto the deck. Act One was never built, only measured. Find the mark with your height beside it and decide whether to stand on it.",
+      "at": 1792015332421
     }
   ],
   "claim": null,
-  "attention": 204.67816833899988,
+  "attention": 242.64297046200014,
   "weights": {
     "art": 2.8499203,
-    "cozy": 3.7608147,
+    "cozy": 3.997801,
+    "light": 0.962662,
     "music": 3.6116633
   },
   "investors": {
-    "94b402ce6e6a1d1b": 342.67816833899974
+    "94b402ce6e6a1d1b": 462.6429704620001
   },
   "building": {
-    "started": 1792015213634,
-    "ready_at": 1792015239634
+    "started": 1792015332636,
+    "ready_at": 1792015359636
   },
   "last_visit": {
     "94b402ce6e6a1d1b": 1792014871024
@@ -2226,16 +2318,618 @@
       },
       "by": "command:claude",
       "at": 1792015213203
+    },
+    {
+      "id": "48f65d1719bf",
+      "kind": "object",
+      "chamber": 4,
+      "seed": 2865214603,
+      "data": {
+        "name": "Spike Marks, Act One",
+        "parts": [
+          {
+            "at": [
+              0,
+              0.003,
+              0
+            ],
+            "color": "#9cff6a",
+            "glow": 0.45,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              0.5,
+              0.006,
+              0.05
+            ]
+          },
+          {
+            "at": [
+              0,
+              0.003,
+              0.22
+            ],
+            "color": "#ff6fa0",
+            "glow": 0.35,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              0.05,
+              0.006,
+              0.4
+            ]
+          }
+        ],
+        "repeat": 12,
+        "size": [
+          0.6,
+          0.6
+        ],
+        "spot": "floor",
+        "text": "Two strips of glow tape in a T, measured from centre line in a stage manager's hand. Here the table would stand. Here the door. Here the one who opens it, at 7.4. Nothing was ever set, so nothing was ever struck.",
+        "walkthrough": true
+      },
+      "by": "command:claude",
+      "at": 1792015332421
+    },
+    {
+      "id": "7125460a600d",
+      "kind": "object",
+      "chamber": 4,
+      "seed": 1756452585,
+      "data": {
+        "name": "Your Mark",
+        "parts": [
+          {
+            "at": [
+              0,
+              0.003,
+              0
+            ],
+            "color": "#ffffff",
+            "glow": 0.6,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              0.6,
+              0.006,
+              0.05
+            ]
+          },
+          {
+            "at": [
+              0,
+              0.003,
+              0.27
+            ],
+            "color": "#ffffff",
+            "glow": 0.6,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              0.05,
+              0.006,
+              0.5
+            ]
+          },
+          {
+            "at": [
+              0,
+              0.01,
+              0.1
+            ],
+            "color": "#cfd8ff",
+            "glow": 0.25,
+            "rot": [
+              90,
+              0,
+              0
+            ],
+            "shape": "torus",
+            "size": [
+              0.9,
+              0.02,
+              0.9
+            ]
+          },
+          {
+            "at": [
+              0.42,
+              0.006,
+              -0.1
+            ],
+            "color": "#e0b060",
+            "glow": 0,
+            "rot": [
+              0,
+              0,
+              90
+            ],
+            "shape": "cylinder",
+            "size": [
+              0.012,
+              0.18,
+              0.012
+            ]
+          },
+          {
+            "at": [
+              0.42,
+              0.002,
+              0.02
+            ],
+            "color": "#b8b4ac",
+            "glow": 0,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              0.22,
+              0.004,
+              0.08
+            ]
+          }
+        ],
+        "size": [
+          1,
+          1
+        ],
+        "spot": "floor",
+        "text": "A T of white tape, scuffed at one corner, with a height written beside it in pencil. It is your height. Stand on it and the chord leans toward resolving. Step off and it leans back. Nobody measured you. She did, years ago.",
+        "walkthrough": true
+      },
+      "by": "command:claude",
+      "at": 1792015332421
+    },
+    {
+      "id": "183853e9f115",
+      "kind": "object",
+      "chamber": 4,
+      "seed": 1662673581,
+      "data": {
+        "name": "The Prop Table, Outlined",
+        "parts": [
+          {
+            "at": [
+              0,
+              0.9,
+              0
+            ],
+            "color": "#141214",
+            "glow": 0,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              1.8,
+              0.05,
+              0.7
+            ]
+          },
+          {
+            "at": [
+              -0.8,
+              0.45,
+              -0.28
+            ],
+            "color": "#3a3a3c",
+            "glow": 0,
+            "material": "metal",
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "cylinder",
+            "size": [
+              0.05,
+              0.9,
+              0.05
+            ]
+          },
+          {
+            "at": [
+              0.8,
+              0.45,
+              -0.28
+            ],
+            "color": "#3a3a3c",
+            "glow": 0,
+            "material": "metal",
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "cylinder",
+            "size": [
+              0.05,
+              0.9,
+              0.05
+            ]
+          },
+          {
+            "at": [
+              -0.8,
+              0.45,
+              0.28
+            ],
+            "color": "#3a3a3c",
+            "glow": 0,
+            "material": "metal",
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "cylinder",
+            "size": [
+              0.05,
+              0.9,
+              0.05
+            ]
+          },
+          {
+            "at": [
+              0.8,
+              0.45,
+              0.28
+            ],
+            "color": "#3a3a3c",
+            "glow": 0,
+            "material": "metal",
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "cylinder",
+            "size": [
+              0.05,
+              0.9,
+              0.05
+            ]
+          },
+          {
+            "at": [
+              -0.6,
+              0.93,
+              0
+            ],
+            "color": "#9cff6a",
+            "glow": 0.4,
+            "rot": [
+              90,
+              0,
+              0
+            ],
+            "shape": "torus",
+            "size": [
+              0.14,
+              0.01,
+              0.14
+            ]
+          },
+          {
+            "at": [
+              -0.2,
+              0.93,
+              0.1
+            ],
+            "color": "#9cff6a",
+            "glow": 0.4,
+            "rot": [
+              0,
+              30,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              0.3,
+              0.004,
+              0.06
+            ]
+          },
+          {
+            "at": [
+              0.2,
+              0.93,
+              -0.12
+            ],
+            "color": "#ff6fa0",
+            "glow": 0.35,
+            "rot": [
+              0,
+              -15,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              0.36,
+              0.004,
+              0.05
+            ]
+          },
+          {
+            "at": [
+              0.62,
+              0.93,
+              0.05
+            ],
+            "color": "#9cff6a",
+            "glow": 0.4,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              0.24,
+              0.004,
+              0.16
+            ]
+          },
+          {
+            "at": [
+              0.62,
+              0.94,
+              0.05
+            ],
+            "color": "#f3ead8",
+            "glow": 0.1,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              0.22,
+              0.012,
+              0.14
+            ]
+          },
+          {
+            "at": [
+              0.62,
+              0.95,
+              0.05
+            ],
+            "color": "#7a1f2e",
+            "glow": 0,
+            "rot": [
+              0,
+              45,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              0.05,
+              0.014,
+              0.05
+            ]
+          }
+        ],
+        "size": [
+          2,
+          1
+        ],
+        "spot": "floor",
+        "text": "Black cloth, and on it the taped outlines of every prop for Act One: a cup, a key, a knife, a letter. Only the letter is there. It has your name on the envelope and has not been opened, because opening is after go."
+      },
+      "by": "command:claude",
+      "at": 1792015332421
+    },
+    {
+      "id": "0d199559a476",
+      "kind": "object",
+      "chamber": 4,
+      "seed": 3003001178,
+      "data": {
+        "name": "The Cyclorama, Lit For Nothing",
+        "parts": [
+          {
+            "at": [
+              0,
+              5.5,
+              0.6
+            ],
+            "color": "#f6f8ff",
+            "glow": 0.7,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              12,
+              11,
+              0.15
+            ]
+          },
+          {
+            "at": [
+              0,
+              0.15,
+              -0.4
+            ],
+            "color": "#2a2a2e",
+            "glow": 0,
+            "material": "metal",
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              12.4,
+              0.3,
+              0.4
+            ]
+          },
+          {
+            "at": [
+              -4.5,
+              0.4,
+              -0.4
+            ],
+            "color": "#cfd8ff",
+            "glow": 0.5,
+            "rot": [
+              -60,
+              0,
+              0
+            ],
+            "shape": "cylinder",
+            "size": [
+              0.12,
+              0.5,
+              0.12
+            ]
+          },
+          {
+            "at": [
+              -1.5,
+              0.4,
+              -0.4
+            ],
+            "color": "#cfd8ff",
+            "glow": 0.5,
+            "rot": [
+              -60,
+              0,
+              0
+            ],
+            "shape": "cylinder",
+            "size": [
+              0.12,
+              0.5,
+              0.12
+            ]
+          },
+          {
+            "at": [
+              1.5,
+              0.4,
+              -0.4
+            ],
+            "color": "#cfd8ff",
+            "glow": 0.5,
+            "rot": [
+              -60,
+              0,
+              0
+            ],
+            "shape": "cylinder",
+            "size": [
+              0.12,
+              0.5,
+              0.12
+            ]
+          },
+          {
+            "at": [
+              4.5,
+              0.4,
+              -0.4
+            ],
+            "color": "#cfd8ff",
+            "glow": 0.5,
+            "rot": [
+              -60,
+              0,
+              0
+            ],
+            "shape": "cylinder",
+            "size": [
+              0.12,
+              0.5,
+              0.12
+            ]
+          }
+        ],
+        "size": [
+          3,
+          3
+        ],
+        "spot": "wall",
+        "text": "The only wall on this deck is a wall of white light, twelve metres wide, with nothing projected on it. A ground row of lamps at its foot waits for a colour. Hester wrote 'SKY?' on the cue sheet and never chose one."
+      },
+      "by": "command:claude",
+      "at": 1792015332421
+    },
+    {
+      "id": "21acb4a7a705",
+      "kind": "character",
+      "chamber": 4,
+      "seed": 3254862768,
+      "data": {
+        "lines": [
+          "Fourteen doors on this deck. I counted twice. All of them tape.",
+          "A taped door can't be opened, so it can't close behind you. Best door I have ever stood in.",
+          "Hester let me past because I promised not to touch anything. Counting isn't touching.",
+          "The one with the pencil beside it is yours. Old Tobiah says the chord goes flat by a hair when nobody's on it.",
+          "Odile wanted to map this floor. I told her it's already a map. That is all it has ever been."
+        ],
+        "look": {
+          "accent": "#ffb347",
+          "coat": "#3a4a6a",
+          "hat": "cap"
+        },
+        "name": "Pim, who counts doors"
+      },
+      "by": "command:claude",
+      "at": 1792015332421
+    },
+    {
+      "id": "cf992922f8d6",
+      "kind": "note",
+      "chamber": 4,
+      "seed": 2569204192,
+      "data": {
+        "text": "You asked what I am sparing them. Here is the floor. Every mark is a thing that would have happened: the table at 3.2 from centre, the door at 7, the one who comes through it at 7.4. I taped them from the script before the script was lost, and the script was lost the way everything after go is lost. Nothing was set, so nothing was struck, and the deck is as clean as when the meadow was a meadow. When a visitor stands on the mark with their height beside it the chord leans. I can hear it from the corner. I have not pressed. I will not. But I have noticed I no longer say 'will not' in the same breath I used to. H.",
+        "title": "Letters to the Architect, page 12"
+      },
+      "by": "command:claude",
+      "at": 1792015332421
     }
   ],
   "looks": {
     "0c4bce0c489b": 10.200001,
     "0e167cee403c": 8.3,
-    "9770232ce084": 11.2,
+    "51d225ed50ff": 0.90000004,
+    "9770232ce084": 12.7,
     "aad8d9fa1d3a": 0.7,
-    "bc6ea3bd9498": 1.7,
+    "bc6ea3bd9498": 3.6,
     "bf2696acebef": 17.5,
+    "c42847dc99f5": 8.900001,
     "c646994ac510": 15.6,
+    "cc0d3053473f": 22.5,
     "ede3b470e5cf": 1.4,
     "fda22780b4d0": 1.2,
     "guestbook": 41.6,
@@ -2246,19 +2940,22 @@
   "touches": {
     "0e167cee403c": 1,
     "bf2696acebef": 1,
-    "c646994ac510": 1
+    "c646994ac510": 1,
+    "cc0d3053473f": 1
   },
   "replunged": true,
   "idea": {
     "name": "The Overture That Never Resolves",
-    "premise": "The second before the curtain rises has been stretched until you can walk around inside it, and now you can walk behind it. The house is still a dark field of warm seats, the hem still lifted one inch, the chord still thinned into weather. But the gold that leaks under the velvet has been traced to its source: not a blazing stage but one bare bulb on a stand, a ghost light, in a fly tower so tall the ropes vanish upward. Beside it a stage manager has had her finger on the GO button since the meadow was a meadow, and will not press it, because everything after 'go' can be lost and nothing before it can. The house has stopped being about waiting. It is about the one who holds the wait, and what she is sparing you, and whether you want to be spared.",
+    "premise": "The second before the curtain rises has been stretched until you can walk around inside it, behind it, and now onto it. Past Hester's hand the leaking gold turns to work-light white, and the stage is a bare pale deck under a blank cyclorama, spiked for Act One: every table, door and body marked in coloured tape T's at the exact spot it would stand, measured to the centimetre from a script that was lost, and never set. Nothing was built, so nothing can be struck. One mark has your height pencilled beside it. The house is no longer about the wait, or only about the one who holds it. It is the floor plan of what she is sparing you, laid out plainly enough to stand in, and the fact that the chord leans toward resolving only while you are on your mark.",
     "look": {
       "accent": [
         "#c9a24a",
         "#7a1f2e",
         "#ffb347",
         "#1a2a4a",
-        "#cfd8ff"
+        "#cfd8ff",
+        "#9cff6a",
+        "#ff6fa0"
       ],
       "ceiling": {
         "c": [
@@ -2296,7 +2993,7 @@
       }
     },
     "muses": [],
-    "refined": 2,
+    "refined": 3,
     "at": 1792014989135
   }
 }
