@@ -1,19 +1,5 @@
 [
   {
-    "heading": 0.939,
-    "revisit": 0.789,
-    "speed": 3.055,
-    "straight": 0.268,
-    "turn": 0.303
-  },
-  {
-    "heading": 0.396,
-    "revisit": 0.774,
-    "speed": 3.043,
-    "straight": 0.259,
-    "turn": 0.34
-  },
-  {
     "heading": 0.677,
     "revisit": 0.792,
     "speed": 3.178,
@@ -264,5 +250,33 @@
     "speed": 3.407,
     "straight": 0.269,
     "turn": 0.173
+  },
+  {
+    "heading": 1.724,
+    "revisit": 0.575,
+    "speed": 3.482,
+    "straight": 0.511,
+    "turn": 0.15
+  },
+  {
+    "heading": 1.839,
+    "revisit": 0.55,
+    "speed": 3.444,
+    "straight": 0.676,
+    "turn": 0.154
+  },
+  {
+    "heading": 2.245,
+    "revisit": 0.558,
+    "speed": 3.494,
+    "straight": 0.663,
+    "turn": 0.147
+  },
+  {
+    "heading": 2.379,
+    "revisit": 0.617,
+    "speed": 3.547,
+    "straight": 0.701,
+    "turn": 0.148
   }
 ]

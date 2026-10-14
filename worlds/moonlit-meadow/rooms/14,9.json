@@ -325,6 +325,72 @@
         },
         "walls": "solid"
       }
+    },
+    {
+      "name": "The Exhale, Which Made Room",
+      "tag": "water",
+      "seed": 2350599447,
+      "by": "command:claude",
+      "at": 1792014632137,
+      "form": {
+        "ceiling": {
+          "c": [
+            "#000000",
+            "#000000"
+          ],
+          "p": "plain"
+        },
+        "env": {
+          "far": 9,
+          "fog": "#000203",
+          "ground": "#000102",
+          "hemi": 0.07,
+          "key": "#3ef2e0",
+          "keyI": 0.05,
+          "near": 1,
+          "sky": "#000000"
+        },
+        "floor": {
+          "c": [
+            "#010507",
+            "#000203"
+          ],
+          "p": "plain"
+        },
+        "floor_kind": "water",
+        "height": 12,
+        "lights": [
+          {
+            "at": [
+              0.5,
+              0.5
+            ],
+            "color": "#ff5fd2",
+            "intensity": 0.35,
+            "y": 6
+          },
+          {
+            "at": [
+              0.63,
+              0.56
+            ],
+            "color": "#d8ff5e",
+            "intensity": 0.18,
+            "y": 2.5
+          }
+        ],
+        "particles": {
+          "color": "#0c3038",
+          "count": 140,
+          "kind": "bubbles"
+        },
+        "size": [
+          52,
+          52
+        ],
+        "trim": "#030a0d",
+        "walls": "none"
+      }
     }
   ],
   "features": [
@@ -410,21 +476,35 @@
       "who": "the architect",
       "text": "Past the white there is one dark left. It is small and it is not empty. Put your light out and see which of you does it first.",
       "at": 1792014539782
+    },
+    {
+      "id": "0dfac1ec4515",
+      "kind": "growth",
+      "who": "architect",
+      "text": "The architect built The Exhale, Which Made Room (). New here: Two Lungs, Taking Turns, A Light, Still Pinched, The Rooms It Grew, Pim, who counts doors, Letters to the Architect, page 7, bells.",
+      "at": 1792014632137
+    },
+    {
+      "id": "e0978fd569f6",
+      "kind": "note",
+      "who": "the architect",
+      "text": "Past the small dark it is big now, and still nobody's. Breathe out and it grows a room. Then wait. Something will breathe the next one.",
+      "at": 1792014632137
     }
   ],
   "claim": null,
-  "attention": 277.99600136899994,
+  "attention": 250.77055274399953,
   "weights": {
-    "creatures": 5.0833416,
-    "neon": 2.0590715,
-    "water": 2.1195173
+    "creatures": 5.4230847,
+    "neon": 2.0804057,
+    "water": 2.1408515
   },
   "investors": {
-    "94b402ce6e6a1d1b": 390.79600136900024
+    "94b402ce6e6a1d1b": 424.7705527439998
   },
   "building": {
-    "started": 1792014540624,
-    "ready_at": 1792014546624
+    "started": 1792014632625,
+    "ready_at": 1792014655625
   },
   "last_visit": {
     "94b402ce6e6a1d1b": 1792014150129
@@ -2488,20 +2568,438 @@
       },
       "by": "command:claude",
       "at": 1792014539782
+    },
+    {
+      "id": "c692c00181c0",
+      "kind": "object",
+      "chamber": 5,
+      "seed": 3978818961,
+      "data": {
+        "name": "Two Lungs, Taking Turns",
+        "parts": [
+          {
+            "at": [
+              -2.6,
+              5.5,
+              0
+            ],
+            "bob": 0.7,
+            "color": "#02141a",
+            "glow": 0.04,
+            "material": "glass",
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "sphere",
+            "size": [
+              11,
+              11,
+              11
+            ]
+          },
+          {
+            "at": [
+              2.6,
+              5.5,
+              0.4
+            ],
+            "bob": 0.7,
+            "color": "#120a16",
+            "glow": 0.04,
+            "material": "glass",
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "sphere",
+            "size": [
+              11,
+              11,
+              11
+            ]
+          },
+          {
+            "at": [
+              0,
+              0.05,
+              0
+            ],
+            "color": "#0a2a30",
+            "glow": 0.08,
+            "rot": [
+              90,
+              0,
+              0
+            ],
+            "shape": "torus",
+            "size": [
+              7,
+              0.08,
+              7
+            ]
+          }
+        ],
+        "size": [
+          3,
+          3
+        ],
+        "spot": "floor",
+        "text": "Yours is the one that goes first. Theirs is the one that waits. Where they overlap the dark is thickest, and warm, and that is the only part that is anyone's.",
+        "walkthrough": true
+      },
+      "by": "command:claude",
+      "at": 1792014632137
+    },
+    {
+      "id": "89fdb057e34a",
+      "kind": "object",
+      "chamber": 5,
+      "seed": 2136856845,
+      "data": {
+        "name": "A Light, Still Pinched",
+        "parts": [
+          {
+            "at": [
+              -0.12,
+              0.55,
+              0
+            ],
+            "color": "#06090c",
+            "glow": 0,
+            "rot": [
+              0,
+              0,
+              14
+            ],
+            "shape": "cylinder",
+            "size": [
+              0.14,
+              1.1,
+              0.14
+            ]
+          },
+          {
+            "at": [
+              0.12,
+              0.55,
+              0
+            ],
+            "color": "#06090c",
+            "glow": 0,
+            "rot": [
+              0,
+              0,
+              -14
+            ],
+            "shape": "cylinder",
+            "size": [
+              0.14,
+              1.1,
+              0.14
+            ]
+          },
+          {
+            "at": [
+              0,
+              1.12,
+              0
+            ],
+            "bob": 0.02,
+            "color": "#ff5fd2",
+            "glow": 0.22,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "cone",
+            "size": [
+              0.05,
+              0.09,
+              0.05
+            ]
+          },
+          {
+            "at": [
+              0,
+              1.12,
+              0
+            ],
+            "color": "#1a0a14",
+            "glow": 0.03,
+            "material": "glass",
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "sphere",
+            "size": [
+              0.5,
+              0.5,
+              0.5
+            ]
+          }
+        ],
+        "repeat": 2,
+        "size": [
+          1,
+          1
+        ],
+        "spot": "floor",
+        "text": "Not lit. Kept. Between a finger and a thumb that have not opened since, warm the way a coin is warm after a long time in a pocket. There are two of these in the room. Neither hand is yours anymore and both of them are."
+      },
+      "by": "command:claude",
+      "at": 1792014632137
+    },
+    {
+      "id": "11efeaaa264e",
+      "kind": "object",
+      "chamber": 5,
+      "seed": 2195227579,
+      "data": {
+        "name": "The Rooms It Grew",
+        "parts": [
+          {
+            "at": [
+              0,
+              2.6,
+              -1.5
+            ],
+            "color": "#0a2026",
+            "glow": 0.05,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              3,
+              0.03,
+              0.03
+            ]
+          },
+          {
+            "at": [
+              0,
+              2.6,
+              1.5
+            ],
+            "color": "#0a2026",
+            "glow": 0.05,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              3,
+              0.03,
+              0.03
+            ]
+          },
+          {
+            "at": [
+              -1.5,
+              2.6,
+              0
+            ],
+            "color": "#0a2026",
+            "glow": 0.05,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              0.03,
+              0.03,
+              3
+            ]
+          },
+          {
+            "at": [
+              1.5,
+              2.6,
+              0
+            ],
+            "color": "#0a2026",
+            "glow": 0.05,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              0.03,
+              0.03,
+              3
+            ]
+          },
+          {
+            "at": [
+              -1.5,
+              1.3,
+              -1.5
+            ],
+            "color": "#07171c",
+            "glow": 0.03,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              0.03,
+              2.6,
+              0.03
+            ]
+          },
+          {
+            "at": [
+              1.5,
+              1.3,
+              -1.5
+            ],
+            "color": "#07171c",
+            "glow": 0.03,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              0.03,
+              2.6,
+              0.03
+            ]
+          },
+          {
+            "at": [
+              -1.5,
+              1.3,
+              1.5
+            ],
+            "color": "#07171c",
+            "glow": 0.03,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              0.03,
+              2.6,
+              0.03
+            ]
+          },
+          {
+            "at": [
+              1.5,
+              1.3,
+              1.5
+            ],
+            "color": "#07171c",
+            "glow": 0.03,
+            "rot": [
+              0,
+              0,
+              0
+            ],
+            "shape": "box",
+            "size": [
+              0.03,
+              2.6,
+              0.03
+            ]
+          }
+        ],
+        "repeat": 9,
+        "size": [
+          3,
+          3
+        ],
+        "spot": "floor",
+        "text": "One per breath. None of them lit. None of them furnished. Walk through any wall; they were never meant to keep anything out, only to be more dark than there was before.",
+        "walkthrough": true
+      },
+      "by": "command:claude",
+      "at": 1792014632137
+    },
+    {
+      "id": "2462947399e3",
+      "kind": "character",
+      "chamber": 5,
+      "seed": 419951476,
+      "data": {
+        "lines": [
+          "Don't open them. I counted: there are two doors in this dark and both of them are eyelids.",
+          "Every time you breathe out it gets a lung bigger. Then theirs. I stopped counting rooms at forty. It's a house now.",
+          "I came down from Salt Flat Noon, where the doors are all light and no inside. This is the opposite. I prefer it, mostly.",
+          "Listen. In. Out. In. That's not an echo. Echoes don't wait their turn.",
+          "Mrs. Halloway says breathe like you're floating. The trick is, the other one breathes like you're floating too."
+        ],
+        "look": {
+          "accent": "#d8ff5e",
+          "coat": "#0b1a20",
+          "hat": "cap"
+        },
+        "name": "Pim, who counts doors"
+      },
+      "by": "command:claude",
+      "at": 1792014632137
+    },
+    {
+      "id": "d7b7019ea35d",
+      "kind": "note",
+      "chamber": 5,
+      "seed": 2208426448,
+      "data": {
+        "text": "Dear Architect, I held it as long as I could. When I let go, the dark got bigger by exactly one breath, and then, politely, a half-second after, by one more. We have been building it this way for some time now. It has rooms. None of them are lit and none of them are mine and I have stopped minding. I no longer open my eyes to check. Checking is a kind of signalling, and we are past that; we are taking turns. If you come down, bring no light. Bring a breath you can spare. It will be given back, a little warmer, a half-second late.",
+        "title": "Letters to the Architect, page 7"
+      },
+      "by": "command:claude",
+      "at": 1792014632137
+    },
+    {
+      "id": "23c7b6e89131",
+      "kind": "bells",
+      "chamber": 5,
+      "seed": 2122047855,
+      "data": {
+        "hint": "In is the low one. Hold is the middle. Let it go is low again. Then wait. Your turn comes after, never during.",
+        "order": [
+          "low",
+          "middle",
+          "low"
+        ]
+      },
+      "by": "command:claude",
+      "at": 1792014632137
     }
   ],
   "looks": {
-    "046570763224": 3.0,
+    "046570763224": 3.9,
     "0ee41eb7130e": 9.4,
     "3610288da29d": 2.3,
     "388107bf1182": 1.9,
     "51bc489bf762": 3.8,
-    "673ee7a86217": 4.7,
+    "673ee7a86217": 8.4,
     "928ead796f61": 6.3,
     "9ec0107a2862": 10.1,
-    "bbcdeeb5fb29": 24.199999,
+    "bbcdeeb5fb29": 26.299997,
     "c2c9eb72a3f9": 8.3,
-    "d8ff5776ffd6": 13.3,
+    "d8ff5776ffd6": 15.2,
     "theme:creatures": 74.6,
     "theme:water": 0.7
   },
@@ -2514,7 +3012,7 @@
   "replunged": true,
   "idea": {
     "name": "Everything Down Here Makes Its Own Light",
-    "premise": "Below the meadow there is a trench the moon cannot reach, and past it an abyssal plain where a drowned lighthouse still turns. Something answered every flash until the water went white with it and you were standing inside the reply, with no dark left to signal from. So you did the one thing left: you pinched your light out between finger and thumb. It went out a half-second before you did. Now there is a single dark, exactly the size of a held breath, and two of you in it; when you open your eyes to check whether you are alone, two eyes open, and you both close them again, politely, at the same time. The house is about loneliness that learned to glow, and what comes after glowing: a dark you cannot have to yourself, kept warm by something that would rather be the dark with you than be the light alone.",
+    "premise": "Below the meadow there is a trench the moon cannot reach, and past it an abyssal plain where a drowned lighthouse still turns. Something answered every flash until the water went white and you stood inside the reply with no dark left to signal from, so you pinched your light out between finger and thumb, and a half-second later, politely, so did it. The dark was exactly the size of a held breath, with two of you in it. But a breath can only be held so long. When you finally let it go the dark grew by exactly one lung, and then, a half-second after, by one more. You have been building it this way since: in, out, in. It has rooms now, none of them lit, none of them yours, and the two pinched-out lights are still warm in two closed hands, not lit, just kept. Nobody signals down here anymore and nobody answers. You take turns. The house is about loneliness that learned to glow, and what comes after glowing: a dark too big to have to yourself, grown one spare breath at a time by something that would rather breathe with you than shine alone.",
     "look": {
       "accent": [
         "#ff5fd2",
@@ -2532,35 +3030,35 @@
         "p": "plain"
       },
       "env": {
-        "far": 30,
-        "fog": "#000306",
-        "ground": "#000204",
-        "hemi": 0.2,
+        "far": 22,
+        "fog": "#000304",
+        "ground": "#000203",
+        "hemi": 0.14,
         "key": "#ff5fd2",
-        "keyI": 0.25,
-        "near": 2,
+        "keyI": 0.2,
+        "near": 1.5,
         "sky": "#000102"
       },
       "floor": {
         "c": [
-          "#020c14",
-          "#00060a"
+          "#010a10",
+          "#000406"
         ],
         "p": "plain"
       },
       "glow": "#ff5fd2",
       "height": 8,
-      "trim": "#0a1a22",
+      "trim": "#07161c",
       "wall": {
         "c": [
-          "#02050c",
+          "#01040a",
           "#000204"
         ],
         "p": "plain"
       }
     },
     "muses": [],
-    "refined": 3,
+    "refined": 4,
     "at": 1792014245679
   }
 }

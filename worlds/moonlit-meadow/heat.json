@@ -34,9 +34,29 @@
     "outside": 2.1212478,
     "visits": 0
   },
+  "11,10": {
+    "inside": 0.0,
+    "outside": 24.336536,
+    "visits": 0
+  },
+  "11,11": {
+    "inside": 0.0,
+    "outside": 0.32909375,
+    "visits": 0
+  },
   "11,3": {
     "inside": 0.0,
     "outside": 2.091689,
+    "visits": 0
+  },
+  "12,10": {
+    "inside": 0.0,
+    "outside": 0.4240236,
+    "visits": 0
+  },
+  "12,11": {
+    "inside": 0.0,
+    "outside": 6.1012664,
     "visits": 0
   },
   "12,3": {
@@ -44,14 +64,24 @@
     "outside": 2.2174819,
     "visits": 0
   },
+  "13,10": {
+    "inside": 0.0,
+    "outside": 8.182533,
+    "visits": 0
+  },
   "13,3": {
     "inside": 0.0,
     "outside": 3.5082927,
     "visits": 0
   },
+  "13,9": {
+    "inside": 0.0,
+    "outside": 4.100551,
+    "visits": 0
+  },
   "14,10": {
     "inside": 0.0,
-    "outside": 2.2419987,
+    "outside": 7.23382,
     "visits": 0
   },
   "14,2": {
@@ -70,8 +100,8 @@
     "visits": 0
   },
   "14,9": {
-    "inside": 390.7961,
-    "outside": 2.8493214,
+    "inside": 424.77048,
+    "outside": 10.349083,
     "visits": 1
   },
   "15,10": {
