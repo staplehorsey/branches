@@ -6,3 +6,10 @@
 2026-10-14T21:22:59.975558Z  INFO branches_server: worlds in /Users/msainz/Library/Application Support/Branches (a git repository); client from ../client
 2026-10-14T21:22:59.977135Z  INFO branches_server: branches listening on http://localhost:7878/
 -- waiting up to 10 minutes for architect activity (go into a house and linger)
+2026-10-14 17:20:14 -0400 Open the worlds
+2026-10-14 17:05:09 -0400 Visits, visitor books and heat
+2026-10-14 16:59:44 -0400 Visits, visitor books and heat
+2026-10-14 16:57:39 -0400 Moonlit Meadow 1,1: The architect built The Hollow Ballroom (music). [reference-heuristic@2, sketch]
+2026-10-14 16:57:14 -0400 Moonlit Meadow 1,1: The architect added detail (stone). New here: A poem. [reference-heuristic@2, sketch]
+
+== exit 0 after 612s
