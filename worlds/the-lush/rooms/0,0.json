@@ -1,0 +1,85 @@
+{
+  "x": 0,
+  "z": 0,
+  "seed": 229763622,
+  "theme": "cloud-nursery",
+  "chambers": [
+    {
+      "name": "Entry Hall",
+      "tag": "sky",
+      "seed": 229763622,
+      "by": "generator",
+      "at": 0
+    }
+  ],
+  "features": [],
+  "portals": [
+    {
+      "id": "pair-dusk-orchard",
+      "slot": 0,
+      "target": "/w/dusk-orchard/0,0",
+      "label": "Dusk Orchard",
+      "by": "generator",
+      "at": 0,
+      "sealed": false
+    },
+    {
+      "id": "pair-fog-pines",
+      "slot": 0,
+      "target": "/w/fog-pines/0,0",
+      "label": "Fog Pines",
+      "by": "generator",
+      "at": 0,
+      "sealed": false
+    },
+    {
+      "id": "pair-moonlit-meadow",
+      "slot": 0,
+      "target": "/w/moonlit-meadow/0,0",
+      "label": "Moonlit Meadow",
+      "by": "generator",
+      "at": 0,
+      "sealed": false
+    },
+    {
+      "id": "pair-salt-flat-noon",
+      "slot": 0,
+      "target": "/w/salt-flat-noon/0,0",
+      "label": "Salt Flat Noon",
+      "by": "generator",
+      "at": 0,
+      "sealed": false
+    }
+  ],
+  "log": [
+    {
+      "id": "0d4a60f45a88",
+      "kind": "visit",
+      "who": "drift-57",
+      "player": "94b402ce6e6a1d1b",
+      "text": "stopped by",
+      "at": 1792011089621
+    }
+  ],
+  "claim": null,
+  "attention": 6.041735085,
+  "weights": {
+    "cozy": 1.1144346,
+    "light": 1.1523151,
+    "sky": 1.2540252
+  },
+  "investors": {
+    "94b402ce6e6a1d1b": 6.041735085
+  },
+  "building": null,
+  "last_visit": {
+    "94b402ce6e6a1d1b": 1792011089621
+  },
+  "things": [],
+  "looks": {
+    "theme:light": 1.3,
+    "theme:sky": 3.2
+  },
+  "touches": {},
+  "replunged": false
+}

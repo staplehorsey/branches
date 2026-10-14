@@ -1,0 +1,82 @@
+{
+  "x": 0,
+  "z": 0,
+  "seed": 1713508909,
+  "theme": "moss-library",
+  "chambers": [
+    {
+      "name": "Entry Hall",
+      "tag": "books",
+      "seed": 1713508909,
+      "by": "generator",
+      "at": 0
+    }
+  ],
+  "features": [],
+  "portals": [
+    {
+      "id": "pair-dusk-orchard",
+      "slot": 0,
+      "target": "/w/dusk-orchard/0,0",
+      "label": "Dusk Orchard",
+      "by": "generator",
+      "at": 0,
+      "sealed": false
+    },
+    {
+      "id": "pair-fog-pines",
+      "slot": 0,
+      "target": "/w/fog-pines/0,0",
+      "label": "Fog Pines",
+      "by": "generator",
+      "at": 0,
+      "sealed": false
+    },
+    {
+      "id": "pair-salt-flat-noon",
+      "slot": 0,
+      "target": "/w/salt-flat-noon/0,0",
+      "label": "Salt Flat Noon",
+      "by": "generator",
+      "at": 0,
+      "sealed": false
+    },
+    {
+      "id": "pair-the-lush",
+      "slot": 0,
+      "target": "/w/the-lush/0,0",
+      "label": "The Lush",
+      "by": "generator",
+      "at": 0,
+      "sealed": false
+    }
+  ],
+  "log": [
+    {
+      "id": "1128f26fd8b5",
+      "kind": "visit",
+      "who": "drift-57",
+      "player": "94b402ce6e6a1d1b",
+      "text": "stopped by",
+      "at": 1792011106490
+    }
+  ],
+  "claim": null,
+  "attention": 1.791918958,
+  "weights": {
+    "books": 1.0479387,
+    "cozy": 1.1300946,
+    "plants": 1.039279
+  },
+  "investors": {
+    "94b402ce6e6a1d1b": 1.791918958
+  },
+  "building": null,
+  "last_visit": {
+    "94b402ce6e6a1d1b": 1792011106490
+  },
+  "things": [],
+  "looks": {},
+  "touches": {},
+  "replunged": false
+}

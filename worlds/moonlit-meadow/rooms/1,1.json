@@ -1,0 +1,50 @@
+{
+  "x": 1,
+  "z": 1,
+  "seed": 2405069782,
+  "theme": "tea-garden",
+  "chambers": [
+    {
+      "name": "Entry Hall",
+      "tag": "water",
+      "seed": 2405069782,
+      "by": "generator",
+      "at": 0
+    }
+  ],
+  "features": [],
+  "portals": [],
+  "log": [
+    {
+      "id": "a352a48664f8",
+      "kind": "visit",
+      "who": "drift-57",
+      "player": "94b402ce6e6a1d1b",
+      "text": "stopped by",
+      "at": 1792011128690
+    }
+  ],
+  "claim": null,
+  "attention": 55.93016800200002,
+  "weights": {
+    "plants": 1.5786877,
+    "stone": 1.6209651,
+    "water": 1.707349
+  },
+  "investors": {
+    "94b402ce6e6a1d1b": 55.93016800200002
+  },
+  "building": null,
+  "last_visit": {
+    "94b402ce6e6a1d1b": 1792011128690
+  },
+  "things": [],
+  "looks": {
+    "guestbook": 2.4,
+    "theme:plants": 26.1,
+    "theme:stone": 1.8000001,
+    "theme:water": 3.9
+  },
+  "touches": {},
+  "replunged": false
+}
