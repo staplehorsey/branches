@@ -1,0 +1,94 @@
+{
+  "id": "restless-meander-fe29",
+  "name": "The Restless Meander",
+  "tagline": "Born from paths walked in Moonlit Meadow: meandering, in a hurry, returning to the same streets.",
+  "seed": 257335155,
+  "generator": {
+    "kind": "liminal-houses@1",
+    "params": {
+      "flowers": [
+        "#819eff",
+        "#ff9ffa",
+        "#d5ffac"
+      ],
+      "fog": {
+        "color": "#31164f",
+        "far": 81.61914067533488,
+        "near": 12.02808388899672
+      },
+      "foliage": [
+        "#7294ff",
+        "#ff9ffa",
+        "#ff9fa2",
+        "#9feeff"
+      ],
+      "grass": {
+        "base": "#0e202e",
+        "density": 0.9546269986661854,
+        "height": 0.43783563059903763,
+        "tip": "#3b7193"
+      },
+      "ground": "#0f252d",
+      "hedge": "#142b3f",
+      "hemi": {
+        "ground": "#1b1845",
+        "intensity": 1.5,
+        "sky": "#9967ce"
+      },
+      "house": {
+        "door": "#d6ff7d",
+        "roof": "#412858",
+        "trim": "#f3eaff",
+        "wall": "#d4c4ea",
+        "window": "#d8ff79"
+      },
+      "lamp": "#d6ff7d",
+      "motes": "#84ff7d",
+      "night": true,
+      "path": "#553778",
+      "places": {
+        "arch": 0.17098800837993622,
+        "cave": 0.3783232271671295,
+        "house": 0.4300585985183716,
+        "tower": 0.12165697664022446
+      },
+      "ponds": 0.20896080391082422,
+      "sky": {
+        "bottom": "#2a1245",
+        "horizon": "#482875",
+        "top": "#1a062b"
+      },
+      "start": "liminal",
+      "sun": {
+        "azimuth": 1.2,
+        "color": "#d0acff",
+        "elevation": 0.8299668081869641,
+        "intensity": 1.5
+      },
+      "terrain": {
+        "amp": 0.0,
+        "scale": 52.870125174866644
+      },
+      "trees": "mushroom",
+      "trunk": "#eaddff",
+      "water": "#4d279f"
+    }
+  },
+  "portal_policy": {
+    "mode": "open",
+    "max_per_room": 3,
+    "allow_hosts": [],
+    "allow_local": true
+  },
+  "architect": "reference-heuristic@2",
+  "spawn": "0,0",
+  "hub": false,
+  "parent": "moonlit-meadow",
+  "signature": {
+    "heading": 0.9390061497688293,
+    "revisit": 0.5656999945640564,
+    "speed": 4.5401997566223145,
+    "straight": 0.5590000152587891,
+    "turn": 0.15699997544288635
+  }
+}

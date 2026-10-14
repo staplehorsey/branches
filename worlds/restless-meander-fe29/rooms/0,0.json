@@ -1,0 +1,43 @@
+{
+  "x": 0,
+  "z": 0,
+  "seed": 2230364212,
+  "theme": "arcade-after-hours",
+  "chambers": [
+    {
+      "name": "Entry Hall",
+      "tag": "neon",
+      "seed": 2230364212,
+      "by": "generator",
+      "at": 0
+    }
+  ],
+  "features": [],
+  "portals": [
+    {
+      "id": "born-restless-meander-fe29-back",
+      "slot": 0,
+      "target": "/w/moonlit-meadow/14,10",
+      "label": "Moonlit Meadow",
+      "by": "genesis",
+      "at": 1792014144519,
+      "sealed": false
+    }
+  ],
+  "log": [],
+  "claim": null,
+  "attention": 0.0,
+  "weights": {
+    "light": 1.0870392,
+    "music": 1.1259255,
+    "neon": 1.0160321
+  },
+  "investors": {},
+  "building": null,
+  "last_visit": {},
+  "things": [],
+  "looks": {},
+  "touches": {},
+  "replunged": false,
+  "idea": null
+}

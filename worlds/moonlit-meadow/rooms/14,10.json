@@ -1,0 +1,61 @@
+{
+  "x": 14,
+  "z": 10,
+  "seed": 2523715479,
+  "theme": "citrus-kitchen",
+  "chambers": [
+    {
+      "name": "Entry Hall",
+      "tag": "plants",
+      "seed": 2523715479,
+      "by": "generator",
+      "at": 0
+    }
+  ],
+  "features": [],
+  "portals": [
+    {
+      "id": "pair-dusk-orchard",
+      "slot": 1,
+      "target": "/w/dusk-orchard/14,10",
+      "label": "Dusk Orchard",
+      "by": "generator",
+      "at": 0,
+      "sealed": false
+    },
+    {
+      "id": "born-restless-meander-fe29",
+      "slot": 0,
+      "target": "/w/restless-meander-fe29/0,0",
+      "label": "The Restless Meander",
+      "by": "genesis",
+      "at": 1792014144519,
+      "sealed": false
+    }
+  ],
+  "log": [
+    {
+      "id": "9bb8c202e80a",
+      "kind": "portal",
+      "who": "drift-57",
+      "player": "94b402ce6e6a1d1b",
+      "text": "walked a world into being: The Restless Meander",
+      "at": 1792014144519
+    }
+  ],
+  "claim": null,
+  "attention": 0.0,
+  "weights": {
+    "cozy": 1.0577686,
+    "light": 1.0895426,
+    "plants": 1.1147326
+  },
+  "investors": {},
+  "building": null,
+  "last_visit": {},
+  "things": [],
+  "looks": {},
+  "touches": {},
+  "replunged": false,
+  "idea": null
+}
