@@ -74,6 +74,22 @@
       "seed": 2871956725,
       "by": "reference-heuristic@2",
       "at": 1792011407356
+    },
+    {
+      "id": "7986334311fc",
+      "tag": "stone",
+      "chamber": 0,
+      "seed": 1239992895,
+      "by": "reference-heuristic@2",
+      "at": 1792011429356
+    },
+    {
+      "id": "827711a19819",
+      "tag": "stone",
+      "chamber": 1,
+      "seed": 134507516,
+      "by": "reference-heuristic@2",
+      "at": 1792011429356
     }
   ],
   "portals": [],
@@ -99,17 +115,26 @@
       "who": "architect",
       "text": "The architect built The Pale Menagerie (creatures, water, music). New here: Moth.",
       "at": 1792011407356
+    },
+    {
+      "id": "a3d5b5e28f1c",
+      "kind": "growth",
+      "who": "architect",
+      "text": "The architect added detail (stone). New here: A poem.",
+      "at": 1792011429356
     }
   ],
   "claim": null,
-  "attention": 53.66776154699997,
+  "attention": 26.042578000999967,
   "weights": {
-    "plants": 2.3360643,
-    "stone": 2.378343,
-    "water": 2.464727
+    "creatures": 0.00841192,
+    "music": 0.00841192,
+    "plants": 2.4474003,
+    "stone": 2.4790974,
+    "water": 2.5844748
   },
   "investors": {
-    "94b402ce6e6a1d1b": 131.66776154699997
+    "94b402ce6e6a1d1b": 143.64257800099998
   },
   "building": null,
   "last_visit": {
@@ -150,13 +175,27 @@
       },
       "by": "reference-heuristic@2",
       "at": 1792011407356
+    },
+    {
+      "id": "4f92d4d6c42e",
+      "kind": "note",
+      "chamber": 1,
+      "seed": 1170628232,
+      "data": {
+        "text": "Every door is a question / with the answer already standing / on the other side.",
+        "title": "A poem"
+      },
+      "by": "reference-heuristic@2",
+      "at": 1792011429356
     }
   ],
   "looks": {
+    "827711a19819": 0.6,
+    "eaa1fb19f311": 0.8,
     "guestbook": 2.4,
     "theme:plants": 100.1,
-    "theme:stone": 1.8000001,
-    "theme:water": 3.9
+    "theme:stone": 2.1000001,
+    "theme:water": 4.7000003
   },
   "touches": {},
   "replunged": false

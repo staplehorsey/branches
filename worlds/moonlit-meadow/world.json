@@ -7,71 +7,71 @@
     "kind": "liminal-houses@1",
     "params": {
       "flowers": [
-        "#7ef0ff",
-        "#c39bff",
-        "#fff3a8"
+        "#82fdfe",
+        "#bb9fff",
+        "#ffeaac"
       ],
       "fog": {
-        "color": "#18214a",
-        "far": 95,
-        "near": 14
+        "color": "#19284c",
+        "far": 86.29014611244202,
+        "near": 12.716442584991455
       },
       "foliage": [
-        "#6ff0ff",
-        "#c39bff",
-        "#ff9be0",
-        "#9bffcf"
+        "#73fefe",
+        "#bb9fff",
+        "#ff9feb",
+        "#9fffc7"
       ],
       "grass": {
-        "base": "#0f2a24",
-        "density": 0.9,
-        "height": 0.5,
-        "tip": "#3f8a76"
+        "base": "#102c23",
+        "density": 0.9527120590209961,
+        "height": 0.48526784777641296,
+        "tip": "#418c70"
       },
-      "ground": "#10291f",
-      "hedge": "#163a33",
+      "ground": "#112b1e",
+      "hedge": "#173c31",
       "hemi": {
-        "ground": "#1a3040",
+        "ground": "#1b3642",
         "intensity": 1.5,
-        "sky": "#6a7ac8"
+        "sky": "#6d86c8"
       },
       "house": {
-        "door": "#ffd27a",
-        "roof": "#2a3052",
-        "trim": "#e6ecff",
-        "wall": "#c3cbe6",
-        "window": "#ffcd76"
+        "door": "#fec57e",
+        "roof": "#2c3654",
+        "trim": "#eaf1ff",
+        "wall": "#c6d1e7",
+        "window": "#fec07a"
       },
-      "lamp": "#ffd27a",
-      "motes": "#d8ff7a",
+      "lamp": "#fec57e",
+      "motes": "#e6fe7e",
       "night": true,
-      "path": "#3a4470",
+      "path": "#3c4c72",
       "places": {
-        "arch": 0.15,
-        "cave": 0.3,
-        "house": 0.45,
-        "tower": 0.1
+        "arch": 0.1380985975265503,
+        "cave": 0.2836514413356781,
+        "house": 0.3766487240791321,
+        "tower": 0.10460114479064941
       },
-      "ponds": 0.3,
+      "ponds": 0.2878466069698334,
       "sky": {
-        "bottom": "#141c40",
-        "horizon": "#2b3b6e",
-        "top": "#070b26"
+        "bottom": "#152242",
+        "horizon": "#2d4470",
+        "top": "#080f29"
       },
       "start": "liminal",
       "sun": {
         "azimuth": 1.2,
-        "color": "#a8bbff",
-        "elevation": 0.8,
+        "color": "#acc7ff",
+        "elevation": 0.8107402801513672,
         "intensity": 1.5
       },
       "terrain": {
         "amp": 0.0,
-        "scale": 46.0
+        "scale": 48.30037069320679
       },
       "trees": "mushroom",
-      "trunk": "#d9e4ff",
-      "water": "#2b4f96"
+      "trunk": "#ddeaff",
+      "water": "#2d5c98"
     }
   },
   "portal_policy": {
