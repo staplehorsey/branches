@@ -57,6 +57,7 @@
         "horizon": "#ffe7ef",
         "top": "#7fcaff"
       },
+      "start": "liminal",
       "sun": {
         "azimuth": 1.0,
         "color": "#ffffff",
@@ -64,8 +65,8 @@
         "intensity": 2.6
       },
       "terrain": {
-        "amp": 0.5,
-        "scale": 90
+        "amp": 0.0,
+        "scale": 90.0
       },
       "trees": "palm",
       "trunk": "#c9a27f",

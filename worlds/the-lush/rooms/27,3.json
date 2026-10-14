@@ -1,0 +1,47 @@
+{
+  "x": 27,
+  "z": 3,
+  "seed": 4031886752,
+  "theme": "cloud-nursery",
+  "chambers": [
+    {
+      "name": "Entry Hall",
+      "tag": "sky",
+      "seed": 4031886752,
+      "by": "generator",
+      "at": 0
+    }
+  ],
+  "features": [],
+  "portals": [],
+  "log": [
+    {
+      "id": "46c1caa809dc",
+      "kind": "visit",
+      "who": "drift-57",
+      "player": "94b402ce6e6a1d1b",
+      "text": "stopped by",
+      "at": 1791235470920
+    }
+  ],
+  "claim": null,
+  "attention": 2.8411718339999994,
+  "weights": {
+    "cozy": 1.1857921,
+    "light": 1.226525,
+    "sky": 1.1590002
+  },
+  "investors": {
+    "94b402ce6e6a1d1b": 2.8411718339999994
+  },
+  "building": null,
+  "last_visit": {
+    "94b402ce6e6a1d1b": 1791235470920
+  },
+  "things": [],
+  "looks": {
+    "theme:light": 1.5
+  },
+  "touches": {},
+  "replunged": false
+}

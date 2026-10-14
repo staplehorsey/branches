@@ -58,6 +58,7 @@
         "horizon": "#2b3b6e",
         "top": "#070b26"
       },
+      "start": "liminal",
       "sun": {
         "azimuth": 1.2,
         "color": "#a8bbff",
@@ -65,8 +66,8 @@
         "intensity": 1.5
       },
       "terrain": {
-        "amp": 4.2,
-        "scale": 46
+        "amp": 0.0,
+        "scale": 46.0
       },
       "trees": "mushroom",
       "trunk": "#d9e4ff",

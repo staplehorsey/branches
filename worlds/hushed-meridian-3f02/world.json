@@ -60,14 +60,15 @@
         "horizon": "#f9f7ec",
         "top": "#82c3ef"
       },
+      "start": "liminal",
       "sun": {
         "azimuth": 0.6,
         "color": "#fff8e8",
-        "elevation": 0.9912688136100769,
+        "elevation": 0.9912688136100768,
         "intensity": 2.4
       },
       "terrain": {
-        "amp": 1.8663342952728272,
+        "amp": 0.0,
         "scale": 74.6266860961914
       },
       "trees": "round",

@@ -146,12 +146,42 @@
   },
   "26,2": {
     "inside": 0.0,
-    "outside": 198.29478,
+    "outside": 219.29349,
     "visits": 0
   },
   "26,3": {
     "inside": 0.0,
-    "outside": 2.6466134,
+    "outside": 5.8045154,
+    "visits": 0
+  },
+  "27,2": {
+    "inside": 3.1700823,
+    "outside": 5.3781796,
+    "visits": 1
+  },
+  "27,3": {
+    "inside": 2.8411717,
+    "outside": 18.305515,
+    "visits": 1
+  },
+  "27,4": {
+    "inside": 0.0,
+    "outside": 1.8699687,
+    "visits": 0
+  },
+  "28,3": {
+    "inside": 0.0,
+    "outside": 7.935267,
+    "visits": 0
+  },
+  "29,3": {
+    "inside": 0.0,
+    "outside": 6.9215856,
+    "visits": 0
+  },
+  "29,4": {
+    "inside": 0.0,
+    "outside": 0.9620058,
     "visits": 0
   },
   "3,1": {
@@ -162,6 +192,26 @@
   "3,2": {
     "inside": 0.0,
     "outside": 1.0419421,
+    "visits": 0
+  },
+  "30,4": {
+    "inside": 0.0,
+    "outside": 6.8665967,
+    "visits": 0
+  },
+  "31,3": {
+    "inside": 0.0,
+    "outside": 5.14147,
+    "visits": 0
+  },
+  "31,4": {
+    "inside": 0.0,
+    "outside": 1.1662921,
+    "visits": 0
+  },
+  "32,3": {
+    "inside": 0.0,
+    "outside": 2.7119079,
     "visits": 0
   },
   "4,1": {
