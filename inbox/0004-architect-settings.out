@@ -6,3 +6,9 @@ cat: /Users/msainz/Library/Application Support/Branches/.branches/settings.json:
 
    2 [reference-heuristic@2, normal]
    3 [reference-heuristic@2, sketch]
+⚠ claude.ai connectors are disabled because ANTHROPIC_API_KEY or another auth source is set and takes precedence over your claude.ai login · Unset it to load your organization's connectors
+Failed to authenticate. API Error: 401 API key expired.
+
+real	3m0.709s
+user	0m3.054s
+sys	0m0.717s
