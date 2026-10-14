@@ -3,3 +3,12 @@
 == in /Users/msainz/Projects/branches at 89baa5a
 
 2026-10-14T22:23:34.169688Z  INFO branches_server: branches listening on http://localhost:7878/
+-- sonnet (real build): ready after 122s
+{"name":"The Lady's Street","summary":"Antwerp, 1566. You walk six stations down one street, each a household holding one part of a windlass; you ask, pay or seize each part, then assemble the machine in the right order in the square and decide whether to turn the crank on the wooden Lady at the end of the street.","minutes":8,"motifs":["iconoclasm","stations down a street","windlass assembled from household parts","ledger of costs","ask pay or take","wooden saint hollow inside"],"thread":"The dreamer built a windlass from six households' missing things to pull down the street's gilt wooden Lady, whose lamp is now out. They either toppled her (hollow wood; nothing left them) or let go of the crank with Mevrouw Aert's hand over theirs. They carry the gilt hand or the crank, and a ledger of what the street gave. Unresolved: the rage for a drowned brother has no object; what keeping and breaking each cost.","delight":"The ledger: every part of the machine is a named household's loss, read back at the end, so the machine is made of the street. The pawl's small sober click after the scream of the drum was the line I liked best.","new_values":{"verb":["reckon a ledger"],"source":["an iconoclastic riot"]},"idea":{"name":"The Lady's Street","premise":"Antwerp, 1566: a street of neighbours who tenderly dress a wooden saint, the same neighbours who watched a brother drowned for a psalm. Six doors each hold one part of a windlass; the player asks, pays or seizes each from its household, assembles the machine to pull her down, and reads what it cost."}}
+
+total 56
+drwxr-xr-x@ 5 msainz  staff    160 Oct 14 18:25 .
+drwxr-xr-x@ 3 msainz  staff     96 Oct 14 18:23 ..
+-rw-r--r--@ 1 msainz  staff   5529 Oct 14 18:23 BRIEF.md
+-rw-r--r--@ 1 msainz  staff  12981 Oct 14 18:25 index.html
+-rw-r--r--@ 1 msainz  staff   1568 Oct 14 18:25 space.json
