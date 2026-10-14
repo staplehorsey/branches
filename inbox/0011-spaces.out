@@ -2,3 +2,9 @@
 == started 2026-10-14 18:04:12 on msainzmbp, Darwin arm64
 == in /Users/msainz/Projects/branches at 2ae613d
 
+-- log
+2026-10-14T22:04:26.902801Z  INFO branches_server: worlds in /Users/msainz/Library/Application Support/Branches (a git repository); client from ../client
+2026-10-14T22:04:26.904453Z  INFO branches_server: branches listening on http://localhost:7878/
+"spaces_on":true
+
+== exit 0 after 15s
