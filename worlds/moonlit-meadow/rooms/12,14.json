@@ -102,7 +102,9 @@
         "verb": "hide and seek"
       },
       "thread": "Johnny's fever broke at 37.0. The Fever left through the vent and the night shift sat down. You carry a thermometer, shaken down. Unresolved: what the foremen do now that there is nothing to guard against.",
-      "delight": "Each foreman asks for exactly what a mother would have brought (half an aspirin, flat ginger ale), and the thermometer being shaken down twice lands as the exhale."
+      "delight": "Each foreman asks for exactly what a mother would have brought (half an aspirin, flat ginger ale), and the thermometer being shaken down twice lands as the exhale.",
+      "stage": "",
+      "stage_at": 0
     },
     {
       "n": 2,
@@ -127,7 +129,9 @@
         "verb": "assemble a machine"
       },
       "thread": "Saturday, 7 a.m. With nothing left to guard, the night foremen read the class's get-well cards (Beverly's pudding, Eddie's kickball, Linda's hamster, Arthur's apology, Ronnie's crummy joke) and gave up the parts of the Rumble. You built it and cranked it with the shaken-down thermometer. The stomach rumbled, the shift whistle blew, Johnny asked for toast, and the sign now reads DAYS WITHOUT FEVER: 1. Carried: Mrs. Novak's note to Miss Halloran (he'll be back Tuesday) and a toast soldier, still warm. Unresolved: Tuesday, the walk back into class, the empty desk, and Arthur by the slide.",
-      "delight": "A parent's real moment of relief isn't the thermometer, it's the child saying they're hungry. I loved making that moment a factory shift whistle powered by five clumsy, kind letters from eight-year-olds. Dov the sump man reading Arthur's apology for the sneeze on the slide ('I'm not crying. It's the sump.') is my favourite line, along with the assembly sheet's 'Crank: not supplied. Any straight thing of the right length will do.'"
+      "delight": "A parent's real moment of relief isn't the thermometer, it's the child saying they're hungry. I loved making that moment a factory shift whistle powered by five clumsy, kind letters from eight-year-olds. Dov the sump man reading Arthur's apology for the sneeze on the slide ('I'm not crying. It's the sump.') is my favourite line, along with the assembly sheet's 'Crank: not supplied. Any straight thing of the right length will do.'",
+      "stage": "",
+      "stage_at": 0
     }
   ],
   "space_visited": 1,

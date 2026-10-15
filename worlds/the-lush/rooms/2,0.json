@@ -51,7 +51,9 @@
       "visits": 0,
       "tries": 1,
       "thread": "",
-      "delight": ""
+      "delight": "",
+      "stage": "",
+      "stage_at": 0
     }
   ],
   "space_visited": 0,

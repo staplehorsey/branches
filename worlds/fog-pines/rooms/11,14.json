@@ -49,18 +49,20 @@
   "spaces": [
     {
       "n": 1,
-      "status": "building",
+      "status": "paused",
       "name": "",
       "summary": "",
       "minutes": 0.0,
-      "started": 1792024279842,
+      "started": 1792025052063,
       "secs": 0,
-      "error": null,
-      "dwell": 1.3605,
-      "visits": 1,
-      "tries": 1,
+      "error": "interrupted by a restart",
+      "dwell": 0.0,
+      "visits": 0,
+      "tries": 2,
       "thread": "",
-      "delight": ""
+      "delight": "",
+      "stage": "",
+      "stage_at": 0
     }
   ],
   "space_visited": 1,

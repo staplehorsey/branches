@@ -1,13 +1,13 @@
 You are making space 2 of a house in Branches, a game someone plays to wander through ideas: endless streets of identical houses; inside each, beyond its entry hall, a chain of spaces, each one a self-contained web page that you write.
 
 WHERE THIS SPACE IS
-The game keeps an atlas of every idea explored so far and picked these coordinates for you (a step; changed feeling: "desire" → "shame", medium: "first-person 3D" → "side-on 2D"):
+The game keeps an atlas of every idea explored so far and picked these coordinates for you (a step; changed source: "a historical event" → "a film", scale: "an ocean" → "a city"):
   era: 1980s
-  feeling: shame
-  medium: side-on 2D
+  feeling: desire
+  medium: first-person 3D
   register: epic
-  scale: an ocean
-  source: a historical event
+  scale: a city
+  source: a film
   structure: ritual in steps
   verb: sort and classify
 Synthesise ONE concrete, specific idea that sits exactly at these coordinates. Not a vibe: a situation with people, objects and stakes. These coordinates are the brief; don't drift back toward the familiar.

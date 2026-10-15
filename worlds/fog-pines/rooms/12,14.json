@@ -86,22 +86,26 @@
         "verb": "sort and classify"
       },
       "thread": "On the middle watch aboard R/V Knorr, 1 September 1985, the player sorted the seafloor still by still until a riveted boiler came up on the Argo monitor. They matched it to a 1911 plate, crossed out the '?' on the board and wrote TITANIC, and phoned the galley to wake the chief. The van cheered, then fell silent when the clock reached 2:20, the hour she sank, and the watch stood on the fantail over the tow cable. The player followed the cable down. Carried: a warm thermal print of the boiler, round-faced with three shut furnace doors, stamped 01:05. Still open: what you owe a thing you wanted so badly to find, once you've found it.",
-      "delight": "I loved that an epic search for the most famous wreck in the world comes down to a tired person holding a curl of warm printer paper and asking 'is this a rock?' a hundred times. The board labelled in marker, Gerald the rattail fish, and a dropstone an iceberg let go of all felt true, and the strike through the '?' felt like the hinge of the whole thing. Then the clock says 02:14 and the cheering just stops."
+      "delight": "I loved that an epic search for the most famous wreck in the world comes down to a tired person holding a curl of warm printer paper and asking 'is this a rock?' a hundred times. The board labelled in marker, Gerald the rattail fish, and a dropstone an iceberg let go of all felt true, and the strike through the '?' felt like the hinge of the whole thing. Then the clock says 02:14 and the cheering just stops.",
+      "stage": "",
+      "stage_at": 0
     },
     {
       "n": 2,
-      "status": "building",
+      "status": "paused",
       "name": "",
       "summary": "",
       "minutes": 0.0,
-      "started": 1792025015188,
+      "started": 1792025051974,
       "secs": 0,
-      "error": null,
+      "error": "interrupted by a restart",
       "dwell": 0.0,
       "visits": 0,
-      "tries": 1,
+      "tries": 2,
       "thread": "",
-      "delight": ""
+      "delight": "",
+      "stage": "",
+      "stage_at": 0
     }
   ],
   "space_visited": 1,
