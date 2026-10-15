@@ -72,10 +72,10 @@
   "replunged": false,
   "idea": {
     "name": "Inside Johnny",
-    "premise": "A 1950s tabletop game where a sick child's body is a factory run by a night shift of foremen. The Fever is hiding in one department and hops when you offer the wrong thing; each foreman will only talk for the small comforts a mother would bring. Finding it is half; the other half is letting it leave on its own terms, so the fever breaks.",
+    "premise": "A 1950s tin board game set inside a sick boy's body, where a crew of gruff foremen run his organs as factory departments. After the fever comes recovery, one game at a time: the night shift that fought the fever has to become a day shift that rebuilds an ordinary day, and the outside world reaches in through small kindnesses like a mother's comforts, a class's cards and a note to school.",
     "look": null,
     "muses": [],
-    "refined": 1,
+    "refined": 2,
     "at": 1792024008760
   },
   "spaces": [
@@ -106,18 +106,28 @@
     },
     {
       "n": 2,
-      "status": "building",
-      "name": "",
-      "summary": "",
-      "minutes": 0.0,
+      "status": "ready",
+      "name": "Inside Johnny: The Day Shift",
+      "summary": "You lean in over Johnny's bed tray and drop onto a 1955 tin board game, where the night-shift foremen have hidden the parts of the Rumble, the machine that makes hunger. Give each of his classmates' crayon get-well cards to the part of him it was really written to, rebuild the Rumble from the assembly sheet, and turn it using last night's thermometer as the crank until the shift whistle blows and he asks for toast.",
+      "minutes": 4.0,
       "started": 1792024279842,
-      "secs": 0,
+      "secs": 728,
       "error": null,
       "dwell": 0.0,
       "visits": 0,
       "tries": 2,
-      "thread": "",
-      "delight": ""
+      "genome": {
+        "era": "1950s",
+        "feeling": "relief",
+        "medium": "a table game",
+        "register": "industrial grit",
+        "scale": "the inside of a body",
+        "source": "a childhood ritual",
+        "structure": "letters and documents",
+        "verb": "assemble a machine"
+      },
+      "thread": "Saturday, 7 a.m. With nothing left to guard, the night foremen read the class's get-well cards (Beverly's pudding, Eddie's kickball, Linda's hamster, Arthur's apology, Ronnie's crummy joke) and gave up the parts of the Rumble. You built it and cranked it with the shaken-down thermometer. The stomach rumbled, the shift whistle blew, Johnny asked for toast, and the sign now reads DAYS WITHOUT FEVER: 1. Carried: Mrs. Novak's note to Miss Halloran (he'll be back Tuesday) and a toast soldier, still warm. Unresolved: Tuesday, the walk back into class, the empty desk, and Arthur by the slide.",
+      "delight": "A parent's real moment of relief isn't the thermometer, it's the child saying they're hungry. I loved making that moment a factory shift whistle powered by five clumsy, kind letters from eight-year-olds. Dov the sump man reading Arthur's apology for the sneeze on the slide ('I'm not crying. It's the sump.') is my favourite line, along with the assembly sheet's 'Crank: not supplied. Any straight thing of the right length will do.'"
     }
   ],
   "space_visited": 1,

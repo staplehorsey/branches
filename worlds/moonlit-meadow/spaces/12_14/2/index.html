@@ -1,170 +1,975 @@
-<!doctype html><html><head><meta charset="utf-8"><title>The Convalescent Line</title>
-<style>html,body{margin:0;background:#15130f}#t{position:fixed;left:0;right:0;top:12px;text-align:center;color:#e9d9b0;font:15px Georgia,serif;text-shadow:0 1px 4px #000;pointer-events:none}</style></head>
-<body><div id="t">WASD to walk · click to look · E to use · the first meal after a fever, stations 1–4</div>
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Inside Johnny: The Day Shift</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#cfdcc4;font-family:Georgia,serif}
+canvas{display:block}
+.ui{position:fixed;pointer-events:none;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.75)}
+#hud{left:12px;top:10px;font-size:14px;letter-spacing:.04em;font-family:"Courier New",monospace;background:rgba(29,19,12,.55);padding:4px 9px;border-radius:4px}
+#hint{left:0;right:0;bottom:19%;text-align:center;font-size:18px}
+#cross{left:50%;top:50%;width:6px;height:6px;margin:-3px;border-radius:50%;background:rgba(255,255,255,.85)}
+#bag{left:0;right:0;bottom:12px;text-align:center;font-size:14px}
+#bag span{display:inline-block;margin:0 4px;padding:4px 9px;border-radius:4px;background:rgba(29,19,12,.6);border:2px solid transparent}
+#bag span.sel{border-color:#e8a317;background:rgba(120,80,10,.8)}
+#chorus{left:50%;bottom:30%;transform:translateX(-50%);max-width:80vw;text-align:center;font-size:19px;line-height:1.6;display:none;background:rgba(29,19,12,.7);padding:10px 18px;border-radius:8px}
+#big{left:0;right:0;top:30%;text-align:center;font-size:42px;font-family:Georgia,serif;opacity:0;transition:opacity .6s;line-height:1.5}
+#big small{display:block;font-size:20px;font-style:italic;opacity:.9}
+#fade{left:0;top:0;right:0;bottom:0;background:#f6ecce;opacity:0;transition:opacity .6s}
+#intro{left:50%;top:50%;transform:translate(-50%,-50%);width:min(540px,86vw);background:rgba(246,236,206,.96);color:#2a1a10;text-shadow:none;border:3px solid #b8382a;outline:2px solid #f6ecce;padding:20px 26px;font-size:19px;line-height:1.5;text-align:center;pointer-events:auto;border-radius:4px}
+#intro h1{font-family:Impact,"Arial Narrow",sans-serif;letter-spacing:.06em;font-size:30px;margin:0 0 10px;color:#b8382a;font-weight:normal}
+#panel{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:min(560px,88vw);max-height:78vh;overflow:auto;padding:24px 30px;border-radius:6px;background:#f7efdc;color:#222;font-size:21px;line-height:1.5;display:none;box-shadow:0 10px 40px rgba(0,0,0,.5);cursor:pointer}
+#panel .foot{margin-top:14px;font-size:13px;opacity:.55;font-family:Georgia,serif}
+#panel.speech{border:3px solid #b8382a}
+#panel .who{display:inline-block;background:#b8382a;color:#fff;letter-spacing:.14em;font-size:14px;font-weight:bold;padding:2px 9px;margin-bottom:8px}
+#panel p{margin:.5em 0}
+#panel.card{font-family:"Comic Sans MS","Chalkboard SE",cursive;font-size:22px}
+#panel.card div.l{display:block}
+#panel.typed{background:#efe3b4;font-family:"Courier New",monospace;font-size:16px;white-space:pre-wrap;line-height:1.35;border:1px solid #9b8a50}
+#panel.note{background:repeating-linear-gradient(#f4f8fc 0,#f4f8fc 31px,#9ab8d8 32px);font-family:"Segoe Script","Bradley Hand","Brush Script MT",cursive;font-size:21px;line-height:32px}
+#panel.note p{margin:0 0 32px}
+#panel.note .from{font-family:Georgia,serif;font-size:12px;letter-spacing:.15em;text-transform:uppercase;color:#789;line-height:20px;margin-bottom:12px}
+</style></head><body>
+<div id="hud" class="ui">THE DAY SHIFT</div>
+<div id="cross" class="ui"></div>
+<div id="hint" class="ui"></div>
+<div id="bag" class="ui"></div>
+<div id="chorus" class="ui"></div>
+<div id="big" class="ui"></div>
+<div id="intro" class="ui"><h1>INSIDE JOHNNY: THE DAY SHIFT</h1>Saturday, 7 a.m. The fever broke at three. Johnny is sitting up in bed with the expansion set open on his tray.<br><br><i>Click, then press E to lean in.</i></div>
+<div id="panel"></div>
+<div id="fade" class="ui"></div>
 <script type="module">
-import * as THREE from '/vendor/three.module.js';
-import { createSpace } from '/kit/space.js';
-const s = createSpace({ background: '#15130f', speed: 3.2 });
-const { scene } = s;
-const M = (c, r = 0.8, m = 0) => new THREE.MeshStandardMaterial({ color: c, roughness: r, metalness: m });
-const box = (w, h, d, c, x, y, z, parent = scene) => { const b = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), M(c)); b.position.set(x, y, z); parent.add(b); return b; };
-const cyl = (rt, rb, h, c, x, y, z, seg = 20) => { const b = new THREE.Mesh(new THREE.CylinderGeometry(rt, rb, h, seg), M(c, 0.5, 0.3)); b.position.set(x, y, z); scene.add(b); return b; };
+import * as THREE from "/vendor/three.module.js";
+const B = window.branches || {};
+const say = (t) => { try { B.say && B.say(t); } catch (e) {} };
+const $ = (id) => document.getElementById(id);
 
-// the hall: one long enamel-green room, stations every 10 units
-s.room({ x: 0, z: -22, w: 9, d: 50, h: 4, wall: '#6d7f72', floor: '#3a3631', ceiling: '#2b2a26' });
-scene.add(new THREE.AmbientLight('#ffe9c4', 0.9));
-const Z = [-5, -15, -25, -35];
-Z.forEach((z) => {
-  const l = new THREE.PointLight('#ffd9a0', 30, 14); l.position.set(0, 3.5, z); scene.add(l);
-  box(8.8, 0.02, 0.25, '#d9c28a', 0, 0.01, z + 4.6);
-});
-function plate(text, w, h, x, y, z, ry = 0, bg = '#1c1b18', fg = '#f0e2b6', size = 34) {
-  const c = document.createElement('canvas'); c.width = 512; c.height = Math.round(512 * h / w);
-  const g = c.getContext('2d'), tex = new THREE.CanvasTexture(c);
-  const draw = (t) => {
-    g.fillStyle = bg; g.fillRect(0, 0, c.width, c.height); g.fillStyle = fg;
-    g.font = `bold ${size}px Georgia`; g.textAlign = 'center';
-    const ls = String(t).split('\n');
-    ls.forEach((ln, k) => g.fillText(ln, c.width / 2, c.height / 2 + (k - (ls.length - 1) / 2) * (size + 8) + size / 3));
-    tex.needsUpdate = true;
-  };
-  draw(text);
-  const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ map: tex }));
-  m.position.set(x, y, z); m.rotation.y = ry; scene.add(m); m.draw = draw; return m;
+// ---------- renderer / scene ----------
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setSize(innerWidth, innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+document.body.insertBefore(renderer.domElement, document.body.firstChild);
+const scene = new THREE.Scene();
+scene.background = new THREE.Color("#cfdcc4");
+scene.fog = new THREE.Fog("#cfdcc4", 60, 180);
+const camera = new THREE.PerspectiveCamera(70, innerWidth / innerHeight, 0.05, 600);
+addEventListener("resize", () => { renderer.setSize(innerWidth, innerHeight); camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); });
+
+const hemi = new THREE.HemisphereLight("#fff3d6", "#6b5a44", 0.7); scene.add(hemi);
+const sun = new THREE.DirectionalLight("#ffd59a", 1.3);
+sun.position.set(40, 18, 6); sun.target.position.set(0, 0, 0);
+sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048);
+Object.assign(sun.shadow.camera, { left: -15, right: 15, top: 15, bottom: -15, near: 1, far: 120 });
+sun.shadow.bias = -0.0008;
+scene.add(sun, sun.target, new THREE.AmbientLight("#ffffff", 0.15));
+
+// ---------- helpers ----------
+const cvs = (w, h) => { const c = document.createElement("canvas"); c.width = w; c.height = h; return c; };
+const tex = (c) => { const t = new THREE.CanvasTexture(c); if (THREE.SRGBColorSpace) t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; return t; };
+const std = (color, o = {}) => new THREE.MeshStandardMaterial(Object.assign({ color, roughness: 0.7, metalness: 0.15 }, o));
+const box = (w, h, d, mat, x = 0, y = 0, z = 0, cast = true) => {
+  const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat); m.position.set(x, y, z); m.castShadow = cast; m.receiveShadow = true; return m;
+};
+const cyl = (rt, rb, h, mat, x = 0, y = 0, z = 0, seg = 24) => {
+  const m = new THREE.Mesh(new THREE.CylinderGeometry(rt, rb, h, seg), mat); m.position.set(x, y, z); m.castShadow = true; m.receiveShadow = true; return m;
+};
+const R = (a, b) => a + Math.random() * (b - a);
+const wrapText = (x, text, cx, cy, maxW, lh) => {
+  const words = text.split(" "); let line = ""; let y = cy;
+  for (const w of words) { const t = line ? line + " " + w : w; if (x.measureText(t).width > maxW && line) { x.fillText(line, cx, y); line = w; y += lh; } else line = t; }
+  x.fillText(line, cx, y);
+};
+const esc = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+const md = (s) => esc(s).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>").replace(/\*(.+?)\*/g, "<em>$1</em>");
+
+// ---------- time: tweens and scheduler ----------
+const tweens = []; const timers = []; let gameT = 0;
+const ease = (k) => (k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2);
+function tween(dur, fn, done, e) { tweens.push({ t: 0, dur, fn, done, e }); }
+function later(sec, fn) { timers.push({ at: gameT + sec, fn }); }
+
+// ---------- audio ----------
+let AC = null, master = null, bus = null, noiseBuf = null, lowLayer = null;
+function audioStart() {
+  if (AC) { try { AC.resume(); } catch (e) {} return; }
+  try {
+    AC = new (window.AudioContext || window.webkitAudioContext)();
+    master = AC.createGain(); master.gain.value = 0.9; master.connect(AC.destination);
+    bus = AC.createGain(); const dl = AC.createDelay(); dl.delayTime.value = 0.17; const fb = AC.createGain(); fb.gain.value = 0.3;
+    bus.connect(master); bus.connect(dl); dl.connect(fb); fb.connect(dl); dl.connect(master);
+    noiseBuf = AC.createBuffer(1, AC.sampleRate * 2, AC.sampleRate);
+    const d = noiseBuf.getChannelData(0); let last = 0;
+    for (let i = 0; i < d.length; i++) { last = (last + 0.02 * (Math.random() * 2 - 1)) / 1.02; d[i] = last * 3.5; }
+    const hum = AC.createOscillator(); hum.frequency.value = 55; const hg = AC.createGain(); hg.gain.value = 0.02; hum.connect(hg); hg.connect(master); hum.start();
+    setInterval(() => tick(), 1000);
+  } catch (e) { AC = null; }
 }
-['1  THE MILL', '2  THE VAT', '3  THE BENCH', '4  THE SPOON'].forEach((t, i) => plate(t, 2.6, 0.6, -4.37, 3.2, Z[i], Math.PI / 2, '#2a2823', '#e8c46a', 40));
+const safe = (fn) => (...a) => { if (!AC) return; try { return fn(...a); } catch (e) {} };
+const tone = safe((f, type, dur, gain, f2, dest) => {
+  const t = AC.currentTime; const o = AC.createOscillator(); o.type = type; o.frequency.setValueAtTime(f, t);
+  if (f2) o.frequency.exponentialRampToValueAtTime(f2, t + dur);
+  const g = AC.createGain(); g.gain.setValueAtTime(gain, t); g.gain.exponentialRampToValueAtTime(0.0005, t + dur);
+  o.connect(g); g.connect(dest || master); o.start(t); o.stop(t + dur + 0.05);
+});
+const nburst = safe((dur, ftype, f, Q, gain, dest) => {
+  const t = AC.currentTime; const s = AC.createBufferSource(); s.buffer = noiseBuf; s.playbackRate.value = 3;
+  const fl = AC.createBiquadFilter(); fl.type = ftype; fl.frequency.value = f; fl.Q.value = Q;
+  const g = AC.createGain(); g.gain.setValueAtTime(gain, t); g.gain.exponentialRampToValueAtTime(0.0005, t + dur);
+  s.connect(fl); fl.connect(g); g.connect(dest || master); s.start(t, Math.random()); s.stop(t + dur + 0.05);
+});
+const tick = safe(() => nburst(0.03, "bandpass", 2400, 3, 0.05, bus));
+const blip = safe((hz) => { const n = 4 + Math.floor(Math.random() * 3); for (let i = 0; i < n; i++) setTimeout(() => tone(hz * R(0.9, 1.15), "square", 0.06, 0.05), i * 70); });
+const rustle = safe(() => nburst(0.15, "bandpass", 3000, 1, 0.25));
+const clank = safe(() => { nburst(0.25, "bandpass", 1200, 8, 0.8); tone(600, "sine", 0.3, 0.2); });
+const bong = safe(() => tone(180, "sine", 0.8, 0.5, 140));
+const tock = safe(() => { tone(900, "triangle", 0.08, 0.2, 500); nburst(0.06, "bandpass", 1800, 4, 0.3); });
+const tinClick = safe(() => { nburst(0.04, "highpass", 3000, 1, 0.4); tone(1400, "square", 0.04, 0.05); });
+const ratchet = safe(() => { for (let i = 0; i < 3; i++) setTimeout(() => nburst(0.02, "highpass", 2500, 2, 0.35), i * 60); });
+const lowRumbleLayer = safe((lvl) => {
+  if (!lowLayer) {
+    const s = AC.createBufferSource(); s.buffer = noiseBuf; s.loop = true;
+    const f = AC.createBiquadFilter(); f.type = "lowpass"; f.frequency.value = 80;
+    const g = AC.createGain(); g.gain.value = 0; s.connect(f); f.connect(g); g.connect(master); s.start(); lowLayer = g;
+  }
+  lowLayer.gain.linearRampToValueAtTime(lvl, AC.currentTime + 0.4);
+});
+const bigRumble = safe(() => {
+  const t = AC.currentTime;
+  if (lowLayer) { lowLayer.gain.cancelScheduledValues(t); lowLayer.gain.linearRampToValueAtTime(0, t + 3); }
+  const s = AC.createBufferSource(); s.buffer = noiseBuf; s.loop = true;
+  const f = AC.createBiquadFilter(); f.type = "lowpass"; f.frequency.value = 90;
+  const g = AC.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(1.6, t + 1.8); g.gain.linearRampToValueAtTime(0.0001, t + 5);
+  const lfo = AC.createOscillator(); lfo.frequency.setValueAtTime(3, t); lfo.frequency.linearRampToValueAtTime(5, t + 3);
+  const lg = AC.createGain(); lg.gain.value = 0.6; lfo.connect(lg); lg.connect(g.gain);
+  s.connect(f); f.connect(g); g.connect(master); s.start(t); s.stop(t + 5.2); lfo.start(t); lfo.stop(t + 5.2);
+  const o = AC.createOscillator(); o.frequency.setValueAtTime(45, t); o.frequency.linearRampToValueAtTime(38, t + 3);
+  const og = AC.createGain(); og.gain.setValueAtTime(0.0001, t); og.gain.linearRampToValueAtTime(0.5, t + 1.8); og.gain.linearRampToValueAtTime(0.0001, t + 4.5);
+  o.connect(og); og.connect(master); o.start(t); o.stop(t + 4.6);
+  const o2 = AC.createOscillator(); o2.type = "sawtooth"; o2.frequency.setValueAtTime(70, t); o2.frequency.linearRampToValueAtTime(55, t + 3);
+  const f2 = AC.createBiquadFilter(); f2.type = "lowpass"; f2.frequency.value = 220;
+  const g2 = AC.createGain(); g2.gain.setValueAtTime(0.0001, t); g2.gain.linearRampToValueAtTime(0.18, t + 1.5); g2.gain.linearRampToValueAtTime(0.0001, t + 4);
+  o2.connect(f2); f2.connect(g2); g2.connect(master); o2.start(t); o2.stop(t + 4.1);
+});
+const whistle = safe(() => {
+  const t = AC.currentTime; const g = AC.createGain();
+  g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.22, t + 0.4); g.gain.setValueAtTime(0.22, t + 1.8); g.gain.exponentialRampToValueAtTime(0.0005, t + 2.7);
+  g.connect(master); g.connect(bus);
+  [392, 494].forEach((fr, i) => {
+    const o = AC.createOscillator(); o.type = "sine"; o.frequency.value = fr * (i ? 1.004 : 1);
+    const l = AC.createOscillator(); l.frequency.value = 5.5; const lg = AC.createGain(); lg.gain.value = 4; l.connect(lg); lg.connect(o.frequency);
+    o.connect(g); o.start(t); l.start(t); o.stop(t + 2.8); l.stop(t + 2.8);
+  });
+  nburst(2.4, "highpass", 3500, 1, 0.05);
+});
 
-function foreman(x, z, ry, col, lines) {
-  const g = new THREE.Group(); g.position.set(x, 0, z); g.rotation.y = ry; scene.add(g);
-  box(0.6, 0.7, 0.4, col, 0, 0.75, 0, g); box(0.5, 0.1, 0.5, '#222', 0, 0.4, 0.1, g);
-  const hd = new THREE.Mesh(new THREE.SphereGeometry(0.2, 14, 12), M('#d9b896')); hd.position.set(0, 1.35, 0); g.add(hd);
-  box(0.46, 0.08, 0.46, '#3b3a35', 0, 1.52, 0, g);
-  let n = 0;
-  s.thing(g, { label: 'talk', use() { s.say(lines[Math.min(n++, lines.length - 1)]); } });
+// ---------- the board ----------
+const COL = { cream: "#efe2b8", red: "#b8382a", mustard: "#e8a317", green: "#3f6b5c", soot: "#1d130c", rust: "#8a4b2a", brass: "#c9a24a", peach: "#f1c9a5" };
+const TRACK = (() => { // 40 squares round a rectangle
+  const pts = []; const x0 = -10.4, x1 = 10.4, z0 = -6.9, z1 = 6.3; const W = x1 - x0, H = z1 - z0, P = 2 * (W + H);
+  for (let i = 0; i < 40; i++) {
+    let d = (i / 40) * P, x, z;
+    if (d < W) { x = x0 + d; z = z0; } else if ((d -= W) < H) { x = x1; z = z0 + d; } else if ((d -= H) < W) { x = x1 - d; z = z1; } else { d -= W; x = x0; z = z1 - d; }
+    pts.push([x, z]);
+  }
+  return pts;
+})();
+function boardTexture() {
+  const S = 64, c = cvs(24 * S, 16 * S), x = c.getContext("2d");
+  const X = (v) => (v + 12) * S, Z = (v) => (v + 8) * S;
+  x.fillStyle = COL.cream; x.fillRect(0, 0, c.width, c.height);
+  // paper grain
+  for (let i = 0; i < 1400; i++) { x.fillStyle = `rgba(120,90,40,${R(0.02, 0.07)})`; x.fillRect(R(0, c.width), R(0, c.height), R(1, 4), R(1, 4)); }
+  // boy silhouette
+  x.lineWidth = 12; x.strokeStyle = COL.red; x.fillStyle = COL.peach; x.lineJoin = "round";
+  x.beginPath(); x.arc(X(0), Z(-5.6), 1.7 * S, 0, Math.PI * 2); x.fill(); x.stroke();
+  x.beginPath(); x.moveTo(X(-5.2), Z(-3.6)); x.quadraticCurveTo(X(-1.2), Z(-4.4), X(0), Z(-4.0)); x.quadraticCurveTo(X(1.2), Z(-4.4), X(5.2), Z(-3.6));
+  x.lineTo(X(5.6), Z(5.5)); x.lineTo(X(5.0), Z(7.2)); x.lineTo(X(-5.0), Z(7.2)); x.lineTo(X(-5.6), Z(5.5)); x.closePath(); x.fill(); x.stroke();
+  x.fillStyle = "rgba(184,56,42,.12)"; x.fillRect(X(-5), Z(3.2), 10 * S, 4 * S);
+  // face
+  x.fillStyle = COL.soot; x.beginPath(); x.arc(X(-0.6), Z(-5.9), 8, 0, 7); x.arc(X(0.6), Z(-5.9), 8, 0, 7); x.fill();
+  x.lineWidth = 6; x.strokeStyle = COL.soot; x.beginPath(); x.arc(X(0), Z(-5.3), 0.4 * S, 0.2, Math.PI - 0.2); x.stroke();
+  // wire line vat hall -> switchboard
+  x.strokeStyle = COL.red; x.lineWidth = 7; x.setLineDash([22, 12]); x.beginPath(); x.moveTo(X(-1), Z(0.9)); x.lineTo(X(0), Z(-4.9)); x.stroke(); x.setLineDash([]);
+  // track
+  x.font = "bold 22px 'Courier New',monospace"; x.textAlign = "center"; x.textBaseline = "middle";
+  TRACK.forEach(([tx, tz], i) => {
+    const s = 0.9 * S; x.fillStyle = i % 2 ? COL.cream : COL.mustard; x.strokeStyle = COL.soot; x.lineWidth = 3;
+    x.fillRect(X(tx) - s / 2, Z(tz) - s / 2, s, s); x.strokeRect(X(tx) - s / 2, Z(tz) - s / 2, s, s);
+    x.fillStyle = COL.soot; x.fillText(String(i + 1), X(tx), Z(tz));
+  });
+  // title
+  x.save(); x.font = "bold 46px Impact,'Arial Narrow',sans-serif"; x.fillStyle = COL.red; x.fillText("T H E   D A Y   S H I F T  ·  MILTON & HARROW CO.", X(0), Z(7.55)); x.restore();
+  // organ captions
+  x.font = "italic 20px Georgia"; x.fillStyle = "rgba(29,19,12,.5)";
+  x.fillText("EAR", X(-6), Z(-4.2)); x.fillText("LUNGS", X(-6.5), Z(1.2)); x.fillText("HEART", X(3), Z(0.2)); x.fillText("LIVER", X(7), Z(4.7)); x.fillText("STOMACH", X(-1), Z(0.4));
+  // grit
+  for (let i = 0; i < 40; i++) { x.fillStyle = `rgba(29,19,12,${R(0.03, 0.12)})`; x.beginPath(); x.arc(R(0, c.width), R(0, c.height), R(4, 26), 0, 7); x.fill(); }
+  x.strokeStyle = "rgba(110,60,20,.35)"; x.lineWidth = 6; x.beginPath(); x.arc(X(8.2), Z(-2.6), 38, 0, 5.8); x.stroke();
+  return tex(c);
+}
+const boardTop = new THREE.Mesh(new THREE.PlaneGeometry(24, 16), new THREE.MeshStandardMaterial({ map: boardTexture(), roughness: 0.9 }));
+boardTop.rotation.x = -Math.PI / 2; boardTop.position.y = 0.002; boardTop.receiveShadow = true; scene.add(boardTop);
+scene.add(box(24, 0.2, 16, std("#8c7a52"), 0, -0.1, 0, false));
+scene.add(box(30, 0.3, 22, std("#6a4a2c"), 0, -0.35, 0, false));
+const tin = std(COL.green, { metalness: 0.4, roughness: 0.5 });
+[[24, 0.3, -7.85], [24, 0.3, 7.85]].forEach(([w, d, z]) => scene.add(box(w, 0.4, d, tin, 0, 0.2, z)));
+[-11.85, 11.85].forEach((x) => scene.add(box(0.3, 0.4, 16, tin, x, 0.2, 0)));
+for (let i = -11; i <= 11; i += 1.5) { [-7.85, 7.85].forEach((z) => { const r = new THREE.Mesh(new THREE.SphereGeometry(0.06, 8, 6), std("#9db5a8")); r.position.set(i, 0.41, z); scene.add(r); }); }
+
+const bubbles = []; let windowMat = null;
+const things = [];
+// ---------- the giant room ----------
+(() => {
+  const q = cvs(256, 256), x = q.getContext("2d");
+  x.fillStyle = "#f3efe4"; x.fillRect(0, 0, 256, 256); x.fillStyle = "#9fb4c8"; x.fillRect(0, 0, 128, 128); x.fillRect(128, 128, 128, 128);
+  const t = tex(q); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(16, 16);
+  const quilt = new THREE.Mesh(new THREE.PlaneGeometry(200, 200), new THREE.MeshStandardMaterial({ map: t, roughness: 1 }));
+  quilt.rotation.x = -Math.PI / 2; quilt.position.y = -1; quilt.receiveShadow = true; scene.add(quilt);
+  // lid
+  const l = cvs(1360, 880), c = l.getContext("2d");
+  c.fillStyle = COL.soot; c.fillRect(0, 0, 1360, 880); c.strokeStyle = COL.mustard; c.lineWidth = 14; c.strokeRect(30, 30, 1300, 820);
+  c.fillStyle = "#3a2a1c"; // skyline in ribcage
+  for (let i = 0; i < 9; i++) { c.strokeStyle = "#6b5a44"; c.lineWidth = 18; c.beginPath(); c.arc(680, 880, 220 + i * 40, Math.PI * 1.1, Math.PI * 1.9); c.stroke(); }
+  for (let i = 0; i < 14; i++) { const bx = 360 + i * 48, bh = R(80, 220); c.fillStyle = "#2a2018"; c.fillRect(bx, 640 - bh, 36, bh + 60); if (i % 3 === 0) { c.fillRect(bx + 10, 640 - bh - 60, 14, 60); c.fillStyle = "rgba(230,230,220,.5)"; c.beginPath(); c.arc(bx + 17, 640 - bh - 80, 18, 0, 7); c.fill(); } }
+  c.textAlign = "center"; c.fillStyle = COL.mustard; c.font = "180px Impact,'Arial Narrow',sans-serif"; c.fillText("INSIDE JOHNNY", 680, 230);
+  c.fillStyle = "#d9452f"; c.font = "110px Impact,'Arial Narrow',sans-serif"; c.fillText("THE DAY SHIFT", 680, 350);
+  c.fillStyle = "#efe2b8"; c.font = "36px Georgia"; c.fillText("Expansion Set No. 2 · For 2 to 6 Players · Ages 6 and Up", 680, 740);
+  c.font = "bold 40px Georgia"; c.fillStyle = COL.mustard; c.fillText("MILTON & HARROW CO. · 1955", 680, 800);
+  const mats = [std("#2a2018"), std("#2a2018"), std("#2a2018"), std("#2a2018"), new THREE.MeshBasicMaterial({ map: tex(l) }), std("#2a2018")];
+  const lid = new THREE.Mesh(new THREE.BoxGeometry(34, 22, 0.5), mats); lid.position.set(0, 10, -14); scene.add(lid);
+  addThing(lid, { label: () => "The lid. Ages 6 and up.", use: () => say("The lid. Ages 6 and up."), reach: 80 });
+  // glass
+  const glass = new THREE.Mesh(new THREE.CylinderGeometry(4, 3.6, 14, 32, 1, true), new THREE.MeshStandardMaterial({ color: "#d9b25a", transparent: true, opacity: 0.35, side: THREE.DoubleSide, roughness: 0.2 }));
+  glass.position.set(20, 6, 14); scene.add(glass);
+  const ale = new THREE.Mesh(new THREE.CylinderGeometry(3.9, 3.6, 10, 32), new THREE.MeshStandardMaterial({ color: "#d9b25a", transparent: true, opacity: 0.4 }));
+  ale.position.set(20, 4, 14); scene.add(ale);
+  addThing(glass, { label: () => "Ginger ale. Gone flat. Perfect.", use: () => say("Ginger ale. Gone flat. Perfect."), reach: 80 });
+  for (let i = 0; i < 12; i++) {
+    const b = new THREE.Mesh(new THREE.SphereGeometry(R(0.15, 0.4), 8, 6), new THREE.MeshBasicMaterial({ color: "#fff3c0", transparent: true, opacity: 0.6 }));
+    b.position.set(20 + R(-2.8, 2.8), R(-0.5, 8.5), 14 + R(-2.8, 2.8)); b.userData.sp = R(0.3, 0.8); bubbles.push(b); scene.add(b);
+  }
+  // window
+  const wp = new THREE.Mesh(new THREE.PlaneGeometry(40, 30), new THREE.MeshBasicMaterial({ color: "#ffe4b0", fog: false }));
+  wp.position.set(60, 20, 0); wp.rotation.y = -Math.PI / 2; scene.add(wp); windowMat = wp.material;
+  const fm = std("#4a3a2a");
+  scene.add(box(0.8, 30, 1.2, fm, 59.5, 20, 0, false), box(0.8, 1.2, 40, fm, 59.5, 20, 0, false), box(0.8, 1.6, 42, fm, 59.5, 5, 0, false));
+  const room = new THREE.Mesh(new THREE.BoxGeometry(160, 80, 160), new THREE.MeshStandardMaterial({ color: "#cfdcc4", side: THREE.BackSide, roughness: 1 }));
+  room.position.y = 20; scene.add(room);
+})();
+
+// ---------- interactables ----------
+function addThing(obj, o) { o.obj = obj; if (!o.reach) o.reach = 4.6; things.push(o); return o; }
+function dropThing(obj) { const i = things.findIndex((t) => t.obj === obj); if (i >= 0) things.splice(i, 1); }
+
+// ---------- state ----------
+let mode = "intro"; // intro, dive, play, script
+let reading = false, panelClose = null, selected = -1;
+const inv = [];
+const P = { x: -6, z: -2.5, yaw: 0, pitch: 0 };
+let fitted = 0, cranked = false, turns = 0, rumbled = false, noteTaken = false, dayLit = false, leaving = false, spinning = false;
+let shakeAmp = 0, shakeUntil = 0, wobbleUntil = 0, hobbsStage = 0, landedAt = null, hintGiven = false, toastShown = false;
+const ORDER = ["Strainer", "Churn", "Flywheel", "Bellows", "Whistle"];
+const CARDNAMES = ["Beverly's card", "Eddie's card", "Linda's card", "Arthur's card", "Ronnie's card"];
+const isCard = (n) => CARDNAMES.includes(n);
+const sel = () => (selected >= 0 && selected < inv.length ? inv[selected] : null);
+function invAdd(n) { inv.push(n); drawBag(); hud(); }
+function invRemove(n) { const i = inv.indexOf(n); if (i >= 0) { if (selected === i) selected = -1; else if (selected > i) selected--; inv.splice(i, 1); } drawBag(); hud(); }
+function drawBag() { $("bag").innerHTML = inv.map((n, i) => `<span class="${i === selected ? "sel" : ""}">${i + 1} · ${esc(n)}</span>`).join(""); }
+function hud() { $("hud").textContent = `THE DAY SHIFT · Rumble parts fitted: ${fitted}/5 · Cards in hand: ${inv.filter(isCard).length}`; }
+
+// ---------- panels ----------
+const panel = $("panel");
+function openPanel(cls, inner, onClose) {
+  panel.className = cls; panel.innerHTML = inner + `<div class="foot">E or click to close</div>`; panel.style.display = "block"; panel.scrollTop = 0;
+  reading = true; panelClose = onClose || null;
+}
+function closePanel() {
+  if (!reading) return; panel.style.display = "none"; reading = false;
+  const f = panelClose; panelClose = null; if (f) f();
+}
+panel.addEventListener("click", closePanel);
+const HZ = { Hobbs: 140, Pruitt: 120, Wren: 220, Ines: 260, Dov: 110, Mabel: 330 };
+function speak(who, lines, onClose) {
+  openPanel("speech", `<div class="who">${who.toUpperCase()}</div>` + lines.map((l) => `<p>${md(l)}</p>`).join(""), onClose);
+  blip(HZ[who] || 150);
+}
+
+// documents
+const CARDS = {
+  "Beverly's card": { bg: "#f2b8c6", lines: ["Dear Johnny,", "Get well soon. Today at lunch it was butterscotch pudding. I saved you mine but Mrs. Dunn said it would go bad so I ate it. Sorry. It was very good.", "Your friend,", "Beverly"], draw: "bowl" },
+  "Eddie's card": { bg: "#a9cf8e", lines: ["Johnny —", "We played kickball. I kicked it over the fence on Elm st and we had to stop. We need you in left field. Hurry up.", "Eddie", "P.S. Ronnie is in left field now and he is BAD."], draw: "ball" },
+  "Linda's card": { bg: "#f3dd7a", lines: ["Dear Johnny,", "I am taking care of Pickles this weekend. He ran on his wheel all night. I think he misses you. I stayed up and listened to him go around.", "Get well soon.", "Love, Linda (and Pickles)"], draw: "hamster" },
+  "Arthur's card": { bg: "#9fc0e6", lines: ["Dear Johnny,", "Miss Halloran says we all have to write to you. I think I gave you my cold on Tuesday when I sneezed on the slide. I am sorry. I am better now. You will be too.", "Arthur"], draw: "slide" },
+  "Ronnie's card": { bg: "#f3a65a", lines: ["JOHNNY!", "Why did the cookie go to the doctor?", "BECAUSE IT FELT CRUMMY.", "ha ha ha", "get well", "Ronnie"], draw: "cookie" },
+};
+function crayon(kind) {
+  const c = cvs(170, 130), x = c.getContext("2d"); x.lineWidth = 5; x.lineCap = "round"; x.lineJoin = "round";
+  const w = (a, b) => [a + R(-2, 2), b + R(-2, 2)];
+  const line = (col, pts) => { x.strokeStyle = col; x.beginPath(); pts.forEach(([a, b], i) => { const [p, q] = w(a, b); i ? x.lineTo(p, q) : x.moveTo(p, q); }); x.stroke(); };
+  const circ = (col, cx, cy, r) => { x.strokeStyle = col; x.beginPath(); x.ellipse(cx + R(-1, 1), cy + R(-1, 1), r, r * R(0.9, 1.1), 0, 0, 7); x.stroke(); };
+  if (kind === "bowl") { line("#7a4a20", [[30, 70], [140, 70], [125, 110], [45, 110], [30, 70]]); [[60], [85], [110]].forEach(([sx]) => line("#888", [[sx, 60], [sx + 8, 45], [sx - 6, 30], [sx + 6, 14]])); }
+  if (kind === "ball") { line("#555", [[10, 110], [10, 50], [160, 50], [160, 110]]); line("#555", [[50, 110], [50, 50]]); line("#555", [[100, 110], [100, 50]]); x.setLineDash([6, 8]); line("#c33", [[10, 100], [60, 20], [120, 10], [150, 40]]); x.setLineDash([]); circ("#c33", 150, 30, 12); }
+  if (kind === "hamster") { circ("#555", 85, 70, 50); circ("#b87b33", 85, 85, 24); circ("#b87b33", 100, 62, 12); line("#c33", [[10, 40], [25, 40]]); line("#c33", [[8, 70], [24, 70]]); line("#c33", [[12, 100], [28, 100]]); }
+  if (kind === "slide") { line("#555", [[20, 120], [20, 30], [110, 100], [160, 100]]); circ("#c33", 70, 50, 12); line("#c33", [[70, 62], [76, 90]]); x.fillStyle = "#c33"; x.font = "bold 24px 'Comic Sans MS',cursive"; x.fillText("ACHOO", 100, 40); }
+  if (kind === "cookie") { circ("#b87b33", 85, 65, 45); [[70, 55], [100, 50], [85, 80], [105, 78]].forEach(([a, b]) => circ("#4a2a10", a, b, 4)); line("#333", [[70, 85], [85, 78], [100, 85]]); line("#c33", [[85, 82], [160, 100]]); }
+  return c;
+}
+function showCard(name, onClose) {
+  const c = CARDS[name]; if (!c) return;
+  const body = c.lines.map((l) => `<div class="l" style="transform:rotate(${R(-1, 1).toFixed(2)}deg);margin:.5em 0">${esc(l)}</div>`).join("");
+  openPanel("card", body + `<div id="crayon" style="text-align:right"></div>`, onClose);
+  panel.style.background = c.bg; panel.querySelector("#crayon").appendChild(crayon(c.draw));
+  rustle();
+}
+const LOG = `MILTON & HARROW WORKS — NIGHT SHIFT HANDOVER LOG
+Plant: J. NOVAK, age 8.          Shift: Fri 22:00 – Sat 07:00
+────────────────────────────────────────────────────────
+Fri 23:10  Boiler House reports overheat. Pruitt opens windows.
+Sat 00:30  Extra blanket received. Hobbs objects.
+Sat 01:40  Fever located Vat Hall. Moved to Filter Works.
+           Moved to Pump Room.
+Sat 02:15  RUMBLE dismantled for spares on orders of the night
+           foremen. Parts dispersed to departments for safe
+           keeping. DO NOT REASSEMBLE UNTIL ALL CLEAR.
+Sat 03:05  Fever left via Sweat Vent. Hobbs signed it out.
+Sat 03:06  Thermometer 37.0. Shaken down twice.
+Sat 03:07  ALL CLEAR.
+Sat 03:08 – 07:00  Nothing happened. Nobody knew what to do.
+           Mabel made tea.
+
+To the day shift: it's yours. Put it back together.
+      — Pruitt · Ines · Dov · Wren · Mabel · Hobbs`;
+const SHEET = `INSIDE JOHNNY — THE DAY SHIFT
+ASSEMBLY OF THE RUMBLE (Stomach Works)
+
+PARTS:  1 Strainer · 2 Churn · 3 Flywheel · 4 Bellows · 5 Whistle
+        Crank — NOT SUPPLIED. Any straight thing of the right
+        length will do.
+
+[Fig. 1]  Seat the STRAINER in the base.
+[Fig. 2]  Set the CHURN on the Strainer.
+[Fig. 3]  Mount the FLYWHEEL on the side axle.
+[Fig. 4]  Hook the BELLOWS to the Flywheel.
+[Fig. 5]  Fit the WHISTLE on top.
+[Fig. 6]  Fit a crank. Turn.
+
+If correctly assembled, the RUMBLE will rumble, the WHISTLE
+will signal the Switchboard, and the patient will ask for toast.
+ALL PLAYERS ADVANCE TO DAY.`;
+
+// ---------- station buildings ----------
+function corrugated() {
+  const c = cvs(256, 256), x = c.getContext("2d"); x.fillStyle = "#8d9a92"; x.fillRect(0, 0, 256, 256);
+  for (let i = 0; i < 32; i++) { x.fillStyle = i % 2 ? "rgba(255,255,255,.12)" : "rgba(0,0,0,.14)"; x.fillRect(i * 8, 0, 8, 256); }
+  x.fillStyle = "#4a524e"; for (let i = 0; i < 8; i++) for (let j = 0; j < 2; j++) { x.beginPath(); x.arc(16 + i * 32, 10 + j * 236, 3, 0, 7); x.fill(); }
+  for (let i = 0; i < 30; i++) { x.fillStyle = "rgba(100,50,20,.15)"; x.beginPath(); x.arc(R(0, 256), R(0, 256), R(3, 14), 0, 7); x.fill(); }
+  return tex(c);
+}
+const corrTex = corrugated();
+const stations = {};
+function station(id, name, px, pz, o = {}) {
+  const g = new THREE.Group(); g.position.set(px, 0, pz);
+  g.rotation.y = o.rot !== undefined ? o.rot : Math.atan2(-px, -pz);
+  const m = new THREE.MeshStandardMaterial({ map: corrTex, color: o.tint || "#ffffff", roughness: 0.6, metalness: 0.4 });
+  g.add(box(3.5, 3, 0.15, m, 0, 1.5, -1.5), box(0.15, 3, 3, m, -1.7, 1.5, 0), box(0.15, 3, 3, m, 1.7, 1.5, 0));
+  const roofM = std("#5a625d", { metalness: 0.5 });
+  [-1.15, 0, 1.15].forEach((rx) => { const r = box(1.2, 0.1, 3.2, roofM, rx, 3.1, 0); r.rotation.z = 0.35; g.add(r); });
+  g.add(cyl(0.2, 0.22, 1.2, std("#3a3a38"), 1.2, 3.8, -1.0));
+  const h = cvs(512, 112), x = h.getContext("2d"); x.fillStyle = COL.soot; x.fillRect(0, 0, 512, 112); x.strokeStyle = COL.mustard; x.lineWidth = 6; x.strokeRect(5, 5, 502, 102);
+  x.fillStyle = COL.mustard; x.font = "bold 52px Impact,'Arial Narrow',sans-serif"; x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(name, 256, 58);
+  g.add(box(3.4, 0.7, 0.1, new THREE.MeshStandardMaterial({ map: tex(h), roughness: 0.6 }), 0, 2.65, 1.5));
+  scene.add(g); stations[id] = g; colliders.push({ x: px, z: pz, r: 1.7 });
   return g;
 }
+const colliders = [{ x: -1, z: 5.2, r: 1.8 }];
+station("hobbs", "MAIL CHUTE", -6, -6);
+station("mabel", "SWITCHBOARD", 0, -6.2);
+station("pruitt", "BOILER HOUSE", -6.5, -0.5);
+station("ines", "PUMP ROOM", 3, -1.5);
+station("dov", "FILTER WORKS", 7, 3);
+station("wren", "VAT HALL", -1, 2.4, { rot: 0 });
 
-const st = { stage: 0, cracker: false, crumbs: 0, hopper: false, broth: false, valve: false, level: 0.1, hold: 0, vat: false, salt: false, temp: 61, spoon: false };
-const bowl = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.2, 0.18, 20), M('#c9ccc8', 0.3, 0.7));
-bowl.position.set(2.8, 0.95, Z[0]); scene.add(bowl);
-const soup = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.25, 0.02, 20), M('#e8e2d0')); soup.position.set(0, 0.09, 0); soup.visible = false; bowl.add(soup);
-let bowlTarget = bowl.position.clone();
-s.onFrame((dt) => { bowl.position.lerp(bowlTarget, Math.min(1, dt * 2.2)); });
-const goStation = (i) => { bowlTarget = new THREE.Vector3(2.8, 0.95, Z[i]); st.stage = i; };
-box(0.5, 0.06, 50, '#55524a', 2.8, 0.78, -22); box(0.1, 0.8, 50, '#2a2925', 2.8, 0.4, -22);
-
-// ---------- 1. THE MILL
-foreman(-3.2, Z[0] - 1, Math.PI * 0.6, '#7a5a3a', [
-  'MILL: "Fever\'s out, so we stand down? Nobody told the grinders. Saltine\'s on the tray. Crank\'s the big wheel."',
-  'MILL: "Not too fine. Fine is for flour. He needs it to feel like something."']);
-box(0.7, 0.06, 0.5, '#8d8a80', 1.2, 0.95, Z[0] - 1.2);
-const saltine = box(0.32, 0.03, 0.32, '#e4c98a', 1.2, 1.0, Z[0] - 1.2);
-s.thing(saltine, { label: 'take the saltine', use() {
-  if (st.cracker) return;
-  st.cracker = true; saltine.position.set(0.2, 1.35, Z[0] + 0.2); saltine.scale.set(0.8, 1, 0.8);
-  s.forget(saltine); s.say('A saltine with its square of little holes. You set it in the mill\'s throat.'); } });
-const wheel = cyl(0.55, 0.55, 0.12, '#444039', 0, 1.35, Z[0] + 0.3); wheel.rotation.x = Math.PI / 2;
-box(0.2, 1.1, 0.2, '#2e2c28', 0, 0.55, Z[0] + 0.3);
-let cranks = 0;
-s.thing(wheel, { label: 'turn the mill wheel', use() {
-  if (!st.cracker) { s.say('Nothing in the throat to grind. The saltine is on the tray.'); return; }
-  if (st.crumbs) return;
-  cranks++; wheel.rotation.y += 1.1; saltine.scale.set(Math.max(0.2, 0.8 - cranks * 0.12), 1 + cranks * 0.5, Math.max(0.2, 0.8 - cranks * 0.12));
-  s.say(['Clack.', 'Clack-clack. It gives, a little.', 'Grit on the plates now.', 'Almost sand.', 'And the last turn: a small heap of crumbs.'][cranks - 1]);
-  if (cranks >= 5) {
-    st.crumbs = 1; saltine.visible = false;
-    const h = box(0.3, 0.12, 0.3, '#e4c98a', 0.2, 0.8, Z[0] + 0.2);
-    s.thing(h, { label: 'scoop the crumbs into the bowl', use() {
-      h.visible = false; s.forget(h); soup.visible = true; soup.material.color.set('#e4c98a');
-      goStation(1); s.say('The bowl rides the rail down to the Vat. Station 2.'); } });
+// mail chute: trumpet + slot + desk + clipboard
+const chute = stations.hobbs;
+const trumpet = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.8, 1.8, 20, 1, true), std("#9a7a3a", { side: THREE.DoubleSide, metalness: 0.6 }));
+trumpet.position.set(0, 4.0, -0.4); trumpet.rotation.x = 0.3; trumpet.castShadow = true; chute.add(trumpet);
+chute.add(box(0.7, 0.12, 0.3, std(COL.brass, { metalness: 0.7 }), 0, 3.0, -0.2));
+const desk = box(0.8, 1.0, 0.8, std("#6a4a2c"), 1.0, 0.5, -0.4); chute.add(desk);
+const clip = box(0.55, 0.04, 0.7, std("#d7c288"), 1.0, 1.05, -0.4); clip.rotation.z = 0.12; chute.add(clip);
+chute.updateMatrixWorld(true);
+const slotWorld = chute.localToWorld(new THREE.Vector3(0, 2.9, -0.1));
+const deskWorld = chute.localToWorld(new THREE.Vector3(1.0, 1.08, -0.4));
+addThing(clip, { label: () => "Night Shift Handover Log", use: () => openPanel("typed", esc(LOG)) });
+// switchboard lamps
+const lamps = [];
+(() => {
+  const g = stations.mabel;
+  for (let r = 0; r < 3; r++) for (let c = 0; c < 4; c++) {
+    const l = new THREE.Mesh(new THREE.SphereGeometry(0.08, 10, 8), new THREE.MeshBasicMaterial({ color: "#555533" }));
+    l.position.set(-0.6 + c * 0.4, 0.9 + r * 0.45, -1.38); g.add(l); lamps.push(l);
   }
-} });
-
-// ---------- 2. THE VAT
-foreman(-3.2, Z[1] - 1, Math.PI * 0.6, '#8a4a3a', [
-  'STOKER: "Broth\'s on the cock, crumbs in the hopper. Then it\'s the acid valve. Open climbs, shut falls. Hold the needle in the green four seconds. We\'re cooking, not digesting a brick."']);
-cyl(0.9, 0.8, 1.3, '#5e5a52', -0.5, 0.65, Z[1] - 0.8);
-const vatTop = cyl(0.78, 0.78, 0.04, '#2a2720', -0.5, 1.3, Z[1] - 0.8);
-const hopper = box(0.7, 0.5, 0.7, '#9a7b3d', 1.0, 1.6, Z[1] - 1.8);
-const brothCock = cyl(0.12, 0.12, 0.5, '#b28a3a', -0.5, 2.2, Z[1] - 0.8);
-const valve = cyl(0.3, 0.3, 0.1, '#a33a2a', -1.9, 1.3, Z[1] - 0.2); valve.rotation.z = Math.PI / 2;
-const gauge = plate('level', 1.5, 0.9, 0.7, 2.1, Z[1] + 0.1, 0, '#101010', '#9be08a', 40);
-s.thing(hopper, { label: 'tip the crumbs in the hopper', use() {
-  if (!st.crumbs || st.stage !== 1) { s.say('The hopper waits for something from the Mill.'); return; }
-  if (st.hopper) return;
-  st.hopper = true; s.say('Crumbs fall into the dark. A soft hiss.'); return 'the hopper (full)'; } });
-s.thing(brothCock, { label: 'open the broth cock', use() {
-  if (st.broth) return;
-  st.broth = true; vatTop.material.color.set('#d9a94a'); s.say('Chicken broth, amber, the smell your whole childhood knows.'); return 'the broth cock (open)'; } });
-s.thing(valve, { label: 'work the acid valve (open / shut)', use() {
-  if (!st.hopper || !st.broth) { s.say('The Stoker clears his throat. Crumbs and broth first.'); return; }
-  if (st.vat) return;
-  st.valve = !st.valve; valve.rotation.y = st.valve ? 1.2 : 0; s.say(st.valve ? 'Valve open. The needle climbs.' : 'Valve shut. It sinks.'); } });
-s.onFrame((dt) => {
-  if (st.stage !== 1 || !st.hopper || !st.broth || st.vat) return;
-  st.level = Math.max(0, Math.min(1, st.level + (st.valve ? 0.16 : -0.07) * dt));
-  const inBand = st.level > 0.45 && st.level < 0.65;
-  st.hold = inBand ? st.hold + dt : Math.max(0, st.hold - dt * 2);
-  const bars = Math.round(st.level * 12);
-  gauge.draw('#'.repeat(bars) + '.'.repeat(12 - bars) + '\n' + (inBand ? `GREEN  ${Math.min(4, st.hold).toFixed(1)} / 4` : st.level >= 0.65 ? 'TOO HOT' : 'COLD'));
-  if (st.hold >= 4) {
-    st.vat = true; st.valve = false; gauge.draw('DONE\nsimmered'); vatTop.material.color.set('#e8d9a8');
-    soup.material.color.set('#e0c070');
-    const lad = box(0.15, 0.15, 0.5, '#aaa', 0.4, 1.5, Z[1] + 0.4);
-    s.thing(lad, { label: 'ladle it into the bowl', use() {
-      s.forget(lad); lad.visible = false; goStation(2); s.say('Broth in the bowl. Down the rail to the Bench.'); } });
-    s.say('Ready. The Stoker wipes his hands and doesn\'t say so.');
-  }
-});
-
-// ---------- 3. THE BENCH
-foreman(-3.2, Z[2] - 1, Math.PI * 0.6, '#3f5f7a', [
-  'CHEMIST: "Read the ticket. Mother\'s order, in her hand. I don\'t improvise on children."']);
-box(2.4, 0.9, 0.9, '#4b4338', 1.0, 0.45, Z[2] - 1.4);
-const ticket = box(0.5, 0.02, 0.7, '#f1ead6', 0.2, 0.92, Z[2] - 1.4);
-s.thing(ticket, { label: 'read the ticket', use() { s.read('Ticket, in pencil', 'For Johnny.\n\nBroth, a saltine, and then just a little.\nNot the sugar: that was for when he was sick,\nand he isn\'t.\nNot the green: they make their own.\nThe grey one. The one that tastes like the sea\nwhen you lick your finger.\n\n- M.'); } });
-[['sugar', '#f4f4f0', 0.8], ['bile', '#4f8a3a', 1.3], ['salt', '#9aa4ad', 1.8]].forEach(([name, col, x]) => {
-  const j = cyl(0.14, 0.14, 0.32, col, x, 1.06, Z[2] - 1.4, 14);
-  s.thing(j, { label: `the ${name} jar`, use() {
-    if (st.stage !== 2) { s.say('The bowl isn\'t here yet.'); return; }
-    if (st.salt) return;
-    if (name === 'salt') { st.salt = true; soup.material.color.set('#e8cf86'); goStation(3); s.say('A pinch. You can almost hear the whole body relax. The bowl rolls on to the Spoon.'); }
-    else s.say(name === 'sugar' ? 'Sugar. That\'s the fever\'s order, not his. You put it back.' : 'Bile. The Chemist coughs. "Please."'); } });
-});
-
-// ---------- 4. THE SPOON
-foreman(-3.2, Z[3] - 1, Math.PI * 0.6, '#6a6a40', [
-  'WARDEN: "Mother tests it on her wrist and blows. Three breaths. You\'ll know it\'s right when it\'s the same as him."']);
-box(0.8, 0.9, 0.8, '#4b4338', 1.8, 0.45, Z[3] - 0.6);
-const spoon = box(0.12, 0.05, 0.7, '#cfd2d4', 1.8, 0.95, Z[3] - 0.6); spoon.rotation.y = 0.3;
-const therm = plate('61.0', 1.1, 0.6, 2.2, 1.7, Z[3] - 1.9, 0, '#101010', '#ff8a6a', 60);
-const hasT = s.inventory.items.some((i) => /thermom/i.test(i));
-let blows = 0;
-s.thing(spoon, { label: 'blow on the spoon', use() {
-  if (st.stage !== 3) { s.say('Nothing on the spoon yet.'); return; }
-  if (blows >= 3) {
-    if (st.spoon) return;
-    st.spoon = true; s.say('You taste it. It tastes like nothing hurts.'); unlock(); return;
-  }
-  blows++; st.temp -= 8; therm.draw(st.temp.toFixed(1));
-  s.say(blows < 3 ? ['', 'Hhhhh.', ''][blows] || 'Hhhhh.' : (hasT ? 'You dip the thermometer, still shaken down from last night. It climbs and stops: 37.0. The same as him.' : 'You touch it to the inside of your wrist. Exactly body-warm. Exactly him.'));
-  if (blows >= 3) return 'taste it'; } });
-
-// ---------- the way on
-const hatch = box(1.2, 1.2, 0.2, '#2a2925', 0, 1.5, -46.8);
-const lampL = new THREE.PointLight('#ff8a40', 0, 10); lampL.position.set(0, 2, -45); scene.add(lampL);
-plate('to the bedside', 1.4, 0.3, 0, 2.4, -46.65, 0, '#2a2925', '#8a8473', 30);
-let open = false;
-function unlock() {
-  setTimeout(() => {
-    open = true; hatch.material.color.set('#e8c46a'); lampL.intensity = 20;
-    s.read('The bowl goes up', 'The bowl rides the last of the rail and tips through the hatch, and the line goes quiet in the way a kitchen does when the plate has left.\n\nFour foremen with nothing to guard, and what they did with it was cook. Nobody told them to. The Mill sits down on his stool. The Stoker turns the valve a quarter-turn open and lets the vat tick over, just so it is warm for the morning.\n\nUp above, a mother is holding a spoon to a boy\'s mouth. He says: more.\n\nThe hatch at the far end of the hall is open. Walk down to it.');
-  }, 900);
+})();
+// wire dots
+const wireDots = [];
+for (let i = 0; i < 12; i++) {
+  const t = i / 11; const d = new THREE.Mesh(new THREE.CircleGeometry(0.13, 12), new THREE.MeshBasicMaterial({ color: "#6a5a40" }));
+  d.rotation.x = -Math.PI / 2; d.position.set(-1 + t, 0.02, 0.9 - 5.8 * t); scene.add(d); wireDots.push(d);
 }
-s.thing(hatch, { label: 'climb up to the bedside', use() {
-  if (!open) { s.say('Sealed. The line isn\'t finished.'); return; }
-  s.inventory.add('empty spoon'); s.say('You go up. It is morning, and the room smells of toast.'); setTimeout(() => s.onward(), 1600); } });
 
-s.player.position.set(0, 0, 1.5);
-s.say('The fever\'s gone. The night shift is still at their posts with nothing to guard. Johnny is hungry. Start at the Mill.');
-</script></body></html>
+// ---------- foremen stand-ups ----------
+const FD = {
+  hobbs: { name: "Hobbs", hz: 140 },
+  mabel: { name: "Mabel", card: "Ronnie's card", part: "Whistle", from: "mabel" },
+  pruitt: { name: "Pruitt", card: "Eddie's card", part: "Bellows" },
+  ines: { name: "Ines", card: "Linda's card", part: "Flywheel" },
+  dov: { name: "Dov", card: "Arthur's card", part: "Strainer" },
+  wren: { name: "Wren", card: "Beverly's card", part: "Churn" },
+};
+const TEXT = {
+  hobbs: {},
+  wren: {
+    idle: ["Vat Hall's been on dry-toast rations three days. I've had the Churn under a tarp since two this morning. I'm not uncovering it for nothing. Got anything?"],
+    wrong: ["That's a nice card. It's not for the stomach, though. The stomach only reads about food."],
+    right: ["\"I saved you mine.\" …And then she ate it. Of course she ate it. *Butterscotch.*", "*(Wren pulls the tarp off.)* Take the Churn. Number two on the sheet. And tell Beverly the stomach says thank you anyway."],
+    after: ["Strainer in first, then my Churn. Don't you go putting it on a dirty strainer."],
+  },
+  pruitt: {
+    idle: ["Windows shut, boilers on low. Bellows are in the shed. Lungs don't run for nothing, son. They run *for* something."],
+    wrong: ["Not a lungs letter, that. Lungs want somewhere to *go*."],
+    right: ["Left field. Over the fence on Elm. *(he coughs, then laughs)* And Ronnie's bad. Well, then. We'll need the wind back.", "Bellows. Fig. 4. Hook 'em to the flywheel."],
+    after: ["Three days in bed. He'll be puffing for a week. Good."],
+  },
+  ines: {
+    idle: ["I kept the beat all night. Never once stopped. I've got the Flywheel in my lap and I'm not handing it to anyone who doesn't know what it's for."],
+    wrong: ["That's sweet. It isn't a heart letter. A heart letter's about somebody keeping something going all night."],
+    right: ["\"I stayed up and listened to him go around.\" …", "*(a long pause)* That's all I do, you know. Go around. Somebody listening. Take the Flywheel. Number three, on the side axle."],
+    after: ["Seventy-two and steady. Tell Pickles."],
+  },
+  dov: {
+    idle: ["Filter's clean. Scrubbed it myself. Every last bit of what came in Tuesday, I strained it out by hand. I would like to know who *sent* it, I would."],
+    wrong: ["No. Not to me. I'm the one who deals with what somebody *gave* him."],
+    right: ["Arthur. On the slide. Tuesday. *(a very long pause)* He says sorry. He says he's better now.", "*(Dov sniffs)* Well. That's all filtered, then. Strainer goes in first. Nothing sits right on a dirty strainer."],
+    after: ["I'm not crying. It's the sump."],
+  },
+  mabel: {
+    idle: ["Quiet as a church up here. Nobody's rung down to the mouth in three days. I've got the Whistle, that's the line that says HUNGRY, and I'll give it up when somebody makes me laugh."],
+    wrong: ["Aw. That's lovely, dear. Doesn't make me laugh, though."],
+    right: ["Why did the cookie go to the… *because it felt crummy.* Oh, that's *terrible*. *(she laughs; every lamp on the switchboard flickers)*", "Take the Whistle. On top, last of all. I'll be listening for it."],
+    after: ["Crummy. Oh dear."],
+  },
+};
+function figure(id, label) {
+  const c = cvs(256, 512), x = c.getContext("2d");
+  const coats = { hobbs: "#7a5230", mabel: "#b9a0c8", pruitt: "#5a626c", ines: "#2f5fa8", dov: "#bdbda0", wren: "#f4f1ea" };
+  x.lineWidth = 5; x.strokeStyle = COL.soot; x.lineJoin = "round";
+  const skin = id === "pruitt" ? "#6a5a48" : COL.peach;
+  x.fillStyle = id === "dov" ? "#2f2a1c" : "#3d3a4a"; x.fillRect(84, 330, 40, 120); x.fillRect(132, 330, 40, 120); x.strokeRect(84, 330, 40, 120); x.strokeRect(132, 330, 40, 120);
+  x.fillStyle = COL.soot; x.fillRect(78, 440, 52, 16); x.fillRect(128, 440, 52, 16);
+  x.fillStyle = coats[id]; x.fillRect(60, 170, 136, 180); x.strokeRect(60, 170, 136, 180);
+  x.fillRect(30, 175, 34, 130); x.strokeRect(30, 175, 34, 130); x.fillRect(192, 175, 34, 130); x.strokeRect(192, 175, 34, 130);
+  x.fillStyle = skin; x.beginPath(); x.arc(47, 315, 15, 0, 7); x.fill(); x.stroke(); x.beginPath(); x.arc(209, 315, 15, 0, 7); x.fill(); x.stroke();
+  x.fillStyle = skin; x.beginPath(); x.arc(128, 110, 46, 0, 7); x.fill(); x.stroke();
+  x.fillStyle = COL.soot; x.beginPath(); x.arc(112, 105, 5, 0, 7); x.arc(144, 105, 5, 0, 7); x.fill();
+  x.beginPath(); x.arc(128, 125, 14, 0.2, Math.PI - 0.2); x.stroke();
+  if (id === "hobbs") { x.fillStyle = "#3a2a18"; x.fillRect(84, 52, 88, 26); x.fillRect(80, 74, 96, 8); x.fillStyle = COL.soot; x.fillRect(110, 118, 36, 6); }
+  if (id === "mabel") { x.strokeStyle = "#333"; x.lineWidth = 7; x.beginPath(); x.arc(128, 100, 52, Math.PI, 0); x.stroke(); x.fillStyle = "#333"; x.fillRect(70, 98, 14, 34); x.fillStyle = "#fff"; for (let i = 0; i < 9; i++) { x.beginPath(); x.arc(88 + i * 10, 178 + Math.sin(i / 8 * Math.PI) * 10, 5, 0, 7); x.fill(); } x.fillStyle = "#6a4a2c"; x.beginPath(); x.arc(128, 58, 22, 0, 7); x.fill(); }
+  if (id === "pruitt") { x.fillStyle = skin; x.fillRect(30, 230, 34, 80); x.fillRect(192, 230, 34, 80); x.fillStyle = "#333"; x.fillRect(100, 175, 56, 10); }
+  if (id === "ines") { x.fillStyle = "#c33"; x.fillRect(84, 58, 88, 20); x.strokeStyle = "#999"; x.lineWidth = 9; x.beginPath(); x.moveTo(222, 300); x.lineTo(240, 200); x.stroke(); x.fillStyle = "#999"; x.beginPath(); x.arc(241, 195, 14, 0, 7); x.fill(); }
+  if (id === "dov") { x.fillStyle = "#6a6a50"; x.fillRect(80, 200, 96, 150); x.strokeRect(80, 200, 96, 150); x.fillStyle = "#222"; x.fillRect(70, 215, 8, 6); }
+  if (id === "wren") { x.fillStyle = "#fff"; x.beginPath(); x.ellipse(128, 70, 48, 28, 0, 0, 7); x.fill(); x.stroke(); x.strokeStyle = "#8a6a3a"; x.lineWidth = 7; x.beginPath(); x.moveTo(230, 320); x.lineTo(232, 190); x.stroke(); x.fillStyle = "#999"; x.beginPath(); x.arc(232, 182, 16, 0, 7); x.fill(); }
+  x.fillStyle = "#efe2b8"; x.strokeStyle = COL.red; x.lineWidth = 5; x.fillRect(16, 462, 224, 40); x.strokeRect(16, 462, 224, 40);
+  x.fillStyle = COL.soot; x.font = "bold 28px Georgia"; x.textAlign = "center"; x.fillText(label, 128, 492);
+  return tex(c);
+}
+const standups = {};
+const RUMBLE_POS = new THREE.Vector3(-1, 0, 5.2);
+function standup(id) {
+  const st = stations[id]; const lbl = FD[id].name.toUpperCase();
+  const g = new THREE.Group();
+  const f = new THREE.Mesh(new THREE.PlaneGeometry(1, 2), new THREE.MeshStandardMaterial({ map: figure(id, lbl), transparent: true, alphaTest: 0.4, side: THREE.DoubleSide, roughness: 0.9 }));
+  f.position.y = 1.4; f.castShadow = true; g.add(f);
+  const base = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 0.4, 16, 1, false, 0, Math.PI), std("#c0302a", { roughness: 0.4, side: THREE.DoubleSide }));
+  base.position.y = 0.2; base.rotation.y = -Math.PI / 2; base.castShadow = true; g.add(base);
+  let px, pz;
+  if (id === "wren") { px = -3.6; pz = 4.2; }
+  else { const dx = -st.position.x, dz = -st.position.z, L = Math.hypot(dx, dz); px = st.position.x + (dx / L) * 2.4; pz = st.position.z + (dz / L) * 2.4; }
+  g.position.set(px, 0, pz);
+  const yaw = Math.atan2(-px, -pz); g.rotation.y = yaw;
+  scene.add(g); colliders.push({ x: px, z: pz, r: 0.5 });
+  const s = { id, g, yaw, target: yaw, part: null, done: false };
+  standups[id] = s;
+  return s;
+}
+Object.keys(FD).forEach(standup);
+
+// ---------- machine parts ----------
+function stripTex() {
+  const c = cvs(128, 128), x = c.getContext("2d"); x.fillStyle = "#8b9298"; x.fillRect(0, 0, 128, 128); x.fillStyle = "#2a2f33";
+  for (let i = 0; i < 8; i++) for (let j = 0; j < 8; j++) { x.beginPath(); x.arc(8 + i * 16, 8 + j * 16, 3, 0, 7); x.fill(); }
+  return tex(c);
+}
+const stripT = stripTex();
+function makePart(name) {
+  const g = new THREE.Group(); g.name = name;
+  if (name === "Strainer") g.add(cyl(1, 1, 0.15, new THREE.MeshStandardMaterial({ map: stripT, metalness: 0.4, roughness: 0.5 }), 0, 0, 0, 32));
+  if (name === "Churn") {
+    g.add(cyl(0.7, 0.7, 1.1, std(COL.red, { metalness: 0.4 })));
+    [-0.35, 0, 0.35].forEach((y) => { const t = new THREE.Mesh(new THREE.TorusGeometry(0.71, 0.04, 8, 28), std("#2a1a14")); t.rotation.x = Math.PI / 2; t.position.y = y; g.add(t); });
+  }
+  if (name === "Flywheel") {
+    const w = new THREE.Group(); const m = std(COL.mustard, { metalness: 0.4 });
+    const t = new THREE.Mesh(new THREE.TorusGeometry(0.75, 0.08, 10, 36), m); t.castShadow = true; w.add(t);
+    for (let i = 0; i < 6; i++) { const sp = box(0.06, 0.7, 0.06, m, 0, 0, 0); const h = new THREE.Group(); h.rotation.z = (i / 6) * Math.PI; sp.scale.y = 2; h.add(sp); w.add(h); }
+    const hub = cyl(0.14, 0.14, 0.25, m); hub.rotation.x = Math.PI / 2; w.add(hub);
+    g.add(w); g.userData.wheel = w; g.rotation.y = Math.PI / 2;
+  }
+  if (name === "Bellows") {
+    const m = std("#6b4428", { roughness: 0.9 }), wood = std("#9a7040");
+    [0.9, 0.75, 0.9, 0.75].forEach((w, i) => g.add(box(w, 0.22, 0.7, m, 0, 0.13 + i * 0.22, 0)));
+    g.add(box(1.0, 0.08, 0.8, wood, 0, 0.0, 0), box(1.0, 0.08, 0.8, wood, 0, 1.02, 0));
+  }
+  if (name === "Whistle") {
+    g.add(cyl(0.14, 0.14, 0.7, std(COL.brass, { metalness: 0.8, roughness: 0.3 })));
+    const cone = new THREE.Mesh(new THREE.ConeGeometry(0.18, 0.25, 16), std(COL.brass, { metalness: 0.8, roughness: 0.3 })); cone.position.y = 0.47; cone.castShadow = true; g.add(cone);
+  }
+  return g;
+}
+function makeThermo() {
+  const g = new THREE.Group();
+  g.add(cyl(0.06, 0.06, 0.9, std("#dfe8ea", { transparent: true, opacity: 0.8, roughness: 0.1 }), 0, 0, 0, 12));
+  g.add(cyl(0.05, 0.05, 0.12, std("#c22"), 0, -0.4, 0, 12));
+  g.add(cyl(0.025, 0.025, 0.5, std("#c22"), 0, -0.1, 0, 8));
+  return g;
+}
+const SOCK = { Strainer: [0, 0.475, 0], Churn: [0, 1.1, 0], Flywheel: [1.5, 1.2, 0], Bellows: [-1.9, 0.02, 0], Whistle: [0, 2.0, 0] };
+// leaning parts at foremen
+const LEAN_Y = { Strainer: 0.08, Churn: 0.56, Flywheel: 0.8, Bellows: 0.0, Whistle: 0.36 };
+Object.values(standups).forEach((s) => {
+  const pn = FD[s.id].part; if (!pn) return;
+  const p = makePart(pn); const v = new THREE.Vector3(0.95, 0, 0.1); s.g.updateMatrixWorld(true); s.g.localToWorld(v);
+  p.position.set(v.x, LEAN_Y[pn], v.z); p.rotation.z = 0.12;
+  if (pn === "Strainer") { p.rotation.x = 1.2; p.position.y = 0.9; }
+  p.traverse((o) => { o.castShadow = true; }); scene.add(p); s.part = p;
+});
+
+// ---------- the Rumble ----------
+const machine = new THREE.Group(); machine.position.copy(RUMBLE_POS); scene.add(machine);
+const baseTex = (() => {
+  const c = cvs(512, 128), x = c.getContext("2d"); x.fillStyle = "#2f3a35"; x.fillRect(0, 0, 512, 128);
+  for (let i = 0; i < 30; i++) { x.fillStyle = "rgba(138,75,42,.5)"; x.beginPath(); x.arc(R(0, 512), R(0, 128), R(4, 18), 0, 7); x.fill(); }
+  x.fillStyle = "#9db5a8"; for (let i = 0; i < 16; i++) { x.beginPath(); x.arc(16 + i * 32, 10, 3, 0, 7); x.arc(16 + i * 32, 118, 3, 0, 7); x.fill(); }
+  x.fillStyle = "#e8c97a"; x.font = "bold 34px 'Courier New',monospace"; x.textAlign = "center"; x.fillText("THE RUMBLE · STOMACH WORKS", 256, 70);
+  return tex(c);
+})();
+const baseMesh = box(2.6, 0.4, 2.6, [std("#2f3a35"), std("#2f3a35"), std("#3a4a42"), std("#2f3a35"), new THREE.MeshStandardMaterial({ map: baseTex }), std("#2f3a35")], 0, 0.2, 0);
+machine.add(baseMesh);
+const ghosts = {}; const fittedParts = {};
+const ghostMat = new THREE.MeshBasicMaterial({ color: "#fff3d0", transparent: true, opacity: 0.22, depthWrite: false });
+ORDER.forEach((n, i) => {
+  const gh = makePart(n); gh.traverse((o) => { if (o.isMesh) { o.material = ghostMat; o.castShadow = false; } });
+  gh.position.set(...SOCK[n]); machine.add(gh); ghosts[n] = gh;
+  const c = cvs(64, 64), x = c.getContext("2d"); x.fillStyle = "#b8382a"; x.font = "bold 56px Impact,sans-serif"; x.textAlign = "center"; x.fillText(String(i + 1), 32, 52);
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex(c), transparent: true, depthTest: false }));
+  sp.scale.set(0.5, 0.5, 1); sp.position.set(SOCK[n][0], SOCK[n][1] + 0.9, 0.3); machine.add(sp); ghosts[n + "#"] = sp;
+});
+addThing(machine, {
+  label: () => { const s = sel(); if (cranked && turns < 6) return "turn the crank"; if (ORDER.includes(s)) return `fit the ${s}`; if (s === "Thermometer") return "fit the thermometer as a crank"; return "the Rumble"; },
+  use: () => useMachine(),
+  reach: 5.5,
+});
+// assembly sheet + easel
+(() => {
+  const g = new THREE.Group(); g.position.set(1.2, 0, 4.4);
+  g.add(box(0.08, 1.6, 0.08, std("#6a4a2c"), -0.5, 0.8, 0), box(0.08, 1.6, 0.08, std("#6a4a2c"), 0.5, 0.8, 0), box(1.2, 0.08, 0.1, std("#6a4a2c"), 0, 0.5, 0.05));
+  const pap = box(1.4, 1.0, 0.03, std("#f4efe0", { roughness: 1 }), 0, 1.1, 0.06); g.add(pap);
+  const c = cvs(280, 200), x = c.getContext("2d"); x.fillStyle = "#f4efe0"; x.fillRect(0, 0, 280, 200); x.fillStyle = "#222"; x.font = "bold 14px 'Courier New'"; x.fillText("ASSEMBLY OF THE RUMBLE", 20, 24);
+  x.strokeStyle = "#222"; x.lineWidth = 2; for (let i = 0; i < 6; i++) { x.strokeRect(20 + (i % 3) * 82, 40 + Math.floor(i / 3) * 70, 70, 60); x.fillText(`Fig.${i + 1}`, 28 + (i % 3) * 82, 58 + Math.floor(i / 3) * 70); }
+  const f = new THREE.Mesh(new THREE.PlaneGeometry(1.36, 0.96), new THREE.MeshBasicMaterial({ map: tex(c) })); f.position.set(0, 1.1, 0.08); g.add(f);
+  g.rotation.y = Math.PI; g.rotation.y = Math.PI - 0.0; scene.add(g);
+  addThing(g, { label: () => "the assembly sheet", use: () => openPanel("typed", esc(SHEET)) });
+  colliders.push({ x: 1.2, z: 4.4, r: 0.5 });
+})();
+
+// ---------- safety sign ----------
+const signMat = new THREE.MeshStandardMaterial({ roughness: 0.5, metalness: 0.3 });
+function signTex(n) {
+  const c = cvs(512, 320), x = c.getContext("2d"); x.fillStyle = "#2e5a46"; x.fillRect(0, 0, 512, 320); x.strokeStyle = "#f4efe0"; x.lineWidth = 10; x.strokeRect(14, 14, 484, 292);
+  x.fillStyle = "#f4efe0"; x.textAlign = "center"; x.font = "bold 50px Impact,'Arial Narrow',sans-serif"; x.fillText("DAYS WITHOUT FEVER", 256, 90);
+  x.fillStyle = COL.mustard; x.font = "bold 170px Impact,'Arial Narrow',sans-serif"; x.fillText(String(n), 256, 260);
+  return tex(c);
+}
+signMat.map = signTex(0);
+const sign = new THREE.Group(); sign.position.set(-4, 0, 6.2); sign.rotation.y = Math.PI;
+sign.add(box(0.1, 1.8, 0.1, std("#555"), -0.7, 0.9, 0), box(0.1, 1.8, 0.1, std("#555"), 0.7, 0.9, 0));
+const placardPivot = new THREE.Group(); placardPivot.position.set(0, 1.4, 0.08);
+placardPivot.add(box(1.6, 1.0, 0.06, [std("#444"), std("#444"), std("#444"), std("#444"), signMat, std("#444")], 0, 0, 0));
+sign.add(placardPivot); scene.add(sign); colliders.push({ x: -4, z: 6.2, r: 0.6 });
+// plane with +z facing: BoxGeometry material index 4 is +z; group rotated PI so it faces -z (the centre)
+addThing(sign, { label: () => "the safety sign", use: () => say(rumbled ? "DAYS WITHOUT FEVER: 1." : "DAYS WITHOUT FEVER: 0. Somebody has hung a pencil on a string beside it, ready.") });
+
+// ---------- die ----------
+const FACEN = [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]];
+const FACEV = [1, 6, 2, 5, 3, 4];
+const die = (() => {
+  const mats = FACEV.map((n) => {
+    const c = cvs(128, 128), x = c.getContext("2d"); x.fillStyle = "#f4efe0"; x.fillRect(0, 0, 128, 128); x.fillStyle = COL.red;
+    const P3 = { 1: [[1, 1]], 2: [[0, 0], [2, 2]], 3: [[0, 0], [1, 1], [2, 2]], 4: [[0, 0], [2, 0], [0, 2], [2, 2]], 5: [[0, 0], [2, 0], [1, 1], [0, 2], [2, 2]], 6: [[0, 0], [2, 0], [0, 1], [2, 1], [0, 2], [2, 2]] };
+    P3[n].forEach(([a, b]) => { x.beginPath(); x.arc(32 + a * 32, 32 + b * 32, 11, 0, 7); x.fill(); });
+    return new THREE.MeshStandardMaterial({ map: tex(c), roughness: 0.4 });
+  });
+  const m = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.2, 1.2), mats); m.position.set(9, 0.6, -5); m.rotation.y = 0.4; m.castShadow = true; scene.add(m); return m;
+})();
+let dieBusy = false;
+function rollDie(small) {
+  if (dieBusy) return; dieBusy = true;
+  const q0 = die.quaternion.clone(); const a = Math.floor(R(1, 4)), b = Math.floor(R(0, 4));
+  const qa = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), (small ? 1 : a) * Math.PI / 2);
+  const qb = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), (small ? 0 : b) * Math.PI / 2);
+  const q1 = qa.multiply(qb).multiply(q0);
+  tween(small ? 0.5 : 0.8, (k) => { die.quaternion.slerpQuaternions(q0, q1, k); die.position.y = 0.6 + Math.sin(k * Math.PI) * (small ? 0.3 : 0.9); }, () => {
+    dieBusy = false; die.position.y = 0.6; tinClick();
+    if (small) return;
+    let best = -9, face = 1;
+    FACEN.forEach((n, i) => { const v = new THREE.Vector3(...n).applyQuaternion(die.quaternion); if (v.y > best) { best = v.y; face = FACEV[i]; } });
+    say(`You roll a ${face}. The Day Shift rules say: "Any roll will do. He's getting better."`);
+  });
+}
+addThing(die, { label: () => "roll the die", use: () => rollDie(false) });
+
+// ---------- DAY square ----------
+const dayMat = new THREE.MeshStandardMaterial({ roughness: 0.6, emissive: "#000000" });
+(() => {
+  const c = cvs(256, 256), x = c.getContext("2d"); x.fillStyle = COL.mustard; x.fillRect(0, 0, 256, 256); x.strokeStyle = COL.soot; x.lineWidth = 10; x.strokeRect(8, 8, 240, 240);
+  x.fillStyle = COL.soot; x.textAlign = "center"; x.font = "bold 40px Impact,sans-serif"; x.fillText("ADVANCE", 128, 100); x.fillText("TO DAY", 128, 160);
+  dayMat.map = tex(c); dayMat.color = new THREE.Color("#a89a78");
+})();
+const daySq = box(1.2, 0.05, 1.2, dayMat, 3, 0.03, 6.3, false); scene.add(daySq);
+const flag = new THREE.Group(); flag.position.set(3.4, 0, 6.6); flag.visible = false;
+flag.add(cyl(0.03, 0.03, 1.4, std("#666"), 0, 0.7, 0, 8));
+(() => {
+  const c = cvs(256, 80), x = c.getContext("2d"); x.fillStyle = COL.red; x.fillRect(0, 0, 256, 80); x.fillStyle = "#fff"; x.font = "bold 36px Impact,sans-serif"; x.textAlign = "center"; x.fillText("ADVANCE TO DAY", 128, 54);
+  const f = new THREE.Mesh(new THREE.PlaneGeometry(1, 0.32), new THREE.MeshBasicMaterial({ map: tex(c), side: THREE.DoubleSide })); f.position.set(0.5, 1.2, 0); flag.add(f);
+})();
+scene.add(flag);
+addThing(daySq, { label: () => (dayLit ? "ADVANCE TO DAY" : "a dull mustard square"), use: () => { if (dayLit) leave(); else say("ADVANCE TO DAY. Not yet. The Rumble hasn't run."); }, reach: 6 });
+
+function lightDay() {
+  if (dayLit) return; dayLit = true; flag.visible = true; dayMat.emissive.set(COL.mustard); dayMat.color.set("#ffffff");
+}
+function leave() {
+  if (leaving) return; leaving = true; mode = "script";
+  $("fade").style.opacity = 1;
+  const out = [];
+  if (noteTaken) { out.push("Mrs. Novak's note to school"); if (inv.includes("A toast soldier")) out.push("a toast soldier, still warm"); }
+  else { out.push("the thermometer, 37.0"); out.push("an unread get-well card"); }
+  try { B.carry && B.carry(out); } catch (e) {}
+  setTimeout(() => { try { B.onward && B.onward(); } catch (e) {} }, 700);
+}
+
+// ---------- interactions ----------
+function hop(s) { tween(0.4, (k) => { s.g.position.y = Math.sin(k * Math.PI) * 0.3; }, () => { s.g.position.y = 0; }); }
+function talkForeman(id) {
+  const s = standups[id]; const f = FD[id]; const T = TEXT[id]; const cur = sel();
+  if (id === "hobbs") return talkHobbs();
+  if (s.done) return speak(f.name, T.after);
+  if (cur && isCard(cur)) {
+    if (cur === f.card) {
+      rustle(); invRemove(cur); s.done = true;
+      scene.remove(s.part); invAdd(f.part);
+      hop(s); s.target = Math.atan2(RUMBLE_POS.x - s.g.position.x, RUMBLE_POS.z - s.g.position.z);
+      if (id === "mabel") flickerLamps();
+      return speak(f.name, T.right, () => { if (!inv.filter(isCard).length && fitted < 5 && !hintGiven) {} });
+    }
+    return speak(f.name, T.wrong);
+  }
+  return speak(f.name, T.idle);
+}
+let lampFlick = 0;
+function flickerLamps() { lampFlick = 1.5; }
+function talkHobbs() {
+  if (noteReady && !noteTaken) return giveNote();
+  if (noteTaken) return speak("Hobbs", ["Day shift's on. Off you go, all players advance. Mind the track."]);
+  if (hobbsStage === 0) {
+    hobbsStage = 1;
+    return speak("Hobbs", [
+      "Morning. Gatekeeper Hobbs, Sweat Vent. Well, used to be. Vent's shut. Nothing to let out. So they've put me on post.",
+      "First mail's just come down the ear. Mrs. Novak's reading him his cards, one at a time, out loud, and they drop down the chute as she goes. Five of them. Here.",
+    ], () => {
+      CARDNAMES.forEach((n) => invAdd(n)); rustle();
+      if (!hintGiven) { hintGiven = true; say("R reads a card. Number keys pick which one you're holding."); }
+    });
+  }
+  if (hobbsStage === 1) {
+    hobbsStage = 2;
+    return speak("Hobbs", [
+      "Read the log if you want the whole sorry night. Short of it: the Rumble's in pieces down in Vat Hall. Night shift stripped it for spares at two in the morning, and every foreman took a bit home \"for safe keeping.\" Now the fever's gone and they're all just sitting on their bits.",
+      "Day shift doesn't start till the Rumble runs. Maybe the post'll get them up. Kids write to the whole of a person, you know, not just the front of him. Give each card to whoever it was really for.",
+    ]);
+  }
+  return speak("Hobbs", ["Nothing else in the chute yet. There'll be one more. There always is."]);
+}
+function wrongOrder(name) {
+  const lines = {
+    Churn: "The Churn sits crooked and rolls off with a hollow bong. Something goes under it first. (Fig. 1.)",
+    Flywheel: "The Flywheel has no axle until the Churn's in. It wobbles off. (Fig. 2 first.)",
+    Bellows: "The Bellows have nothing to pump. They wheeze once and slump. (Fig. 3.)",
+    Whistle: "You fit the Whistle. Nothing to blow it. It looks silly up there on its own, so you take it back. (Fig. 4.)",
+  };
+  const p = makePart(name); const sk = SOCK[name]; p.position.set(sk[0], sk[1] + 0.6, sk[2]); machine.add(p);
+  tween(0.9, (k) => {
+    const dip = k < 0.4 ? 0.6 * (1 - k / 0.4) : 0.4 * Math.sin(((k - 0.4) / 0.6) * Math.PI) * -1 + 0;
+    p.position.y = sk[1] + (k < 0.4 ? 0.6 * (1 - k / 0.4) + 0.05 : 0.05 + 0.5 * ((k - 0.4) / 0.6));
+    p.rotation.z = Math.sin(k * 40) * 0.2 * (1 - k * 0.5); void dip;
+  }, () => machine.remove(p));
+  bong(); say(lines[name]);
+}
+function useMachine() {
+  const cur = sel();
+  if (cranked && turns < 6) return turnCrank();
+  if (cur && ORDER.includes(cur)) {
+    const idx = ORDER.indexOf(cur);
+    if (idx !== fitted) return wrongOrder(cur);
+    return fitPart(cur);
+  }
+  if (cur === "Thermometer") {
+    if (fitted < 5) return say("That would make a fine crank. Later. It's not all there yet.");
+    return fitCrank();
+  }
+  say("The Rumble, in bits. The sheet on the easel says what goes in first." + (fitted ? ` ${fitted} of 5 fitted.` : ""));
+}
+function fitPart(name) {
+  const p = makePart(name); const sk = SOCK[name]; p.position.set(sk[0], sk[1] + 0.6, sk[2]); machine.add(p); fittedParts[name] = p;
+  invRemove(name); fitted++; hud();
+  const gh = ghosts[name], gn = ghosts[name + "#"]; if (gh) gh.visible = false; if (gn) gn.visible = false;
+  tween(0.35, (k) => { p.position.y = sk[1] + 0.6 * (1 - k * k); }, () => { p.position.y = sk[1]; clank(); });
+  const L = {
+    Strainer: "The Strainer drops into the base with a clean clank. Fig. 1.",
+    Churn: "The Churn seats on the Strainer, snug. Fig. 2.",
+    Flywheel: "The Flywheel slides onto the axle and turns half a turn by itself. Fig. 3.",
+    Bellows: "You hook the Bellows to the Flywheel. They breathe in a little. Fig. 4.",
+    Whistle: "The Whistle screws in on top. Five of five. It needs a crank.",
+  };
+  say(L[name]);
+  if (name === "Flywheel") tween(0.6, (k) => { p.userData.wheel.rotation.z = k * Math.PI; });
+}
+function fitCrank() {
+  if (cranked) return; cranked = true; invRemove("Thermometer");
+  const t = makeThermo(); t.rotation.x = Math.PI / 2; t.position.z = 1.4; fittedParts.Flywheel.userData.wheel.add(t); fittedParts.crank = t;
+  tween(0.35, (k) => { t.position.z = 1.4 - 0.9 * k; }, () => clank());
+  say("The thermometer slides into the crank socket as if it was made for it. 37.0, upside down. Turn it. Press E.");
+}
+function turnCrank() {
+  turns++; ratchet();
+  const w = fittedParts.Flywheel.userData.wheel, ch = fittedParts.Churn, be = fittedParts.Bellows;
+  const w0 = w.rotation.z, c0 = ch.rotation.y;
+  tween(0.5, (k) => { w.rotation.z = w0 + k * Math.PI * 2; ch.rotation.y = c0 + k * Math.PI / 3; be.scale.y = 1 - 0.3 * Math.sin(k * Math.PI); }, () => { be.scale.y = 1; });
+  lowRumbleLayer(Math.min(0.9, turns * 0.12));
+  const L = ["Clunk.", "Clunk-a.", "Something deep down goes *mrrr*.", "The board hums under your feet.", "The Churn's turning on its own now."];
+  if (turns < 6) say(L[turns - 1].replace(/\*/g, ""));
+  else finale();
+}
+
+// ---------- the finale ----------
+function bigLine(html, hold) { const b = $("big"); b.innerHTML = html; b.style.opacity = 1; }
+function steamPuff() {
+  const c = cvs(64, 64), x = c.getContext("2d"); const gr = x.createRadialGradient(32, 32, 2, 32, 32, 30); gr.addColorStop(0, "rgba(255,255,255,.9)"); gr.addColorStop(1, "rgba(255,255,255,0)"); x.fillStyle = gr; x.fillRect(0, 0, 64, 64);
+  const map = tex(c); const origin = new THREE.Vector3(); fittedParts.Whistle.getWorldPosition(origin); origin.y += 0.5;
+  for (let i = 0; i < 8; i++) later(i * 0.2, () => {
+    const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map, transparent: true, opacity: 0.8, depthWrite: false })); sp.position.copy(origin).add(new THREE.Vector3(R(-0.1, 0.1), 0, R(-0.1, 0.1))); scene.add(sp);
+    tween(1.6, (k) => { sp.position.y = origin.y + k * 2; sp.scale.setScalar(0.4 + k * 1.6); sp.material.opacity = 0.8 * (1 - k); }, () => scene.remove(sp));
+  });
+}
+function finale() {
+  mode = "script"; rumbled = true; bigRumble(); shakeUntil = gameT + 1.8; shakeAmp = 0.06; wobbleUntil = gameT + 2.2; bubbleBoost = 4;
+  rollDie(true);
+  tween(1.4, (k) => { fittedParts.Flywheel.userData.wheel.rotation.z += 0.3; });
+  later(1.8, () => {
+    whistle(); steamPuff();
+    wireDots.forEach((d, i) => later(i * 0.085, () => d.material.color.set("#ffb62e")));
+    later(1.0, () => { lamps.forEach((l) => l.material.color.set("#ffb62e")); });
+    spinning = true;
+  });
+  later(4.5, () => {
+    bigLine("<small>(from somewhere enormous, beyond the box lid)</small><b>“Mom? …Mom.”</b>");
+    later(1.2, () => bigLine("<small>(from somewhere enormous, beyond the box lid)</small><b>“Mom? …Mom.”</b><br><b>“Can I have toast?”</b>"));
+    later(4.6, () => { $("big").style.opacity = 0; });
+  });
+  later(6.5, () => {
+    tinClick();
+    tween(0.7, (k) => { placardPivot.rotation.x = k * Math.PI * 2; if (k > 0.5 && signMat.map._n !== 1) { signMat.map = signTex(1); signMat.map._n = 1; signMat.needsUpdate = true; } }, () => { placardPivot.rotation.x = 0; });
+    tween(4, (k) => { sun.intensity = 1.3 + 0.5 * k; sun.position.y = 18 + 12 * k; hemi.intensity = 0.7 + 0.2 * k; if (windowMat) windowMat.color.lerpColors(new THREE.Color("#ffe4b0"), new THREE.Color("#fff4cf"), k); });
+  });
+  later(7.5, () => {
+    const ch = $("chorus"); ch.style.display = "block";
+    ch.innerHTML = "<b>WREN:</b> <i>Toast.</i> &nbsp; <b>PRUITT:</b> Ha! &nbsp; <b>INES:</b> Seventy-two and steady. &nbsp; <b>DOV:</b> That's all filtered. &nbsp; <b>MABEL:</b> Line's open. &nbsp; <b>HOBBS:</b> There it is.";
+    later(4.2, () => { ch.style.display = "none"; });
+    Object.values(standups).forEach((s) => hop(s));
+  });
+  later(9, () => {
+    const e = box(0.5, 0.02, 0.35, std("#f6ecce", { roughness: 1 }), 0, 0, 0); e.position.copy(slotWorld).add(new THREE.Vector3(0, -0.2, 0)); scene.add(e);
+    const s0 = e.position.clone(), s1 = deskWorld.clone().add(new THREE.Vector3(0, 0.03, 0));
+    tween(1.6, (k) => { e.position.lerpVectors(s0, s1, k); e.position.x += Math.sin(k * 9) * 0.15 * (1 - k); e.rotation.y = k * 7; e.rotation.z = Math.sin(k * 10) * 0.4 * (1 - k); }, () => { e.rotation.set(0, 0.4, 0); noteReady = true; mode = "play"; say("Something's come down the chute."); });
+    envelope = e;
+    addThing(e, { label: () => "the envelope", use: () => giveNote(), reach: 5.5 });
+  });
+}
+let noteReady = false, envelope = null, bubbleBoost = 1;
+function giveNote() {
+  if (noteTaken) return;
+  noteTaken = true; invAdd("Mrs. Novak's note"); if (envelope) { dropThing(envelope); scene.remove(envelope); }
+  openPanel("note", `<div class="from">From the desk of Mrs. H. Novak</div>
+<p>Dear Miss Halloran,</p>
+<p>Please excuse John from school on Friday and Monday. He had a fever of 103 on Friday night. It broke at three o'clock this morning.</p>
+<p>He has just asked for toast.</p>
+<p>He will be back on Tuesday. Thank you for the cards. I have read them to him twice, and he laughed at Ronnie's.</p>
+<p>Sincerely,<br>Mrs. Helen Novak</p>`, afterNote);
+  rustle();
+}
+function afterNote() {
+  if (toastShown) return; toastShown = true;
+  const plate = new THREE.Group(); plate.position.set(-45, -0.5, 0); scene.add(plate);
+  plate.add(cyl(12, 11, 0.4, std("#f4f4ee", { roughness: 0.3 }), 0, 0, 0, 40));
+  const gold = std("#d9a05b", { roughness: 0.9 });
+  for (let i = 0; i < 5; i++) plate.add(box(1.9, 1.2, 10, gold, -4.1 + i * 2.05, 0.8, 0));
+  plate.add(box(2.0, 0.2, 10.1, std("#8a5a2b"), -4.1, 1.45, 0), box(2.0, 0.2, 10.1, std("#8a5a2b"), 4.1, 1.45, 0));
+  plate.add(box(2, 0.4, 2, std("#f6e48a"), 0, 1.6, 0));
+  plate.rotation.y = Math.PI / 2;
+  tween(2, (k) => { plate.position.x = -45 + 23 * ease(k); });
+  const s = box(0.25, 0.25, 1.2, std("#d9a05b"), -11, 0.4, 0); s.rotation.x = 0; s.rotation.z = 0.0; s.rotation.y = 0; s.castShadow = true;
+  s.position.set(-11.2, 0.6, 0); s.rotation.set(0, Math.PI / 2, 0.5); scene.add(s);
+  addThing(s, { label: () => "a toast soldier. Still warm.", use: () => { invAdd("A toast soldier"); dropThing(s); scene.remove(s); rustle(); say("Warm. It's carrying butter."); }, reach: 5.5 });
+  say("Toast. Cut into soldiers. Take one for the road.");
+  lightDay();
+  later(2.5, () => say("Hobbs: Day shift's on. Off you go, all players advance. Mind the track."));
+}
+
+// ---------- intro, dive ----------
+const camStart = new THREE.Vector3(0, 18, 22);
+let introT = 0, clickT = null;
+function dive() {
+  if (mode !== "intro") return; mode = "dive"; $("intro").style.display = "none";
+  const p0 = camStart.clone(), p1 = new THREE.Vector3(-3, 12, 8), p2 = new THREE.Vector3(P.x, 1.6, P.z);
+  const l0 = new THREE.Vector3(0, 0, 0), l1 = new THREE.Vector3(P.x, 1.6, P.z - 10);
+  tween(2.8, (k) => {
+    const a = 1 - k;
+    camera.position.set(a * a * p0.x + 2 * a * k * p1.x + k * k * p2.x, a * a * p0.y + 2 * a * k * p1.y + k * k * p2.y, a * a * p0.z + 2 * a * k * p1.z + k * k * p2.z);
+    camera.lookAt(new THREE.Vector3().lerpVectors(l0, l1, k));
+  }, () => {
+    mode = "play"; P.yaw = 0; P.pitch = 0; tock(); landedAt = gameT; hud(); drawBag();
+    say("Gatekeeper Hobbs is at the Mail Chute. Walk up and press E.");
+    if (!carriedThermo) {
+      const th = makeThermo(); th.rotation.z = Math.PI / 2; th.position.set(-1.8, 0.07, 3.5); scene.add(th);
+      th.add(new THREE.Mesh(new THREE.BoxGeometry(0.5, 1.2, 0.5), new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false })));
+      addThing(th, { label: () => "a thermometer, shaken down. 37.0. Somebody left it here after last night.", use: () => { invAdd("Thermometer"); dropThing(th); scene.remove(th); rustle(); say("37.0. Shaken down. Somebody left it here after last night."); }, reach: 5 });
+    }
+  }, ease);
+}
+const carriedThermo = (() => { try { return JSON.stringify(B.carried || []).toLowerCase().includes("thermometer"); } catch (e) { return false; } })();
+if (carriedThermo) inv.push("Thermometer");
+hud(); drawBag();
+
+// ---------- input ----------
+const keys = new Set();
+addEventListener("keydown", (e) => {
+  keys.add(e.code);
+  if (e.code === "KeyE") {
+    if (mode === "intro") { audioStart(); return dive(); }
+    if (reading) return closePanel();
+    if (mode === "play" && lookTarget) lookTarget.use();
+  } else if (e.code === "KeyR") {
+    if (mode === "play" && !reading && isCard(sel())) showCard(sel());
+  } else if (/^Digit[1-9]$/.test(e.code)) {
+    if (mode !== "play") return;
+    const i = parseInt(e.code.slice(5), 10) - 1;
+    if (i < inv.length) { selected = selected === i ? -1 : i; drawBag(); }
+  }
+});
+addEventListener("keyup", (e) => keys.delete(e.code));
+addEventListener("blur", () => keys.clear());
+addEventListener("click", () => {
+  audioStart();
+  if (reading) return closePanel();
+  if (mode === "intro") { if (clickT === null) clickT = introT; else if (introT - clickT > 1) dive(); }
+  try { if (document.pointerLockElement !== renderer.domElement) renderer.domElement.requestPointerLock && renderer.domElement.requestPointerLock(); } catch (e) {}
+});
+addEventListener("mousemove", (e) => {
+  if (document.pointerLockElement !== renderer.domElement || mode !== "play") return;
+  P.yaw -= e.movementX * 0.0022; P.pitch = Math.max(-1.4, Math.min(1.4, P.pitch - e.movementY * 0.0022));
+});
+
+// ---------- loop ----------
+const ray = new THREE.Raycaster(); let lookTarget = null;
+let last = performance.now();
+renderer.setAnimationLoop(() => {
+  const now = performance.now(); const dt = Math.min(0.05, (now - last) / 1000); last = now;
+  gameT += dt; if (mode === "intro") { introT += dt; if (introT > 40) dive(); }
+  // tweens/timers
+  for (const t of tweens.slice()) {
+    t.t += dt; const k = Math.min(1, t.t / t.dur);
+    try { t.fn(t.e ? t.e(k) : k); } catch (e) {}
+    if (k >= 1) { tweens.splice(tweens.indexOf(t), 1); try { t.done && t.done(); } catch (e) {} }
+  }
+  for (const t of timers.slice()) if (gameT >= t.at) { timers.splice(timers.indexOf(t), 1); try { t.fn(); } catch (e) {} }
+  // movement
+  if (mode === "play" && !reading) {
+    const f = (keys.has("KeyW") || keys.has("ArrowUp") ? 1 : 0) - (keys.has("KeyS") || keys.has("ArrowDown") ? 1 : 0);
+    const r = (keys.has("KeyD") ? 1 : 0) - (keys.has("KeyA") ? 1 : 0);
+    if (keys.has("ArrowLeft")) P.yaw += dt * 1.8; if (keys.has("ArrowRight")) P.yaw -= dt * 1.8;
+    if (f || r) {
+      const v = (3 * (keys.has("ShiftLeft") ? 1.8 : 1) * dt) / Math.hypot(f, r);
+      P.x += (-Math.sin(P.yaw) * f + Math.cos(P.yaw) * r) * v; P.z += (-Math.cos(P.yaw) * f - Math.sin(P.yaw) * r) * v;
+    }
+    P.x = Math.max(-11.4, Math.min(11.4, P.x)); P.z = Math.max(-7.4, Math.min(7.4, P.z));
+    for (const c of colliders) { const dx = P.x - c.x, dz = P.z - c.z, d = Math.hypot(dx, dz), m = c.r + 0.25; if (d < m && d > 0.0001) { P.x = c.x + (dx / d) * m; P.z = c.z + (dz / d) * m; } }
+  }
+  if (mode === "play" || mode === "script") {
+    camera.position.set(P.x, 1.6, P.z); camera.rotation.set(P.pitch, P.yaw, 0, "YXZ");
+    if (gameT < shakeUntil) { const a = shakeAmp * ((shakeUntil - gameT) / 1.8 + 0.2); camera.position.x += R(-a, a); camera.position.y += R(-a, a); }
+  } else if (mode === "intro") { camera.position.copy(camStart); camera.lookAt(0, 0, 0); }
+  // look
+  lookTarget = null;
+  if (mode === "play" && !reading) {
+    ray.setFromCamera(new THREE.Vector2(0, 0), camera); ray.far = 100;
+    const hits = ray.intersectObjects(things.map((t) => t.obj), true);
+    for (const h of hits) {
+      let o = h.object; let th = null;
+      while (o && !(th = things.find((t) => t.obj === o))) o = o.parent;
+      if (th && h.distance <= th.reach) { lookTarget = th; break; }
+      if (th) break;
+    }
+    // foreman groups are things via standup registration below
+  }
+  const s = sel();
+  $("hint").textContent = lookTarget ? `E: ${lookTarget.label()}` : "";
+  $("cross").style.background = lookTarget ? "#ffd27a" : "rgba(255,255,255,.85)";
+  $("cross").style.display = mode === "play" ? "block" : "none";
+  void s;
+  // ambient animation
+  for (const b of bubbles) { b.position.y += b.userData.sp * dt * bubbleBoost; if (b.position.y > 9.5) b.position.y = -0.5; }
+  if (bubbleBoost > 1 && gameT > shakeUntil + 3) bubbleBoost = 1;
+  Object.values(standups).forEach((st) => {
+    let d = st.target - st.yaw; d = Math.atan2(Math.sin(d), Math.cos(d)); st.yaw += d * Math.min(1, dt * 3); st.g.rotation.y = st.yaw;
+    st.g.rotation.z = gameT < wobbleUntil ? Math.sin(gameT * 35) * 0.06 : 0;
+  });
+  if (lampFlick > 0) { lampFlick -= dt; lamps.forEach((l) => l.material.color.set(Math.random() < 0.5 ? "#ffb62e" : "#555533")); if (lampFlick <= 0 && !rumbled) lamps.forEach((l) => l.material.color.set("#a67a22")); }
+  if (spinning && fittedParts.Flywheel) { fittedParts.Flywheel.userData.wheel.rotation.z += dt * 1.5; fittedParts.Churn.rotation.y += dt * 0.6; }
+  if (dayLit) dayMat.emissiveIntensity = 0.5 + 0.3 * Math.sin(gameT * (Math.PI * 2 / 1.2));
+  // proximity onward
+  if (dayLit && !leaving && mode === "play" && Math.hypot(P.x - 3, P.z - 6.3) < 0.8) leave();
+  // failsafe
+  if (landedAt !== null && !rumbled && !dayLit && gameT - landedAt > 330) {
+    lightDay(); say("HOBBS: Look, the day shift'll start with or without the paperwork. The DAY square's lit whenever you're ready.");
+  }
+  renderer.render(scene, camera);
+});
+
+// foremen as interactables (after helper definitions)
+Object.values(standups).forEach((s) => {
+  addThing(s.g, {
+    label: () => { const c = sel(); const n = FD[s.id].name; if (s.id === "hobbs") return noteReady && !noteTaken ? "take Mrs. Novak's note" : `talk to ${n}`; return c && isCard(c) && !s.done ? `give ${c} to ${n}` : `talk to ${n}`; },
+    use: () => talkForeman(s.id),
+  });
+});
+</script>
+</body></html>

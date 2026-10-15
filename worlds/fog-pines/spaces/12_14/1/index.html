@@ -1,101 +1,1266 @@
-<!doctype html><meta charset=utf-8><title>The Counting Desk</title>
-<style>
-*{box-sizing:border-box}body{margin:0;height:100vh;overflow:hidden;background:#2a1a10;color:#2b1b0c;font:17px Georgia,serif;display:flex;flex-direction:column}
-#top{flex:0 0 46%;background:linear-gradient(#5a7a8a,#8fb0b8 70%,#6b5a42);padding:10px;display:flex;flex-wrap:wrap;gap:8px;align-content:flex-end;justify-content:center;position:relative}
-#msg{position:absolute;left:0;right:0;top:0;padding:8px 14px;background:rgba(30,15,5,.82);color:#f3e2b8;min-height:44px;z-index:5}
-.p{width:158px;background:#e8d5a8;border:2px solid #3a2411;border-radius:6px;padding:6px 8px;font-size:14px;cursor:pointer;position:relative;transition:transform .2s}
-.p b{display:block;font-size:13px;color:#7a2a12}.p:hover{transform:translateY(-4px)}
-.p.shake{animation:sh .35s}@keyframes sh{25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
-.p.gone{opacity:.25;pointer-events:none;filter:grayscale(1)}
-#desk{flex:1;background:repeating-linear-gradient(90deg,#6b4423 0 38px,#5e3b1d 38px 40px);border-top:8px solid #3a2411;position:relative;display:flex;gap:16px;align-items:center;justify-content:center;padding:14px;flex-wrap:wrap}
-.o{background:#f1e3bd;border:2px solid #3a2411;padding:8px;width:130px;text-align:center;cursor:pointer;font-size:13px;box-shadow:3px 4px 0 rgba(0,0,0,.4);transition:transform .15s}
-.o:hover{transform:rotate(-2deg) translateY(-3px)}.o.held{outline:4px solid #d4a017;transform:translateY(-8px)}
-.o .s{display:inline-block;width:22px;height:22px;border-radius:50%;background:#9a1b12;margin-bottom:4px;border:2px solid #5c0d08}
-.o .s.br{background:none;border:2px dashed #888}.o.done{opacity:.35;pointer-events:none}
-.t{background:#3a2411;color:#f3e2b8;width:110px}
-#pan{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(520px,92vw);background:#f4e8c4;border:3px solid #3a2411;padding:18px 22px;z-index:6;display:none;box-shadow:0 10px 40px #000a;line-height:1.5}
-#pan .x{position:absolute;right:8px;top:4px;cursor:pointer;font-size:20px}
-.num{border-bottom:2px dotted #9a1b12;cursor:pointer}.num.bad{color:#9a1b12;font-weight:bold}
-.str{text-decoration:line-through;color:#777}.ink{color:#1a2a6a;font-style:italic}
-#end{position:fixed;inset:0;background:rgba(20,10,4,.92);color:#f3e2b8;display:none;z-index:9;align-items:center;justify-content:center;text-align:center;padding:30px;flex-direction:column;gap:20px}
-button{font:inherit;padding:10px 20px;background:#d4a017;border:2px solid #3a2411;cursor:pointer}
-</style>
-<div id=top><div id=msg></div></div>
-<div id=desk></div>
-<div id=pan></div>
-<div id=end><div id=endt style="max-width:560px;line-height:1.6"></div><button id=go>Take the pouch down to the quay</button></div>
-<script>
-const B=window.branches||{say(){},onward(){},carry(){}};
-const $=s=>document.querySelector(s);
-const persons=[
- {id:"chiara",t:"Factor of the <i>Santa Chiara</i>",s:"“Chiara, bound Alexandria, rides the tide at sext! Whatever the master wrote, hand it here!”",want:"L1"},
- {id:"fam",t:"Purser of the <i>Santa Chiara della Riva</i>",s:"“Chiara, for Famagusta! Anything for Famagusta? Cotton factors are waiting!”",want:"L5"},
- {id:"zac",t:"Boy of the <i>San Zaccaria</i>",s:"“Zaccaria, Bruges and the Flanders galleys! Wool men won't wait for the wind!”",want:"L2"},
- {id:"ron",t:"Mate of the <i>Rondine</i>",s:"“Rondine for Tyre. Glass, my friend, glass! Mind how you hand it.”",want:"L3"},
- {id:"ele",t:"Old pilot of the <i>Sant'Elena</i>",s:"“Elena, Ragusa and the Dalmatian shore. Nobody remembers Ragusa. Have you something?”",want:"L4"},
- {id:"cat",t:"A cat-seller",s:"“Cats, signore! Excellent against rats! Your master needs two!”",want:null}];
-const letters={
- L1:{n:"To Master Piero Morosini, the Chiara, Alexandria",body:"“…as to the pepper at the Alexandria fondaco: take @@ sacks, not more, against our bill of exchange; the remainder in cloves. Salute the factor. Ser Andrea Dandolo, Rialto.”"},
- L2:{n:"To the Flemish factor, aboard the San Zaccaria, for Bruges",body:"Six bales of Cotswold wool, fine, to be paid in Bruges cloth. Seal intact."},
- L3:{n:"To the glassmen, aboard the Rondine, for Tyre",body:"Soda ash by the Tyrian road. Seal intact."},
- L4:{n:"To the notary at Ragusa, aboard the Sant'Elena",body:"A legacy, a small one, for the widow Vukosava. Seal intact."},
- L5:{n:"To the cotton factor at Famagusta, aboard the Chiara della Riva",body:"Prices of the season, and a request for patience. Seal intact."}};
-let held=null,fixed=false,sealed=false,done=new Set(),read1=false,sawLedger=false;
-const say=t=>{$("#msg").innerHTML=t;try{B.say(t.replace(/<[^>]+>/g,""))}catch(e){}};
-const top_=$("#top");
-persons.forEach(p=>{const d=document.createElement("div");d.className="p";d.id="p_"+p.id;d.innerHTML="<b>"+p.t+"</b>"+p.s;d.onclick=()=>tryDeliver(p,d);top_.appendChild(d)});
-const desk=$("#desk");
-function mk(id,html,cls,fn){const d=document.createElement("div");d.className="o "+(cls||"");d.id="o_"+id;d.innerHTML=html;d.onclick=fn;desk.appendChild(d)}
-["L1","L2","L3","L4","L5"].forEach(k=>mk(k,'<div class="s '+(k=="L1"?"br":"")+'" id="s_'+k+'"></div><br>'+letters[k].n,"",()=>pick(k)));
-mk("quill","🪶 Quill &amp; ink","t",()=>pick("quill"));
-mk("wax","🕯 Wax &amp; Dandolo's seal","t",()=>pick("wax"));
-mk("led","📖 The house ledger","t",()=>openLedger());
-mk("note","📝 Note from the master","t",()=>openPan("<p>A slip, weighted with an inkwell:</p><p><i>Tomà. The Chiara letter. Read it over once more before it goes. I have not looked at it myself; I trust your hand. A.D.</i></p>"));
-function openPan(h){const p=$("#pan");p.innerHTML='<span class=x onclick="this.parentNode.style.display=\'none\'">✕</span>'+h;p.style.display="block"}
-function showL1(){
- const n=fixed?'<span class=str>forty</span> <span class=ink>fourteen</span>':'<span class="num bad" id=num>forty</span>';
- openPan("<p><b>"+letters.L1.n+"</b></p><p>"+letters.L1.body.replace("@@",n)+"</p><p>"+(sealed?"🔴 Sealed with the red wax.":"Seal broken: Tomà opened it Tuesday to add a postscript and never closed it.")+"</p>");
- const e=$("#num");if(e)e.onclick=()=>strike();
+<!doctype html>
+<html><head><meta charset="utf-8"><title>The Middle Watch</title>
+<style>html,body{margin:0;background:#000;height:100%;overflow:hidden}</style></head>
+<body>
+<script type="module">
+import * as THREE from '/vendor/three.module.js';
+import { createSpace } from './kit.js';
+
+const s = createSpace({ background: '#05070a', eye: 1.6, speed: 2.2, reach: 2.2 });
+const { scene, camera, renderer, player } = s;
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const lerp = (a, b, t) => a + (b - a) * t;
+const PI = Math.PI;
+
+/* ---------- overlays ---------- */
+const ov = (css, html = '') => {
+  const d = document.createElement('div');
+  d.style.cssText = 'position:fixed;pointer-events:none;z-index:40;' + css;
+  d.innerHTML = html;
+  document.body.appendChild(d);
+  return d;
+};
+const fade = ov('inset:0;background:#000;opacity:1;transition:opacity 1.5s;z-index:45');
+const fadeText = ov('inset:0;display:flex;align-items:center;justify-content:center;color:#efe6cf;font:italic 34px Georgia,serif;opacity:0;transition:opacity 1s;z-index:46');
+const capBox = ov('left:0;right:0;top:50%;transform:translateY(-50%);text-align:center;color:#efe6cf;font:24px/1.5 Georgia,serif;padding:0 12vw;opacity:0;transition:opacity 1.2s;text-shadow:0 2px 8px #000;z-index:44');
+const tip = ov('right:14px;bottom:14px;color:#9fb;font:13px Georgia,serif;opacity:.7;text-align:right', 'click to look · WASD to walk · E to use');
+setTimeout(() => (tip.style.opacity = 0), 14000);
+async function caption(html, ms) {
+  capBox.innerHTML = html;
+  capBox.style.opacity = 1;
+  await sleep(ms);
+  capBox.style.opacity = 0;
 }
-function pick(k){
- if(k=="L1"){held="L1";showL1();if(!read1){read1=true;say("You read the letter again. Forty sacks of pepper. <i>Forty?</i> Something in your stomach turns over. Check the ledger.")}else say("The Chiara letter is in your hand"+(sealed?". Find the right Chiara.":". Seal broken: nobody will take that."))}
- else if(letters[k]){held=k;openPan("<p><b>"+letters[k].n+"</b></p><p>"+letters[k].body+"</p>");say("Held: "+letters[k].n+". Click the agent it belongs to.")}
- else if(k=="quill"){held="quill";say("The quill is wet. Click the figure you would correct (open the Chiara letter first).")}
- else if(k=="wax"){held="wax";if(!sealed&&read1){say("The wax drips. Click anywhere on the open Chiara letter to close it.");showL1()}else say("Wax is ready, but there is nothing broken to close.")}
- hl();
+
+/* ---------- speech queue ---------- */
+const sayQ = [];
+let sayBusy = false;
+function pump() {
+  if (sayBusy || !sayQ.length) return;
+  sayBusy = true;
+  const { t, res } = sayQ.shift();
+  s.say(t);
+  setTimeout(() => { sayBusy = false; res(); pump(); }, 3400);
 }
-function hl(){document.querySelectorAll(".o").forEach(o=>o.classList.toggle("held",o.id=="o_"+held))}
-function openLedger(){sawLedger=true;
- openPan("<p><b>House ledger, Rialto: Morosini accounts</b></p><p>Alexandria, outbound: <i>Chiara</i>.<br>Pepper, per master's order of Monday: <b>fourteen</b> sacks, against bill of exchange, 90 ducats.<br>Cloves: the remainder.</p><p style='color:#9a1b12'>Beneath it, in your own hand, three days ago: “forty, as spoken.” You wrote it down wrong.</p>");
- say("Fourteen. Not forty. Twenty-six sacks of credit the house does not have, and a factor in Alexandria who would have trusted it. That is on you, Tomà.")}
-function strike(){
- if(held!="quill"){say("A figure on a page does not change by being stared at. Take the quill.");return}
- if(!sawLedger){say("Before you strike: what <i>should</i> it say? The ledger knows.");return}
- fixed=true;showL1();say("You strike the forty, once, cleanly, and write <i>fourteen</i> above it. Your hand is not entirely steady.");
+const say = (t) => new Promise((res) => { sayQ.push({ t, res }); pump(); });
+const crew = (t) => { s.say(t); };
+
+/* ---------- state ---------- */
+const S = {
+  contact: 0, step: 'flying', compared: false, phase: 'loop', second: 'none',
+  phoneReady: false, flyOK: false, frozen: false, time: 36 * 60, mult: 1,
+  lastAct: performance.now(), holdAt: 0, holdHinted: false, mug: 0, stillTex: null,
+  boilerTex: null, doorT: -1, ritual: false, lock: null, strikeT: -1, pinnedCount: [0, 0, 0, 0],
+  erupt: false, flick: false, bead: false, cableDone: false,
+};
+const act = () => (S.lastAct = performance.now());
+const hms = (sec) => {
+  sec = Math.floor(sec);
+  const p = (n) => String(n).padStart(2, '0');
+  return `${p(Math.floor(sec / 3600) % 24)}:${p(Math.floor(sec / 60) % 60)}:${p(sec % 60)}`;
+};
+
+/* ---------- audio ---------- */
+const A = (() => {
+  let ctx = null, out = null, seaG = null, humG = null, cheerG = null, nb = null;
+  let cheerT = 0, cheerV = 0, seaT = 0, seaV = 0, humT = 1, humV = 1, creakIn = 5;
+  function init() {
+    if (ctx) return;
+    try { ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { ctx = null; return; }
+    try {
+      out = ctx.createGain(); out.gain.value = 0.7; out.connect(ctx.destination);
+      const n = ctx.sampleRate * 2;
+      nb = ctx.createBuffer(1, n, ctx.sampleRate);
+      const d = nb.getChannelData(0);
+      for (let i = 0; i < n; i++) d[i] = Math.random() * 2 - 1;
+      const loop = () => { const b = ctx.createBufferSource(); b.buffer = nb; b.loop = true; b.start(); return b; };
+      humG = ctx.createGain(); humG.gain.value = 0.025; humG.connect(out);
+      [60, 120].forEach((f, k) => { const o = ctx.createOscillator(); o.frequency.value = f; const g = ctx.createGain(); g.gain.value = k ? 0.4 : 1; o.connect(g); g.connect(humG); o.start(); });
+      const eg = ctx.createGain(); eg.gain.value = 0.1;
+      const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 200;
+      loop().connect(lp); lp.connect(eg); eg.connect(out);
+      const lfo = ctx.createOscillator(); lfo.frequency.value = 0.2;
+      const lg = ctx.createGain(); lg.gain.value = 0.04; lfo.connect(lg); lg.connect(eg.gain); lfo.start();
+      seaG = ctx.createGain(); seaG.gain.value = 0;
+      const sl = ctx.createBiquadFilter(); sl.type = 'lowpass'; sl.frequency.value = 500;
+      loop().connect(sl); sl.connect(seaG); seaG.connect(out);
+      const sw = ctx.createOscillator(); sw.frequency.value = 0.08;
+      const sg = ctx.createGain(); sg.gain.value = 250; sw.connect(sg); sg.connect(sl.frequency); sw.start();
+      cheerG = ctx.createGain(); cheerG.gain.value = 0; cheerG.connect(out);
+      [[900, 0.7], [2200, 0.9], [420, 0.6]].forEach(([f, q]) => {
+        const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = f; bp.Q.value = q;
+        loop().connect(bp); bp.connect(cheerG);
+      });
+    } catch (e) { console.error(e); }
+  }
+  const tone = (f, dur, g = 0.05, type = 'sine', f2 = null, when = 0) => {
+    if (!ctx || !out) return;
+    const t = ctx.currentTime + when;
+    const o = ctx.createOscillator(); o.type = type; o.frequency.setValueAtTime(f, t);
+    if (f2) o.frequency.linearRampToValueAtTime(f2, t + dur);
+    const gg = ctx.createGain(); gg.gain.setValueAtTime(g, t); gg.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(gg); gg.connect(out); o.start(t); o.stop(t + dur + 0.02);
+  };
+  const burst = (dur, freq, g = 0.2, when = 0) => {
+    if (!ctx || !out || !nb) return;
+    const t = ctx.currentTime + when;
+    const b = ctx.createBufferSource(); b.buffer = nb;
+    const f = ctx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = freq;
+    const gg = ctx.createGain(); gg.gain.setValueAtTime(g, t); gg.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    b.connect(f); f.connect(gg); gg.connect(out); b.start(t, Math.random()); b.stop(t + dur + 0.02);
+  };
+  return {
+    init,
+    clunk() { burst(0.04, 800, 0.5); tone(90, 0.12, 0.3); },
+    tick() { tone(3000, 0.015, 0.08); },
+    pencil() { for (let k = 0; k < 3; k++) burst(0.16, 3500, 0.06, k * 0.28); },
+    squeak() {
+      for (let k = 0; k < 3; k++) for (let j = 0; j < 6; j++) tone(1800 + Math.random() * 500, 0.06, 0.025, 'sine', null, k * 0.45 + j * 0.06);
+    },
+    print() {
+      if (!ctx || !out) return;
+      const t = ctx.currentTime;
+      const o = ctx.createOscillator(); o.type = 'square';
+      o.frequency.setValueAtTime(380, t); o.frequency.linearRampToValueAtTime(480, t + 1.2); o.frequency.linearRampToValueAtTime(380, t + 2.5);
+      const g = ctx.createGain(); g.gain.value = 0.012;
+      const am = ctx.createOscillator(); am.frequency.value = 30;
+      const ag = ctx.createGain(); ag.gain.value = 0.01; am.connect(ag); ag.connect(g.gain);
+      o.connect(g); g.connect(out); o.start(t); am.start(t); o.stop(t + 2.5); am.stop(t + 2.5);
+      for (let k = 0; k < 30; k++) burst(0.02, 1500, 0.07, k / 12);
+    },
+    clank() { burst(0.25, 600, 0.5); tone(70, 0.4, 0.4); tone(180, 0.3, 0.15, 'square'); },
+    cheer(v) { cheerT = v; },
+    sea(v) { seaT = v; },
+    hum(v) { humT = v; },
+    update(dt, outside) {
+      if (!ctx) return;
+      cheerV += (cheerT * (0.45 + 0.55 * Math.random()) - cheerV) * Math.min(1, dt * 7);
+      if (cheerG) cheerG.gain.value = cheerV * 0.3;
+      seaV += (seaT - seaV) * Math.min(1, dt * 1.5);
+      if (seaG) seaG.gain.value = seaV * 0.35;
+      humV += (humT - humV) * Math.min(1, dt * 2);
+      if (humG) humG.gain.value = 0.025 * humV;
+      if (outside) {
+        creakIn -= dt;
+        if (creakIn < 0) { creakIn = 6 + Math.random() * 3; tone(120, 0.7, 0.035, 'sine', 90); }
+      }
+    },
+  };
+})();
+['keydown', 'pointerdown', 'click'].forEach((e) => addEventListener(e, () => A.init(), { once: false }));
+
+/* ---------- helpers ---------- */
+const stdMat = (c, o = {}) => new THREE.MeshStandardMaterial({ color: c, roughness: 0.85, ...o });
+const baseMat = (c, o = {}) => new THREE.MeshBasicMaterial({ color: c, ...o });
+function box(w, h, d, x, y, z, c, parent = scene, m = null) {
+  const b = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m || stdMat(c));
+  b.position.set(x, y, z);
+  parent.add(b);
+  return b;
 }
-$("#pan").addEventListener("click",e=>{
- if(held=="wax"&&!sealed&&read1&&e.target.id!="num"&&e.target.className!="x"){
-  if(!fixed){say("Seal it with the wrong number and it is a lie with a crest on it. Correct it first.");return}
-  sealed=true;$("#s_L1").classList.remove("br");showL1();say("The wax takes the seal with a small wet kiss. Now: which Chiara is it?")}
+function hit(w, h, d, x, y, z, parent = scene) {
+  const b = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), new THREE.MeshBasicMaterial({ visible: false }));
+  b.position.set(x, y, z);
+  parent.add(b);
+  return b;
+}
+function canvasTex(w, h, draw) {
+  const c = document.createElement('canvas');
+  c.width = w; c.height = h;
+  const ctx = c.getContext('2d');
+  draw(ctx, w, h);
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return { c, ctx, tex, redraw: (fn) => { fn(ctx, w, h); tex.needsUpdate = true; } };
+}
+function textLines(ctx, lines, x, y, lh) {
+  lines.forEach((l, i) => ctx.fillText(l, x, y + i * lh));
+}
+const HAND = '"Bradley Hand","Segoe Script","Comic Sans MS",cursive';
+const MARKER = 'bold 56px "Marker Felt","Permanent Marker","Comic Sans MS",cursive';
+function beam(p1, p2, th, color, parent = scene) {
+  const a = new THREE.Vector3(...p1), b = new THREE.Vector3(...p2);
+  const len = a.distanceTo(b);
+  const m = new THREE.Mesh(new THREE.BoxGeometry(th, th, len), stdMat(color));
+  m.position.copy(a).add(b).multiplyScalar(0.5);
+  m.lookAt(b);
+  parent.add(m);
+  return m;
+}
+
+/* ---------- lights ---------- */
+scene.add(new THREE.AmbientLight('#8aa0b0', 0.6));
+const redLight = new THREE.PointLight('#ff3a2a', 6, 7);
+redLight.position.set(1.8, 2.1, 0);
+scene.add(redLight);
+const glow = new THREE.PointLight('#9fc8c0', 2.5, 5);
+glow.position.set(-0.6, 1.4, -0.6);
+scene.add(glow);
+const clip = new THREE.SpotLight('#ffd9a0', 5, 6, 0.7, 0.5, 2);
+clip.position.set(-0.4, 2.2, 0.6);
+clip.target.position.set(-0.4, 1.5, 1.27);
+scene.add(clip, clip.target);
+
+/* ---------- the van ---------- */
+s.room({ x: 0, z: 0, w: 6.2, d: 2.8, h: 2.3, wall: '#3a3f44', floor: '#2a2c2e', ceiling: '#2f3236', doors: [{ side: 'e', at: 0, w: 0.9 }] });
+s.player.position.set(-0.6, 0, 0.4);
+s.player.yaw = 0;
+s.walls.push({ x0: -2.4, x1: 1.6, z0: -1.3, z1: -0.7 });
+const doorBlock = { x0: 3.0, x1: 3.2, z0: -0.45, z1: 0.45 };
+s.walls.push(doorBlock);
+
+// console desk
+box(4.0, 0.78, 0.6, -0.4, 0.39, -1.0, '#2d3a48');
+box(4.0, 0.02, 0.6, -0.4, 0.79, -1.0, '#4a5866');
+
+// big monitor
+const bezel = box(1.3, 0.95, 0.35, -0.6, 1.45, -1.12, '#1a1a1a');
+box(0.3, 0.3, 0.2, -0.6, 0.95, -1.15, '#1a1a1a');
+const rt = (() => { try { return new THREE.WebGLRenderTarget(512, 384, { minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter }); } catch (e) { return null; } })();
+let fallback = !rt;
+const screenUniforms = { tex: { value: rt ? rt.texture : null }, time: { value: 0 } };
+const screenMat = new THREE.ShaderMaterial({
+  uniforms: screenUniforms,
+  toneMapped: false,
+  vertexShader: 'varying vec2 vUv; void main(){ vUv=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }',
+  fragmentShader: `varying vec2 vUv; uniform sampler2D tex; uniform float time;
+    float h(vec2 p){ return fract(sin(dot(p,vec2(12.9898,78.233)))*43758.5453); }
+    void main(){
+      vec3 c = texture2D(tex, vUv).rgb;
+      float l = dot(c, vec3(0.299,0.587,0.114));
+      l = pow(l, 0.55) * 1.15;
+      l += (h(vUv*512.0 + time) - 0.5) * 0.12;
+      float sc = 0.85 + 0.15 * sin(vUv.y * 384.0 * 3.14159);
+      float vg = 1.0 - 1.1 * dot(vUv - 0.5, vUv - 0.5);
+      gl_FragColor = vec4(vec3(0.847,0.941,0.878) * l * sc * vg, 1.0);
+    }`,
 });
-function tryDeliver(p,d){
- const shake=()=>{d.classList.add("shake");setTimeout(()=>d.classList.remove("shake"),400)};
- if(!held||!letters[held]){say(p.s+"<br><i>(Pick up a letter first.)</i>");return}
- if(held=="L1"&&(!fixed||!sealed)&&p.want){shake();say("“Open, and with a scratch in the pepper count? I'll not carry that.” The letter is not yet ready.");return}
- if(p.want==held){
-  done.add(held);d.classList.add("gone");$("#o_"+held).classList.add("done");
-  const lines={L1:"The factor reads the number twice, nods, and tucks it inside his coat. “Fourteen. Good.” The tide bell goes.",L2:"The boy is already running for the Flanders galley.",L3:"“Glass,” says the mate, gently, and carries it like an egg.",L4:"The old pilot holds it to the light. “Ragusa,” he says, as if to the sea.",L5:"The purser kisses the seal and shouts something about cotton."};
-  held=null;hl();$("#pan").style.display="none";
-  say(lines[p.want]+" ("+done.size+"/5)");
-  if(done.size==5)setTimeout(finish,1500);
- }else{
-  shake();
-  say(p.want?"“Not mine! Read the ship, boy. The <i>whole</i> ship.”":"“No letters? I thought you'd want cats.”");
- }
+const fbCanvas = canvasTex(256, 192, (x) => { x.fillStyle = '#222'; x.fillRect(0, 0, 256, 192); });
+const fbMat = new THREE.MeshBasicMaterial({ map: fbCanvas.tex });
+const screen = new THREE.Mesh(new THREE.PlaneGeometry(1.16, 0.86), fallback ? fbMat : screenMat);
+screen.position.set(-0.6, 1.45, -0.924);
+scene.add(screen);
+const ovl = canvasTex(512, 384, () => {});
+const ovlPlane = new THREE.Mesh(new THREE.PlaneGeometry(1.16, 0.86), new THREE.MeshBasicMaterial({ map: ovl.tex, transparent: true, depthWrite: false }));
+ovlPlane.position.set(-0.6, 1.45, -0.922);
+scene.add(ovlPlane);
+const monHit = hit(1.3, 0.95, 0.4, -0.6, 1.45, -1.05);
+s.thing(monHit, { label: 'the Argo monitor', use: () => crew("Argo: two and a half miles down, one camera, a lot of mud.") });
+
+// aux monitors
+function auxMonitor(x, draw) {
+  box(0.54, 0.44, 0.1, x, 1.25, -1.2, '#1a1a1a');
+  const c = canvasTex(256, 200, draw);
+  const p = new THREE.Mesh(new THREE.PlaneGeometry(0.46, 0.36), new THREE.MeshBasicMaterial({ map: c.tex }));
+  p.position.set(x, 1.25, -1.148);
+  scene.add(p);
+  return c;
 }
-function finish(){
- $("#endt").innerHTML="<p>The quay empties by degrees. Five letters on five hulls, and one of them now says what the house actually owes.</p><p>The cat-seller sells one cat to a customs man and leaves.</p><p>Behind you the master: “It was forty when I said it, Tomà? No. Fourteen is what I said. You'll repeat it back to me next time.” He puts a hand on your shoulder, briefly, and goes back to the Rialto.</p><p style='opacity:.7'>You keep the factor's receipt, with fourteen written in it.</p>";
- $("#end").style.display="flex";try{B.carry(["receipt for fourteen sacks"])}catch(e){}}
-$("#go").onclick=()=>{try{B.onward()}catch(e){}};
-say("Rialto, the counting house, a hundred voices at the counter. Tide bell at sext. Letters to the ships. Start with the master's note.");
+const drawSonar = (x, w, h) => {
+  x.fillStyle = '#031006'; x.fillRect(0, 0, w, h);
+  x.fillStyle = '#4fdc6a'; x.font = '15px monospace';
+  x.fillText('SONAR  —  PORT / STBD', 10, 20);
+  for (let i = 0; i < 90; i++) {
+    const a = 20 + Math.random() * 60;
+    x.fillStyle = `rgba(80,220,110,${0.15 + Math.random() * 0.5})`;
+    x.fillRect(w / 2 - a, 34 + i * 1.8, a * 2, 1.4);
+  }
+};
+const drawNav = (x, w, h, t) => {
+  x.fillStyle = '#031006'; x.fillRect(0, 0, w, h);
+  x.fillStyle = '#4fdc6a'; x.font = '17px monospace';
+  x.fillText("NAV  41°43'N  49°56'W", 10, 30);
+  x.fillText('HDG 184   SOG 0.8 kn', 10, 60);
+  x.fillText('TOW 23   CBL 3920 m', 10, 90);
+  if (Math.floor(t * 2) % 2) x.fillRect(10, 110, 10, 18);
+};
+const auxL = auxMonitor(-1.75, drawSonar);
+const auxR = auxMonitor(0.55, (x, w, h) => drawNav(x, w, h, 0));
+s.thing(hit(0.54, 0.44, 0.2, -1.75, 1.25, -1.15), { label: 'the sonar monitor', use: () => crew('Side-scan. Mud to port, mud to starboard. Mud the whole way to Newfoundland.') });
+s.thing(hit(0.54, 0.44, 0.2, 0.55, 1.25, -1.15), { label: 'the nav monitor', use: () => crew("41°43' N, 49°56' W. Somewhere under here, by everyone's arithmetic but the ocean's.") });
+
+// freeze button
+box(0.2, 0.02, 0.14, -0.9, 0.80, -0.85, '#555a5e');
+const btn = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.03, 20), stdMat('#c01818', { emissive: '#400000' }));
+btn.position.set(-0.9, 0.825, -0.85);
+scene.add(btn);
+const plateLabel = canvasTex(128, 40, (x, w, h) => { x.fillStyle = '#c9c4b0'; x.fillRect(0, 0, w, h); x.fillStyle = '#111'; x.font = 'bold 20px monospace'; x.fillText('FRAME HOLD', 8, 27); });
+const pl = new THREE.Mesh(new THREE.PlaneGeometry(0.14, 0.045), new THREE.MeshBasicMaterial({ map: plateLabel.tex }));
+pl.rotation.x = -PI / 2; pl.position.set(-0.9, 0.812, -0.76);
+scene.add(pl);
+const btnHit = hit(0.2, 0.14, 0.2, -0.9, 0.84, -0.85);
+
+// procedure card
+const CARD = 'MIDDLE WATCH — CONTACT PROCEDURE\n1  FREEZE   (red button)\n2  PRINT    (printer — take the still)\n3  PIN      (board — right column!)\n4  LOG      (book — time + what it is)\nThen let her fly.\n\nDo NOT wake the Chief for a rock.';
+const cardTex = canvasTex(256, 360, (x, w, h) => {
+  x.fillStyle = '#efe6cf'; x.fillRect(0, 0, w, h);
+  x.fillStyle = '#23201a'; x.font = `bold 15px ${HAND}`;
+  textLines(x, CARD.split('\n'), 10, 28, 24);
+});
+const card = new THREE.Mesh(new THREE.PlaneGeometry(0.2, 0.28), new THREE.MeshBasicMaterial({ map: cardTex.tex, color: '#cccccc' }));
+card.rotation.x = -1.2; card.position.set(-0.3, 0.795, -0.8);
+scene.add(card);
+s.thing(hit(0.26, 0.1, 0.3, -0.3, 0.84, -0.8), { label: 'the procedure card', use: () => s.read('Taped to the console', CARD) });
+
+// printer
+const printer = box(0.36, 0.14, 0.3, 0.55, 0.85, -0.85, '#cdbf9c');
+box(0.3, 0.02, 0.01, 0.55, 0.83, -0.699, '#111');
+const led = new THREE.Mesh(new THREE.SphereGeometry(0.012, 8, 8), baseMat('#33ff55'));
+led.position.set(0.68, 0.89, -0.698);
+scene.add(led);
+const pLab = canvasTex(128, 32, (x, w, h) => { x.fillStyle = '#e8dcc0'; x.fillRect(0, 0, w, h); x.fillStyle = '#222'; x.font = 'bold 17px monospace'; x.fillText('VIDEO PRINTER', 6, 22); });
+const pLabM = new THREE.Mesh(new THREE.PlaneGeometry(0.16, 0.04), new THREE.MeshBasicMaterial({ map: pLab.tex }));
+pLabM.position.set(0.45, 0.89, -0.697);
+scene.add(pLabM);
+const printerHit = hit(0.4, 0.2, 0.34, 0.55, 0.85, -0.85);
+
+// paper sheet (shared curl geometry)
+const paperGeo = new THREE.PlaneGeometry(0.2, 0.15, 8, 1);
+{
+  const p = paperGeo.attributes.position;
+  for (let i = 0; i < p.count; i++) { const u = p.getX(i) / 0.1; p.setZ(i, 0.03 * u * u * 0.5); }
+  paperGeo.computeVertexNormals();
+}
+const sheetMat = new THREE.MeshBasicMaterial({ color: '#efe6cf', side: THREE.DoubleSide });
+const sheet = new THREE.Mesh(paperGeo, sheetMat);
+sheet.rotation.x = -PI / 2 + 0.15;
+sheet.position.set(0.55, 0.84, -0.86);
+sheet.visible = false;
+scene.add(sheet);
+const sheetHit = hit(0.26, 0.1, 0.22, 0.55, 0.86, -0.66);
+sheetHit.visible = false;
+const held = new THREE.Mesh(paperGeo, sheetMat);
+held.position.set(0.26, -0.2, -0.6);
+held.rotation.set(0.1, -0.25, 0.05);
+held.visible = false;
+camera.add(held);
+
+// mug
+const mug = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.035, 0.1, 14), stdMat('#e8e8e4'));
+mug.position.set(-1.6, 0.83, -0.8);
+scene.add(mug);
+s.thing(hit(0.14, 0.16, 0.14, -1.6, 0.84, -0.8), {
+  label: 'the coffee mug',
+  use: () => { S.mug++; crew(S.mug === 1 ? "Cold. It's been cold since eleven." : "You drink it anyway. That's the watch."); },
+});
+
+// wall phone
+box(0.12, 0.26, 0.05, 1.4, 1.35, -1.27, '#d8ccb0');
+box(0.1, 0.06, 0.1, 1.4, 1.5, -1.24, '#c8bc9c');
+const cord = new THREE.Mesh(new THREE.TorusGeometry(0.06, 0.008, 6, 14), stdMat('#c8bc9c'));
+cord.position.set(1.4, 1.2, -1.23);
+scene.add(cord);
+const phoneLab = canvasTex(128, 32, (x, w, h) => { x.fillStyle = '#efe6cf'; x.fillRect(0, 0, w, h); x.fillStyle = '#222'; x.font = 'bold 15px monospace'; x.fillText('GALLEY / BRIDGE', 6, 21); });
+const phoneLabM = new THREE.Mesh(new THREE.PlaneGeometry(0.14, 0.035), new THREE.MeshBasicMaterial({ map: phoneLab.tex }));
+phoneLabM.position.set(1.4, 1.32, -1.242);
+scene.add(phoneLabM);
+const phoneHit = hit(0.24, 0.4, 0.2, 1.4, 1.35, -1.2);
+
+// oilskin
+box(0.04, 0.05, 0.04, 2.7, 1.8, -1.27, '#555');
+const oil = box(0.4, 0.8, 0.12, 2.7, 1.4, -1.22, '#d4a82a');
+s.thing(oil, { label: 'the oilskin', use: () => crew('Somebody’s yellow jacket. It smells of the North Atlantic, which smells of diesel.') });
+
+// door
+const doorPivot = new THREE.Group();
+doorPivot.position.set(3.1, 0, -0.45);
+scene.add(doorPivot);
+const doorSlab = box(0.1, 2.0, 0.9, 0, 1.0, 0.45, '#5b6268', doorPivot);
+box(0.14, 0.05, 0.2, -0.08, 1.0, 0.8, '#aaa', doorPivot);
+box(0.2, 0.3, 0.9, 3.1, 2.15, 0, '#3a3f44');
+s.thing(doorSlab, { label: 'the door', use: () => crew(S.doorT >= 0 ? 'Go on out. Leave the cameras running.' : 'Locked against the weather. The watch stays in the van.') });
+
+// wall clock
+const clockTex = canvasTex(256, 256, () => {});
+function drawClock() {
+  clockTex.redraw((x, w, h) => {
+    x.fillStyle = '#f2f2ee'; x.beginPath(); x.arc(128, 128, 122, 0, 7); x.fill();
+    x.strokeStyle = '#111'; x.lineWidth = 6; x.stroke();
+    x.fillStyle = '#111';
+    for (let i = 0; i < 12; i++) { const a = (i / 12) * 2 * PI; x.fillRect(128 + Math.sin(a) * 100 - 3, 128 - Math.cos(a) * 100 - 3, 6, 6); }
+    const sec = S.time % 60, min = (S.time / 60) % 60, hr = (S.time / 3600) % 12;
+    const hand = (ang, len, wd, col) => { x.strokeStyle = col; x.lineWidth = wd; x.beginPath(); x.moveTo(128, 128); x.lineTo(128 + Math.sin(ang) * len, 128 - Math.cos(ang) * len); x.stroke(); };
+    hand((hr / 12) * 2 * PI, 60, 9, '#111');
+    hand((min / 60) * 2 * PI, 90, 6, '#111');
+    hand((sec / 60) * 2 * PI, 100, 2, '#c00');
+  });
+}
+const clockM = new THREE.Mesh(new THREE.CircleGeometry(0.2, 32), new THREE.MeshBasicMaterial({ map: clockTex.tex }));
+clockM.rotation.y = -PI / 2;
+clockM.position.set(2.99, 1.95, 0);
+scene.add(clockM);
+s.thing(hit(0.1, 0.45, 0.45, 2.95, 1.95, 0), {
+  label: 'the wall clock',
+  use: () => { const t = hms(S.time); crew(`${t.slice(0, 5)} and some seconds.`); },
+});
+
+// corkboard
+box(2.6, 1.2, 0.04, -0.4, 1.5, 1.28, '#b48a5a');
+const COLS = ['ROCK', 'LIFE', 'JUNK', '?'];
+const colX = [-1.375, -0.725, -0.075, 0.575];
+const headTex = canvasTex(1040, 120, () => {});
+function drawHeaders(p) {
+  headTex.redraw((x, w, h) => {
+    x.fillStyle = '#c29a68'; x.fillRect(0, 0, w, h);
+    x.fillStyle = '#111'; x.font = MARKER; x.textAlign = 'center';
+    for (let i = 0; i < 4; i++) {
+      x.fillText(COLS[i], 130 + i * 260, i === 3 && p > 0 ? 62 : 82);
+      if (i) { x.fillStyle = 'rgba(0,0,0,.35)'; x.fillRect(i * 260, 6, 3, 108); x.fillStyle = '#111'; }
+    }
+    if (p > 0) {
+      const a = clamp(p / 0.5, 0, 1);
+      x.strokeStyle = '#111'; x.lineWidth = 9; x.lineCap = 'round';
+      x.beginPath(); x.moveTo(840, 70); x.lineTo(840 + 100 * a, 22 + 8 * (1 - a) * 0 + (1 - a) * 0 + 8 * a - 8 * a + 0); x.stroke();
+      x.beginPath(); x.moveTo(850, 20); x.lineTo(850 + 90 * a, 66 - 0); x.stroke();
+      const b = clamp((p - 0.5) / 0.5, 0, 1);
+      if (b > 0) {
+        x.save();
+        x.beginPath(); x.rect(782, 70, 236 * b, 50); x.clip();
+        x.font = 'bold 38px "Marker Felt","Permanent Marker","Comic Sans MS",cursive';
+        x.fillText('TITANIC', 910, 110);
+        x.restore();
+      }
+    }
+  });
+}
+drawHeaders(0);
+const headM = new THREE.Mesh(new THREE.PlaneGeometry(2.6, 0.3), new THREE.MeshBasicMaterial({ map: headTex.tex, color: '#bbbbbb' }));
+headM.rotation.y = PI;
+headM.position.set(-0.4, 1.95, 1.255);
+scene.add(headM);
+
+// pre-pinned stills
+const smear = canvasTex(64, 48, (x, w, h) => {
+  x.fillStyle = '#e9e1cc'; x.fillRect(0, 0, w, h);
+  for (let i = 0; i < 90; i++) { x.fillStyle = `rgba(70,66,58,${Math.random() * 0.4})`; x.fillRect(Math.random() * w, Math.random() * h, 2 + Math.random() * 8, 2 + Math.random() * 5); }
+});
+const smearMat = new THREE.MeshBasicMaterial({ map: smear.tex, side: THREE.DoubleSide, color: '#cfcfcf' });
+const stillGeo = new THREE.PlaneGeometry(0.12, 0.09);
+const pinGeo = new THREE.SphereGeometry(0.008, 6, 6);
+const pinMat = baseMat('#d02020');
+function pinDot(x, y, z) { const d = new THREE.Mesh(pinGeo, pinMat); d.position.set(x, y, z); scene.add(d); return d; }
+for (let c = 0; c < 3; c++) {
+  for (let k = 0; k < 30; k++) {
+    const gx = k % 4, gy = Math.floor(k / 4);
+    const x = colX[c] - 0.225 + gx * 0.15 + (Math.random() - 0.5) * 0.02 + (k >= 28 ? 0.05 : 0);
+    const y = 1.8 - gy * 0.115 + (Math.random() - 0.5) * 0.02;
+    const m = new THREE.Mesh(stillGeo, smearMat);
+    m.rotation.set(0, PI, (Math.random() - 0.5) * 0.14);
+    m.position.set(x, y, 1.25);
+    scene.add(m);
+    pinDot(x, y + 0.03, 1.248);
+  }
+}
+pinDot(colX[3], 1.82, 1.25);
+// column targets
+const targets = [];
+const CAPTIONS = [
+  'ROCK: a hundred and twelve stills of rock. Someone has written "STILL ROCK" on one.',
+  'LIFE: fish, sea cucumbers, brittle stars. One fish is labelled GERALD and has been pinned three times.',
+  'JUNK: beer cans, a boot, a lot of coal clinker. Steamers have crossed here for a century.',
+  '?: Empty. One pin, waiting.',
+];
+const capCount = [0, 0, 0, 0];
+for (let i = 0; i < 4; i++) {
+  const t = hit(0.6, 1.0, 0.1, colX[i], 1.4, 1.2);
+  targets.push(t);
+  s.thing(t, { label: `the board — ${COLS[i]}`, use: () => boardUse(i) });
+}
+function refreshBoardLabels() {
+  targets.forEach((t, i) => s.setLabel(t, S.step === 'held' ? `pin under ${COLS[i]}` : `the board — ${COLS[i]}`));
+}
+
+// shipbuilder plate
+const plateTex = canvasTex(256, 340, (x, w, h) => {
+  x.fillStyle = '#d8c9a0'; x.fillRect(0, 0, w, h);
+  x.strokeStyle = '#3b3220'; x.fillStyle = '#3b3220'; x.lineWidth = 3;
+  x.beginPath(); x.arc(128, 150, 95, 0, 7); x.stroke();
+  x.lineWidth = 1.5;
+  for (let i = 0; i < 40; i++) { const a = (i / 40) * 2 * PI; x.beginPath(); x.arc(128 + Math.cos(a) * 85, 150 + Math.sin(a) * 85, 2.2, 0, 7); x.fill(); }
+  x.lineWidth = 3;
+  [-45, 0, 45].forEach((dx) => { x.beginPath(); x.arc(128 + dx, 190, 17, 0, 7); x.stroke(); x.beginPath(); x.arc(128 + dx, 190, 8, 0, 7); x.stroke(); });
+  x.font = 'bold 15px Georgia'; x.textAlign = 'center';
+  x.fillText('THE SHIPBUILDER, 1911', 128, 285);
+  x.fillText('SINGLE-ENDED BOILER', 128, 305);
+});
+const plateM = new THREE.Mesh(new THREE.PlaneGeometry(0.45, 0.6), new THREE.MeshBasicMaterial({ map: plateTex.tex, color: '#cccccc' }));
+plateM.rotation.y = PI;
+plateM.position.set(1.4, 1.5, 1.27);
+scene.add(plateM);
+const plateHit = hit(0.5, 0.65, 0.1, 1.4, 1.5, 1.2);
+
+// logbook
+box(0.5, 0.03, 0.34, -1.9, 0.97, 1.05, '#4a3a2a');
+box(0.42, 0.04, 0.3, -1.9, 1.0, 1.05, '#2f5a3a');
+box(0.38, 0.025, 0.27, -1.9, 1.03, 1.05, '#efe6cf');
+box(0.14, 0.01, 0.01, -1.65, 1.03, 0.95, '#c9a227');
+const logHit = hit(0.5, 0.12, 0.36, -1.9, 1.02, 1.05);
+
+/* ---------- the fantail ---------- */
+{
+  const deck = new THREE.Mesh(new THREE.PlaneGeometry(10, 12), stdMat('#4b4f52', { roughness: 0.6 }));
+  deck.rotation.x = -PI / 2; deck.position.set(8, -0.02, 0);
+  scene.add(deck);
+  const rail = (x0, z0, x1, z1) => beam([x0, 1.0, z0], [x1, 1.0, z1], 0.05, '#c8ccd0');
+  rail(3.1, -6, 12.5, -6); rail(3.1, 6, 12.5, 6); rail(12.5, -6, 12.5, 6);
+  for (let k = 0; k <= 6; k++) { const z = -6 + k * 2; box(0.05, 1.0, 0.05, 12.5, 0.5, z, '#c8ccd0'); }
+  for (let k = 0; k <= 4; k++) { const x = 3.5 + k * 2.25; box(0.05, 1.0, 0.05, x, 0.5, -6, '#c8ccd0'); box(0.05, 1.0, 0.05, x, 0.5, 6, '#c8ccd0'); }
+  s.walls.push({ x0: 12.5, x1: 12.6, z0: -6.1, z1: 6.1 });
+  s.walls.push({ x0: 3.1, x1: 12.6, z0: -6.1, z1: -6 });
+  s.walls.push({ x0: 3.1, x1: 12.6, z0: 6, z1: 6.1 });
+  s.walls.push({ x0: 5.4, x1: 6.6, z0: -3.7, z1: -2.3 });
+  // A-frame
+  beam([11.2, 0, -2.4], [12.2, 6, -0.5], 0.25, '#d9a12a');
+  beam([11.2, 0, 2.4], [12.2, 6, 0.5], 0.25, '#d9a12a');
+  beam([12.2, 6, -0.5], [12.2, 6, 0.5], 0.25, '#d9a12a');
+  beam([11.7, 3, -1.45], [11.7, 3, 1.45], 0.18, '#d9a12a');
+  const sheave = new THREE.Mesh(new THREE.TorusGeometry(0.4, 0.08, 8, 20), stdMat('#888'));
+  sheave.position.set(12.4, 5.5, 0);
+  scene.add(sheave);
+  // winch drum + cable
+  const drum = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.6, 1.4, 20), stdMat('#7a6a50'));
+  drum.rotation.x = PI / 2; drum.position.set(6, 0.8, -3);
+  scene.add(drum);
+  box(1.6, 0.3, 1.8, 6, 0.15, -3, '#40464a');
+  const cableMat = stdMat('#c8c8c0', { emissive: '#444440' });
+  const a = new THREE.Vector3(6, 1.4, -3), b = new THREE.Vector3(12.4, 5.9, 0);
+  const seg = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, a.distanceTo(b), 6), cableMat);
+  seg.position.copy(a).add(b).multiplyScalar(0.5);
+  seg.lookAt(b); seg.rotateX(PI / 2);
+  scene.add(seg);
+  const drop = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 62, 6), cableMat);
+  drop.position.set(12.8, 5.5 - 31, 0);
+  scene.add(drop);
+  const over = new THREE.Mesh(new THREE.TorusGeometry(0.4, 0.02, 6, 12, PI), cableMat);
+  over.position.set(12.4, 5.5, 0);
+  scene.add(over);
+  // sea
+  const seaGeo = new THREE.PlaneGeometry(400, 400, 64, 64);
+  seaGeo.rotateX(-PI / 2);
+  const seaBase = Float32Array.from(seaGeo.attributes.position.array);
+  const sea = new THREE.Mesh(seaGeo, stdMat('#0a1722', { roughness: 0.3, metalness: 0.1 }));
+  sea.position.set(0, -2.5, 0);
+  scene.add(sea);
+  let sf = 0;
+  s.onFrame((dt, t) => {
+    const p = seaGeo.attributes.position;
+    for (let i = 0; i < p.count; i++) {
+      const x = seaBase[i * 3], z = seaBase[i * 3 + 2];
+      p.setY(i, Math.sin(x * 0.05 + t * 0.5) * 0.3 + Math.sin(z * 0.07 - t * 0.4) * 0.25);
+    }
+    p.needsUpdate = true;
+    if (++sf % 4 === 0) seaGeo.computeVertexNormals();
+  });
+  // stars + moon
+  const sp = new Float32Array(900);
+  for (let i = 0; i < 300; i++) {
+    const th = Math.random() * 2 * PI, ph = Math.random() * 1.3;
+    sp[i * 3] = Math.cos(th) * Math.cos(ph) * 600; sp[i * 3 + 1] = Math.sin(ph) * 600 + 10; sp[i * 3 + 2] = Math.sin(th) * Math.cos(ph) * 600;
+  }
+  const sg = new THREE.BufferGeometry();
+  sg.setAttribute('position', new THREE.BufferAttribute(sp, 3));
+  scene.add(new THREE.Points(sg, new THREE.PointsMaterial({ color: '#ffffff', size: 2, sizeAttenuation: false, fog: false })));
+  const moon = new THREE.Mesh(new THREE.SphereGeometry(10, 12, 12), baseMat('#c8d0e0'));
+  moon.position.set(400, 140, 250);
+  scene.add(moon);
+  // floodlight + oval
+  const flood = new THREE.SpotLight('#fff2d0', 90, 25, 0.5, 0.6, 2);
+  flood.position.set(12.0, 6, 0);
+  flood.target.position.set(12.8, -2.5, 0);
+  scene.add(flood, flood.target);
+  const deckLamp = new THREE.PointLight('#ffe2b0', 6, 14);
+  deckLamp.position.set(7, 3.2, 0);
+  scene.add(deckLamp);
+  const oval = new THREE.Mesh(new THREE.CircleGeometry(1.7, 28), new THREE.MeshBasicMaterial({ color: '#8c9a9a', transparent: true, opacity: 0.4, depthWrite: false }));
+  oval.rotation.x = -PI / 2; oval.position.set(12.8, 0.0 - 2.4, 0);
+  scene.add(oval);
+  // figures
+  [-3.6, -2.4, -1.2, 1.2, 2.4, 3.6].forEach((z) => {
+    const g = new THREE.Group();
+    const m = new THREE.MeshBasicMaterial({ color: '#0b0b0d' });
+    const body = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.24, 1.35, 10), m);
+    body.position.y = 0.68;
+    const head = new THREE.Mesh(new THREE.SphereGeometry(0.15, 10, 10), m);
+    head.position.y = 1.5;
+    g.add(body, head);
+    g.position.set(12.0, 0, z);
+    scene.add(g);
+  });
+  // bead of light + cable hit
+  const bead = new THREE.Mesh(new THREE.SphereGeometry(0.07, 8, 8), baseMat('#ffffee'));
+  bead.visible = false;
+  scene.add(bead);
+  const beadLight = new THREE.PointLight('#fffbe0', 2, 3);
+  bead.add(beadLight);
+  let bt = 0;
+  s.onFrame((dt) => {
+    if (!S.bead) return;
+    bead.visible = true;
+    bt += dt;
+    const k = (bt % 2.5) / 2.5;
+    bead.position.set(12.8, lerp(5.4, -2.6, k), 0);
+  });
+  S.cableHit = hit(0.5, 4, 0.5, 12.8, 3, 0);
+}
+
+/* ---------- the inner world ---------- */
+const inner = new THREE.Scene();
+inner.background = new THREE.Color(0x000000);
+inner.fog = new THREE.FogExp2(0x000000, 0.09);
+const icam = new THREE.PerspectiveCamera(50, 4 / 3, 0.1, 80);
+inner.add(new THREE.AmbientLight(0xffffff, 0.08));
+const spot = new THREE.SpotLight('#e8f0ff', 70, 40, 0.6, 0.5, 1);
+inner.add(spot, spot.target);
+const hfn = (x, z) => 0.18 * Math.sin(x * 0.31 + z * 0.17) + 0.12 * Math.sin(z * 0.43 - x * 0.2) + 0.06 * Math.sin(x * 1.3 + z * 0.9);
+const L = (c, o = {}) => new THREE.MeshLambertMaterial({ color: c, ...o });
+{
+  const g = new THREE.PlaneGeometry(60, 160, 80, 220);
+  g.rotateX(-PI / 2);
+  g.translate(0, 0, -70);
+  const p = g.attributes.position;
+  const col = new Float32Array(p.count * 3);
+  for (let i = 0; i < p.count; i++) {
+    const x = p.getX(i), z = p.getZ(i);
+    p.setY(i, hfn(x, z));
+    const v = 0.78 + 0.22 * Math.sin(x * 2.1 + z * 3.3) * Math.sin(z * 1.7 - x * 0.9) + (Math.random() - 0.5) * 0.12;
+    col[i * 3] = 0.48 * v; col[i * 3 + 1] = 0.5 * v; col[i * 3 + 2] = 0.44 * v;
+  }
+  g.setAttribute('color', new THREE.BufferAttribute(col, 3));
+  g.computeVertexNormals();
+  inner.add(new THREE.Mesh(g, new THREE.MeshLambertMaterial({ vertexColors: true })));
+  // pebbles
+  const peb = new THREE.InstancedMesh(new THREE.SphereGeometry(1, 5, 4), L('#9a9a8c'), 450);
+  const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), sc = new THREE.Vector3(), ps = new THREE.Vector3();
+  for (let i = 0; i < 450; i++) {
+    const x = (Math.random() - 0.5) * 24, z = -3 - Math.random() * 120, r = 0.04 + Math.random() * 0.09;
+    ps.set(x, hfn(x, z) + r * 0.3, z); sc.set(r, r * 0.6, r);
+    q.setFromEuler(new THREE.Euler(Math.random(), Math.random(), 0));
+    peb.setMatrixAt(i, m4.compose(ps, q, sc));
+  }
+  peb.frustumCulled = false;
+  inner.add(peb);
+  // drag marks
+  for (let i = 0; i < 14; i++) {
+    const x = (Math.random() - 0.5) * 16, z = -6 - Math.random() * 100;
+    const d = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.02, 2.5 + Math.random() * 3), L('#2b2d28'));
+    d.position.set(x, hfn(x, z) + 0.02, z);
+    d.rotation.y = (Math.random() - 0.5) * 0.4;
+    inner.add(d);
+  }
+}
+const CZ = (i) => -12 - 12 * i;
+const contacts3d = [];
+const swayers = [];
+function placeAt(obj, x, z, lift = 0) { obj.position.set(x, hfn(x, z) + lift, z); inner.add(obj); return obj; }
+function buildBoulder() {
+  const g = new THREE.IcosahedronGeometry(0.7, 2);
+  const p = g.attributes.position;
+  for (let i = 0; i < p.count; i++) {
+    const n = 1 + 0.18 * Math.sin(p.getX(i) * 5.1 + p.getZ(i) * 3.3) + 0.1 * Math.sin(p.getY(i) * 7.7);
+    p.setXYZ(i, p.getX(i) * n * 1.15, p.getY(i) * n * 0.75, p.getZ(i) * n);
+  }
+  g.computeVertexNormals();
+  const m = new THREE.Mesh(g, L('#7a7c7c'));
+  return placeAt(m, 0.2, CZ(0), 0.35);
+}
+function buildFish() {
+  const g = new THREE.Group();
+  const bodyG = new THREE.ConeGeometry(0.11, 0.8, 12); bodyG.rotateX(PI / 2);
+  const body = new THREE.Mesh(bodyG, L('#b8b8aa', { emissive: '#303028' }));
+  body.position.z = 0.05;
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.12, 12, 10), L('#c8c8b8', { emissive: '#303028' }));
+  head.scale.set(1, 0.9, 1.3); head.position.z = -0.35;
+  const tailG = new THREE.ConeGeometry(0.03, 0.6, 6); tailG.rotateX(PI / 2);
+  const tail = new THREE.Group();
+  tail.add(new THREE.Mesh(tailG, L('#9a9a8c')));
+  tail.children[0].position.z = 0.3;
+  tail.position.z = 0.45;
+  const fin = new THREE.Mesh(new THREE.BoxGeometry(0.01, 0.18, 0.4), L('#a0a090'));
+  fin.position.set(0, 0.1, 0.05);
+  g.add(body, head, tail, fin);
+  g.rotation.y = 0.9;
+  swayers.push(tail);
+  return placeAt(g, 0.1, CZ(1), 0.4);
+}
+function buildCan() {
+  const g = new THREE.Group();
+  const c = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.2, 12), L('#d8d8d8', { emissive: '#505050' }));
+  c.rotation.z = PI / 2;
+  const band = new THREE.Mesh(new THREE.CylinderGeometry(0.063, 0.063, 0.05, 12), L('#7a2020'));
+  band.rotation.z = PI / 2;
+  g.add(c, band);
+  g.rotation.y = 0.6;
+  return placeAt(g, 0.15, CZ(2), 0.06);
+}
+function buildDrop() {
+  const g = new THREE.Group();
+  const r = new THREE.Mesh(new THREE.IcosahedronGeometry(0.5, 0), L('#9a9a92'));
+  r.scale.set(1, 0.8, 1.2); r.rotation.set(0.4, 0.7, 0.2); r.position.y = 0.25;
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(0.85, 0.12, 8, 24), L('#58594f'));
+  ring.rotation.x = PI / 2; ring.scale.set(1, 1, 0.5); ring.position.y = 0.02;
+  g.add(r, ring);
+  return placeAt(g, -0.1, CZ(3), 0);
+}
+function buildCoal() {
+  const g = new THREE.Group();
+  [[0, 0, 0.2], [0.5, -1.0, 0.15], [-0.2, -2.1, 0.17]].forEach(([x, z, r]) => {
+    const m = new THREE.Mesh(new THREE.DodecahedronGeometry(r, 0), L('#303034'));
+    m.position.set(x, r * 0.5, z);
+    m.rotation.set(Math.random() * 3, Math.random() * 3, 0);
+    g.add(m);
+  });
+  return placeAt(g, 0, CZ(4) + 1.0, 0);
+}
+function buildPlate() {
+  const geo = new THREE.BoxGeometry(1.5, 0.06, 0.9, 24, 1, 12);
+  const p = geo.attributes.position;
+  for (let i = 0; i < p.count; i++) {
+    const x = p.getX(i), z = p.getZ(i);
+    p.setY(i, p.getY(i) + 0.14 * Math.sin(x * 2.4) * (z + 0.5) + 0.05 * x * z);
+  }
+  geo.computeVertexNormals();
+  const g = new THREE.Group();
+  g.add(new THREE.Mesh(geo, L('#6a6a72', { emissive: '#18181c' })));
+  const rg = new THREE.SphereGeometry(0.035, 6, 5);
+  const rm = L('#9a9aa2');
+  for (let row = 0; row < 2; row++) for (let k = 0; k < 14; k++) {
+    const x = -0.68 + k * 0.105, z = 0.38 - row * 0.12;
+    const r = new THREE.Mesh(rg, rm);
+    r.position.set(x, 0.14 * Math.sin(x * 2.4) * (z + 0.5) + 0.05 * x * z + 0.04, z);
+    g.add(r);
+  }
+  g.rotation.y = 0.4; g.rotation.z = 0.08;
+  return placeAt(g, 0, CZ(5), 0.12);
+}
+function buildBoiler() {
+  const g = new THREE.Group();
+  const bodyG = new THREE.CylinderGeometry(2.4, 2.4, 3.5, 36); bodyG.rotateX(PI / 2);
+  g.add(new THREE.Mesh(bodyG, L('#6a5a4a')));
+  const rg = new THREE.SphereGeometry(0.07, 6, 5), rm = L('#9a8a76');
+  for (let i = 0; i < 48; i++) {
+    const a = (i / 48) * 2 * PI;
+    const r = new THREE.Mesh(rg, rm);
+    r.position.set(Math.cos(a) * 2.3, Math.sin(a) * 2.3, 1.76);
+    g.add(r);
+  }
+  const dg = new THREE.CylinderGeometry(0.45, 0.45, 0.08, 24); dg.rotateX(PI / 2);
+  const tg = new THREE.TorusGeometry(0.5, 0.06, 8, 24);
+  [-1.2, 0, 1.2].forEach((x) => {
+    const d = new THREE.Mesh(dg, L('#9c8a74'));
+    d.position.set(x, -0.85, 1.78);
+    const t = new THREE.Mesh(tg, L('#2e2620'));
+    t.position.set(x, -0.85, 1.8);
+    g.add(d, t);
+  });
+  const cg = new THREE.ConeGeometry(0.04, 0.55, 6); cg.rotateX(PI);
+  for (let i = 0; i < 14; i++) {
+    const a = 0.25 + (i / 13) * (PI - 0.5);
+    const c = new THREE.Mesh(cg, L('#7a4a2a'));
+    c.position.set(Math.cos(a) * 2.3, Math.sin(a) * 2.3 - 0.3, 1.78);
+    g.add(c);
+  }
+  g.rotation.set(0.05, 0, 0.08);
+  return placeAt(g, 0, CZ(6), 1.9);
+}
+[buildBoulder, buildFish, buildCan, buildDrop, buildCoal, buildPlate, buildBoiler].forEach((f) => {
+  try { contacts3d.push(f()); } catch (e) { console.error(e); contacts3d.push(null); }
+});
+// wreckage trailing past the boiler
+try {
+  const rust = L('#5a4a3c'), steel = L('#808088');
+  const rail = (x, z) => {
+    const g = new THREE.Group();
+    for (let k = 0; k < 4; k++) { const p = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.9, 6), steel); p.position.set(k * 0.45 - 0.7, 0.45, 0); g.add(p); }
+    const bar = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.04, 0.04), steel); bar.position.y = 0.88; g.add(bar);
+    g.rotation.z = 0.25; g.rotation.y = Math.random() * 3;
+    placeAt(g, x, z, 0);
+  };
+  const port = (x, z) => { const t = new THREE.Mesh(new THREE.TorusGeometry(0.32, 0.07, 8, 20), L('#9c8a60')); t.rotation.x = -1.2; placeAt(t, x, z, 0.3); };
+  const plate = (x, z, w, d) => { const b = new THREE.Mesh(new THREE.BoxGeometry(w, 0.05, d), rust); b.rotation.y = Math.random(); placeAt(b, x, z, 0.1); };
+  rail(-1.2, -89); port(1.6, -90); plate(-2, -91.5, 3, 1.1); rail(2, -93);
+  port(-0.5, -94.5);
+  const pipe = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, 2.4, 10), rust); pipe.rotation.z = PI / 2; pipe.rotation.y = 0.5; placeAt(pipe, 1, -96, 0.15);
+  plate(-1.5, -97, 1.4, 2); plate(2.2, -98, 2.4, 0.8);
+} catch (e) { console.error(e); }
+
+/* ---------- the sled ---------- */
+const cam = { x: 0, y: 8, z: 0, tx: 0, ty: 0, td: 5.6 };
+const holdZ = (i) => CZ(i) + (i === 6 ? 7.75 : 5.6);
+const CONTACTS = [
+  { t: '00:38', col: 0, name: 'boulder', arrive: 'PILOT: Something. Holding.', wrong: "NAV: That's a rock. I know, I know. They all look like something at this hour.", log: '00:38  Boulder, pillow basalt. ROCK.' },
+  { t: '00:44', col: 1, name: 'fish', arrive: 'PILOT: Holding.', wrong: 'PILOT: It has a face. Life.', log: '00:44  Grenadier (rattail), ~40 cm. LIFE. Not Gerald.' },
+  { t: '00:49', col: 2, name: 'can', arrive: 'PILOT: Holding.', wrong: 'NAV: Seventies can. The Titanic did not carry pull-tabs.', log: '00:49  Beer can, pull-tab type. JUNK.' },
+  { t: '00:53', col: 0, name: 'dropstone', arrive: 'PILOT: Holding.', wrong: 'PILOT: Dropstone. An iceberg carried that here and let go of it. Rock.', log: '00:53  Dropstone, granite, in soft sediment. Rafted by ice. ROCK.' },
+  { t: '00:58', col: 2, name: 'coal', arrive: 'PILOT: Holding.', wrong: "NAV: Coal's not proof. Every steamer since 1850 has shovelled clinker over the side. Junk. …Keep an eye out, though.", log: '00:58  Coal, several lumps, in a line. JUNK (?).' },
+  { t: '01:02', col: 3, name: 'plate', arrive: 'PILOT: Holding.', wrong: "PILOT: Rocks don't have rivets. Put it under the question mark.", log: '01:02  Metal plate, riveted, man-made, large. ?' },
+  { t: '01:05', col: 3, name: 'boiler', arrive: 'PILOT: Holding. …Holding.', wrong: '', log: '01:05  BOILER. Riveted, three furnace doors. Matches Shipbuilder plate. TITANIC.' },
+];
+const timeOf = (str) => parseInt(str.slice(0, 2), 10) * 3600 + parseInt(str.slice(3), 10) * 60;
+const timeSeen = [];
+const SPEED = 1.6;
+const lookTarget = new THREE.Vector3();
+
+function updateSled(dt, t) {
+  const i = Math.min(S.contact, 6);
+  if (S.phase === 'loop' && S.step === 'flying' && S.flyOK) {
+    const hz = holdZ(i);
+    const rem = cam.z - hz;
+    if (rem > 0.03) {
+      const v = Math.min(SPEED, 0.3 + rem * 0.8);
+      cam.z -= Math.min(rem, v * dt);
+      if (rem < 8 && !timeSeen[i]) { timeSeen[i] = true; S.time = timeOf(CONTACTS[i].t) - 6; }
+    } else arrive(i);
+  }
+  if (S.erupt) cam.z -= 1.2 * dt;
+  // pose goals
+  let gx = 0, gy = 8, gty = 0, gtd = 5.6, gtx = 0;
+  if (i === 6 && !S.erupt) {
+    const p = clamp(1 - (cam.z - holdZ(6)) / 10, 0, 1);
+    gy = lerp(8, 3.5, p); gty = 1.8 * p; gtd = 5.6 + 0.4 * p;
+  }
+  if (S.erupt) { gx = 3.2; gy = 5; gty = 0; gtd = 5.6; gtx = 1.5; }
+  const k = Math.min(1, dt * 2.5);
+  cam.x += (gx - cam.x) * k; cam.y += (gy - cam.y) * k; cam.ty += (gty - cam.ty) * k; cam.td += (gtd - cam.td) * k;
+  icam.position.set(cam.x, cam.y, cam.z);
+  lookTarget.set(cam.x - gtx, cam.ty, cam.z - cam.td);
+  icam.lookAt(lookTarget);
+  spot.position.copy(icam.position);
+  spot.target.position.copy(lookTarget);
+  swayers.forEach((w) => (w.rotation.y = Math.sin(t * 2.2) * 0.45));
+}
+
+function arrive(i) {
+  S.step = 'holding';
+  S.holdAt = performance.now();
+  S.holdHinted = false;
+  act();
+  say(CONTACTS[i].arrive);
+  if (i === 6) say('NAV: What is that.');
+}
+
+/* ---------- the ritual: freeze, print, pin, log ---------- */
+s.thing(btnHit, {
+  label: 'the frame hold',
+  use: () => {
+    if (S.phase === 'loop' && S.step === 'holding') {
+      S.frozen = true; S.step = 'frozen'; A.clunk(); act();
+      return 'the frame hold (held)';
+    }
+    if (S.phase === 'loop' && S.step === 'frozen') { crew('Already holding the frame. Print it.'); return; }
+    if (S.step === 'flying') crew('Nothing on the screen but mud. Wait for a contact.');
+    else crew('The frame is held. Get on with it.');
+  },
+});
+
+function captureStill() {
+  const W = 320, H = 240;
+  const c = document.createElement('canvas'); c.width = W; c.height = H;
+  const x = c.getContext('2d');
+  let ok = false;
+  try {
+    if (!rt || fallback) throw new Error('no rt');
+    const buf = new Uint8Array(512 * 384 * 4);
+    renderer.readRenderTargetPixels(rt, 0, 0, 512, 384, buf);
+    const src = document.createElement('canvas'); src.width = 512; src.height = 384;
+    const sx = src.getContext('2d');
+    const id = sx.createImageData(512, 384);
+    for (let y = 0; y < 384; y++) for (let xx = 0; xx < 512; xx++) {
+      const si = ((383 - y) * 512 + xx) * 4, di = (y * 512 + xx) * 4;
+      const l = (buf[si] * 0.299 + buf[si + 1] * 0.587 + buf[si + 2] * 0.114) / 255;
+      const v = Math.min(255, Math.pow(l, 0.55) * 290);
+      id.data[di] = id.data[di + 1] = id.data[di + 2] = v; id.data[di + 3] = 255;
+    }
+    sx.putImageData(id, 0, 0);
+    x.drawImage(src, 0, 0, W, H);
+    ok = true;
+  } catch (e) { /* fall through */ }
+  if (!ok) {
+    x.fillStyle = '#555'; x.fillRect(0, 0, W, H);
+    for (let i = 0; i < 1500; i++) { x.fillStyle = `rgba(${Math.random() > 0.5 ? 255 : 0},${Math.random() > 0.5 ? 255 : 0},0,0.06)`; x.fillRect(Math.random() * W, Math.random() * H, 3, 3); }
+    x.fillStyle = '#ddd'; x.beginPath(); x.ellipse(W / 2, H / 2, 70, 40, 0, 0, 7); x.fill();
+  }
+  const im = x.getImageData(0, 0, W, H), d = im.data;
+  const bayer = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
+  for (let y = 0; y < H; y++) for (let xx = 0; xx < W; xx++) {
+    const i = (y * W + xx) * 4;
+    const v = d[i] / 255, thr = (bayer[(y & 3) * 4 + (xx & 3)] + 0.5) / 16;
+    const dark = v * 1.05 < thr * 0.85;
+    d[i] = dark ? 0x3a : 0xef; d[i + 1] = dark ? 0x31 : 0xe6; d[i + 2] = dark ? 0x28 : 0xcf; d[i + 3] = 255;
+  }
+  x.putImageData(im, 0, 0);
+  x.fillStyle = '#efe6cf'; x.fillRect(0, 0, W, 22); x.fillRect(0, H - 22, W, 22);
+  x.fillStyle = '#3a3128'; x.font = 'bold 14px monospace';
+  x.fillText(`ARGO   ${hms(S.time)}   CAM 2`, 8, 16);
+  x.fillText('DEPTH 3781 m   ALT 8.2 m   HDG 184', 8, H - 7);
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
+
+let printAnim = null;
+function startPrint(second) {
+  const tex = second ? S.boilerTex : captureStill();
+  if (!second) S.stillTex = tex;
+  if (S.contact === 6 && !second) S.boilerTex = tex;
+  sheetMat.map = tex; sheetMat.color.set('#ffffff'); sheetMat.needsUpdate = true;
+  sheet.visible = true;
+  sheet.position.set(0.55, 0.84, -0.86);
+  printAnim = { t: 0, second };
+  S.second = second ? 'printing' : S.second;
+  if (!second) S.step = 'printing';
+  A.print();
+  s.setLabel(printerHit, 'the printer (printing…)');
+}
+s.thing(printerHit, {
+  label: 'the printer',
+  use: () => {
+    if (S.phase === 'loop' && S.step === 'frozen') { act(); startPrint(false); return; }
+    if (S.step === 'printing' || S.second === 'printing') return crew('Wait. It’s thinking.');
+    if (S.step === 'printed') return crew('Take the still first.');
+    if (S.step === 'held' || S.step === 'pinned') return crew('It’s still warm.');
+    crew('The printer only prints a held frame. FREEZE first.');
+  },
+});
+s.thing(sheetHit, {
+  label: 'take the still',
+  use: () => {
+    if (printAnim) return;
+    if (S.second === 'ready') {
+      S.second = 'taken';
+      sheet.visible = false; sheetHit.visible = false;
+      s.inventory.add('the boiler still (thermal print, still warm)');
+      crew('NAV: Write it in the book. Write it in the book.');
+      act();
+      return;
+    }
+    if (S.step !== 'printed') return;
+    sheet.visible = false; sheetHit.visible = false;
+    held.visible = true;
+    S.itemName = S.contact === 6 ? 'still: 01:05 — the round thing' : `still: ${CONTACTS[S.contact].t} ${CONTACTS[S.contact].name}`;
+    s.inventory.add(S.itemName);
+    S.step = 'held';
+    act();
+    refreshBoardLabels();
+  },
+});
+
+const tweens = [];
+let pinCount = 0;
+function pin(col) {
+  const idx = S.pinnedCount[col]++;
+  const m = new THREE.Mesh(paperGeo, new THREE.MeshBasicMaterial({ map: sheetMat.map, side: THREE.DoubleSide }));
+  held.getWorldPosition(m.position);
+  held.getWorldQuaternion(m.quaternion);
+  m.scale.copy(held.scale);
+  scene.add(m);
+  held.visible = false;
+  s.inventory.remove(S.itemName);
+  const tx = colX[col] + (Math.random() - 0.5) * 0.1, ty = col === 3 ? 1.5 - idx * 0.3 : 1.62 - (idx % 3) * 0.28 + (Math.random() - 0.5) * 0.04;
+  const tq = new THREE.Quaternion().setFromEuler(new THREE.Euler(0, PI, (Math.random() - 0.5) * 0.14));
+  tweens.push({ m, t: 0, p0: m.position.clone(), q0: m.quaternion.clone(), p1: new THREE.Vector3(tx, ty, 1.24), q1: tq, tx, ty });
+  S.step = 'pinned';
+  act();
+  refreshBoardLabels();
+  if (S.contact === 5) setTimeout(() => crew('NAV: …First one in that column in six weeks.'), 700);
+  if (S.contact === 6) boilerPinned();
+}
+function boardUse(col) {
+  if (S.phase === 'loop' && S.step === 'held') {
+    const c = S.contact;
+    if (c === 6) {
+      if (col !== 3) return crew("NAV: Don't you dare.");
+      if (!S.compared) return crew("PILOT: Not yet. Check it against the plate first. If we wake him, we're sure.");
+      return pin(col);
+    }
+    if (col === CONTACTS[c].col) return pin(col);
+    return crew(CONTACTS[c].wrong);
+  }
+  if (S.phase === 'loop' && S.step === 'pinned' ) { /* fallthrough to caption */ }
+  if (col < 3 && capCount[col]++ % 2 === 1) return crew('A hundred grey postcards of nothing. Each one was somebody’s twenty minutes of hope.');
+  crew(CAPTIONS[col]);
+}
+s.onFrame((dt) => {
+  for (let i = tweens.length - 1; i >= 0; i--) {
+    const w = tweens[i];
+    w.t = Math.min(1, w.t + dt / 0.3);
+    w.m.position.lerpVectors(w.p0, w.p1, w.t);
+    w.m.quaternion.slerpQuaternions(w.q0, w.q1, w.t);
+    w.m.scale.setScalar(lerp(1, 0.8, w.t));
+    if (w.t >= 1) {
+      A.tick();
+      pinDot(w.tx, w.ty + 0.065, 1.236);
+      tweens.splice(i, 1);
+    }
+  }
+});
+
+// log
+const LOG_HEAD = 'WATCH LOG — R/V KNORR — ARGO TOW 23\n31 AUG 1985\n\n23:12  Mud.\n23:40  Mud, ripple marks.\n00:05  Fish (Gerald?).\n00:20  Mud. Coffee.';
+const logEntries = [];
+s.thing(logHit, {
+  label: 'the logbook',
+  use: () => {
+    if (S.phase !== 'loop' || S.step !== 'pinned') {
+      if (S.phase === 'loop' && S.step !== 'pinned' && S.step !== 'done') return crew('Pin it first. The log follows the board.');
+      return s.read('Watch log — Knorr, Argo, 31 Aug / 1 Sep 1985', [LOG_HEAD, ...logEntries].join('\n'));
+    }
+    if (S.contact === 6 && S.second !== 'taken') return crew('Take the second print first.');
+    const c = S.contact;
+    logEntries.push(CONTACTS[c].log);
+    A.pencil();
+    s.read('Watch log — Knorr, Argo, 31 Aug / 1 Sep 1985', [LOG_HEAD, ...logEntries].join('\n'), () => afterLog(c));
+  },
+});
+function afterLog(c) {
+  act();
+  if (c === 6) {
+    S.step = 'done';
+    S.phoneReady = true;
+    say('PILOT: Somebody wake him.');
+    s.setLabel(phoneHit, 'the wall phone — wake the chief');
+    return;
+  }
+  S.contact++;
+  S.step = 'flying';
+  S.frozen = false;
+  s.setLabel(btnHit, 'the frame hold');
+  s.setLabel(printerHit, 'the printer (warm)');
+  if (c === 4) say('PILOT: Lot of coal. Debris trail, maybe. Or a coal barge’s lunch.');
+  else if (c === 5) say("PILOT: We don't wake him for a plate. Releasing. Coming up on something big.");
+  else say('PILOT: Releasing.');
+}
+
+// shipbuilder plate use
+s.thing(plateHit, {
+  label: 'the Shipbuilder plate',
+  use: () => {
+    if (S.phase === 'loop' && S.step === 'held' && S.contact === 6 && !S.compared) {
+      s.read('Holding the still against the plate',
+        'The still on the left, the 1911 page on the right.\n\nA round face. A ring of rivets around the rim.\nThree furnace doors across the bottom: one, two, three.\n\nThe plate: a single-ended Scotch boiler, three furnaces, 15 ft 9 in across. Twenty-four double-ended ones and five single-ended ones were fitted in the ship.\n\nThey match.',
+        () => {
+          S.compared = true;
+          s.inventory.rename('still: 01:05 — the round thing', 'still: 01:05 — boiler');
+          S.itemName = 'still: 01:05 — boiler';
+          say('NAV: …Oh.');
+          say('PILOT: Okay. Okay. Pin it.');
+        });
+      return;
+    }
+    s.read('The Shipbuilder', 'The Shipbuilder, special number, 1911. A line drawing of a single-ended boiler: round face, rivets round the rim, three furnace doors in a row. Someone has pinned it here in July "for reference", and someone else has written underneath: "optimist".');
+  },
+});
+
+// phone
+s.thing(phoneHit, {
+  label: 'the wall phone',
+  use: () => {
+    if (!S.phoneReady || S.phase !== 'loop') return crew('GALLEY / BRIDGE. Nobody calls the galley at one in the morning for nothing.');
+    S.phase = 'erupt';
+    s.read('The wall phone',
+      'You lift the handset. The cook answers through a mouthful of something.\n\n"Galley."\n\n"Go and wake the chief. Tell him we\'ve got something."\n\n"What kind of something?"\n\nYou look at the board.\n\n"Tell him it\'s a boiler."',
+      () => eruption());
+  },
+});
+
+/* ---------- the boiler pinned: marker, second print ---------- */
+async function boilerPinned() {
+  await sleep(500);
+  S.strikeT = 0;
+  A.squeak();
+  await sleep(3200);
+  crew('PILOT: Print another. One for the board, one for us.');
+  S.second = 'printing';
+  startPrint(true);
+}
+
+/* ---------- eruption, the turn, the fantail ---------- */
+async function eruption() {
+  await sleep(2000);
+  A.cheer(1);
+  S.flick = true;
+  S.frozen = false;
+  S.erupt = true;
+  s.setLabel(btnHit, 'the frame hold');
+  say('NAV: A boiler! We’ve got a boiler!');
+  say('PILOT: Hold her steady, hold her steady—');
+  say('THE CHIEF: Where? Show me. Show me.');
+  await sleep(11500);
+  fade.style.transition = 'opacity 1.2s';
+  fade.style.opacity = 1;
+  await sleep(1300);
+  fadeText.textContent = 'An hour of shouting later.';
+  fadeText.style.opacity = 1;
+  S.time = 2 * 3600 + 14 * 60;
+  S.erupt = false;
+  Object.assign(cam, { x: 0, y: 3.5, z: holdZ(6), ty: 1.8, td: 6 });
+  A.cheer(0.25);
+  await sleep(2600);
+  fadeText.style.opacity = 0;
+  fade.style.opacity = 0;
+  await sleep(1300);
+  await say('NAV: Somebody should get the champagne out of the—');
+  await say('PILOT: What time is it.');
+  await say('NAV: Two fourteen.');
+  A.cheer(0);
+  const l4 = say('PILOT: She went down at twenty past two.');
+  await l4;
+  await sleep(2500);
+  A.hum(0.6);
+  await say('THE CHIEF: Everyone out on the fantail. Leave the cameras running.');
+  // door opens
+  S.mult = 6;
+  S.flick = false;
+  redLight.color.set('#ff7a5a');
+  S.phase = 'turn';
+  S.doorT = 0;
+  s.setLabel(doorSlab, 'out to the fantail');
+  A.clank();
+}
+
+s.onFrame((dt, t) => {
+  if (S.doorT >= 0 && S.doorT < 1) {
+    S.doorT = Math.min(1, S.doorT + dt / 1.5);
+    doorPivot.rotation.y = (100 * PI / 180) * (1 - Math.pow(1 - S.doorT, 2));
+    if (S.doorT >= 1) {
+      const k = s.walls.indexOf(doorBlock);
+      if (k >= 0) s.walls.splice(k, 1);
+      S.phase = 'fantail';
+      A.sea(1);
+    }
+  }
+});
+
+async function fantailRitual() {
+  S.ritual = true;
+  player.enabled = false;
+  S.lock = { yaw: -PI / 2, pitch: -0.22 };
+  await sleep(7500);
+  await caption('<b>02:20.</b> Twelve thousand five hundred feet down this cable, the boiler sits with its three doors shut, where it came to rest seventy-three years ago tonight.', 6000);
+  await sleep(500);
+  await caption('Nobody says anything. That is the service.', 5000);
+  await sleep(500);
+  S.lock = null;
+  player.enabled = true;
+  S.bead = true;
+  S.phase = 'onward';
+  s.thing(S.cableHit, {
+    label: 'follow the cable down',
+    use: () => {
+      if (S.cableDone) return;
+      S.cableDone = true;
+      crew('You keep your hand on the cable all the way down.');
+      setTimeout(() => s.onward(), 1500);
+    },
+  });
+}
+
+/* ---------- per-frame glue ---------- */
+let accOvl = 0, accAux = 0, accClock = 0, rtFail = 0;
+const screenIsFrozen = () => S.frozen;
+function drawOverlay(t) {
+  ovl.redraw((x, w, h) => {
+    x.clearRect(0, 0, w, h);
+    x.fillStyle = '#d8f0e0'; x.font = 'bold 20px monospace';
+    x.fillText('ARGO', 14, 28);
+    x.textAlign = 'right'; x.fillText(hms(S.time), w - 14, 28);
+    x.textAlign = 'left';
+    x.fillText('DEPTH 3781 m   ALT 8.2 m   HDG 184', 14, h - 14);
+    x.textAlign = 'right'; x.fillText('CAM 2', w - 14, h - 14);
+    x.textAlign = 'center';
+    if (S.frozen && Math.floor(t * 2) % 2 === 0) x.fillText('FRAME HOLD', w / 2, 28);
+    x.textAlign = 'left';
+  });
+}
+function drawFallback(t) {
+  fbCanvas.redraw((x, w, h) => {
+    x.fillStyle = '#2a2c28'; x.fillRect(0, 0, w, h);
+    for (let i = 0; i < 400; i++) { const v = 60 + Math.random() * 80; x.fillStyle = `rgb(${v},${v + 4},${v})`; x.fillRect(Math.random() * w, Math.random() * h, 3, 2); }
+    if (S.step !== 'flying') { x.fillStyle = '#9a9a92'; x.beginPath(); x.ellipse(w / 2, h / 2, 40, 25, 0, 0, 7); x.fill(); }
+  });
+}
+s.onFrame((dt, t) => {
+  // clock
+  S.time += dt * S.mult;
+  if (S.mult === 6 && S.time > 2 * 3600 + 20 * 60) S.time = 2 * 3600 + 20 * 60;
+  // sled + inner render
+  if (!S.frozen) {
+    try { updateSled(dt, t); } catch (e) { console.error(e); }
+    screenUniforms.time.value = t;
+    if (!fallback) {
+      try {
+        renderer.setRenderTarget(rt);
+        renderer.render(inner, icam);
+        renderer.setRenderTarget(null);
+      } catch (e) {
+        renderer.setRenderTarget(null);
+        if (++rtFail > 3) { fallback = true; screen.material = fbMat; }
+      }
+    }
+  }
+  accOvl += dt; accAux += dt; accClock += dt;
+  if (accOvl > 0.15) { accOvl = 0; drawOverlay(t); if (fallback && !S.frozen) drawFallback(t); }
+  if (accAux > 0.3) { accAux = 0; auxL.redraw(drawSonar); auxR.redraw((x, w, h) => drawNav(x, w, h, t)); }
+  if (accClock > 0.1) { accClock = 0; drawClock(); }
+  // strike animation
+  if (S.strikeT >= 0 && S.strikeT < 1) {
+    S.strikeT = Math.min(1, S.strikeT + dt / 1.5);
+    drawHeaders(S.strikeT);
+  }
+  // red light
+  if (S.flick) redLight.intensity = 6 + Math.sin(t * 17) * 2 + Math.random() * 3;
+  led.material.color.set(S.step === 'printing' || (printAnim && printAnim.second) ? '#ffcc33' : '#33ff55');
+  // print animation
+  if (printAnim) {
+    printAnim.t += dt;
+    const k = clamp(printAnim.t / 2.5, 0, 1);
+    sheet.position.z = lerp(-0.86, -0.65, k);
+    if (k >= 1) {
+      const second = printAnim.second;
+      printAnim = null;
+      sheetHit.visible = true;
+      if (second) { S.second = 'ready'; s.setLabel(sheetHit, 'take the second print'); }
+      else { S.step = 'printed'; s.setLabel(sheetHit, 'take the still'); }
+      s.setLabel(printerHit, 'the printer (warm)');
+      act();
+    }
+  }
+  // idle hints
+  if (S.phase === 'loop') {
+    const now = performance.now();
+    if (S.step === 'holding' && !S.holdHinted && now - S.holdAt > 8000 && S.contact === 0) {
+      S.holdHinted = true;
+      crew("PILOT: Frame hold's the red button. Then the printer.");
+      act();
+    } else if (now - S.lastAct > 20000 && ['frozen', 'printed', 'held', 'pinned'].includes(S.step)) {
+      act();
+      crew({ frozen: 'NAV: Print it.', printed: 'NAV: Take it. Then the board.', held: 'NAV: Board.', pinned: 'NAV: Book.' }[S.step]);
+    }
+  }
+  // fantail
+  const outside = player.position.x > 3.3;
+  if (S.phase === 'fantail' && !S.ritual && Math.hypot(player.position.x - 12.2, player.position.z) < 1.2) fantailRitual();
+  if (S.lock) {
+    const dy = ((S.lock.yaw - player.yaw + PI) % (2 * PI) + 2 * PI) % (2 * PI) - PI;
+    const k = Math.min(1, dt * 2.2);
+    player.yaw += dy * k;
+    player.pitch += (S.lock.pitch - player.pitch) * k;
+  }
+  if (S.doorT >= 0) A.hum(outside ? 0.15 : 0.6);
+  A.update(dt, outside);
+});
+
+/* ---------- opening ---------- */
+(async () => {
+  drawOverlay(0);
+  drawClock();
+  await sleep(300);
+  fade.style.opacity = 0;
+  await caption('<b>North Atlantic, 1 September 1985.</b><br>Middle watch, 00:00 to 04:00, in the Argo van aboard R/V <i>Knorr</i>.<br>Two and a half miles under you, a camera sled is flying over the mud.', 5000);
+  say('NAV: Your turn on the book. Card’s on the desk.');
+  await sleep(2000);
+  S.flyOK = true;
+  act();
+})();
 </script>
+</body></html>
