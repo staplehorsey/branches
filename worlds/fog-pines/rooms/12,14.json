@@ -54,20 +54,52 @@
   },
   "touches": {},
   "replunged": false,
-  "idea": null,
+  "idea": {
+    "name": "The Middle Watch",
+    "premise": "North Atlantic, the night the Titanic was found in 1985. In the dark Argo control van aboard R/V Knorr, the watch freezes, prints, pins and logs every contact a towed camera sled finds on the seabed, sorting the deep into ROCK, LIFE, JUNK and an empty '?'. Weeks of wanting come down to a boiler with three furnace doors, a cheer, and a minute's silence at 2:20 a.m. over the cable that runs down to her.",
+    "look": null,
+    "muses": [],
+    "refined": 1,
+    "at": 1792025015187
+  },
   "spaces": [
     {
       "n": 1,
-      "status": "building",
-      "name": "",
-      "summary": "",
-      "minutes": 0.0,
+      "status": "ready",
+      "name": "The Middle Watch",
+      "summary": "The North Atlantic, the small hours of 1 September 1985: you're on the logbook in the Argo control van aboard R/V Knorr, sorting what a camera sled sees on the seafloor two and a half miles down. Freeze, print, pin, log: rock, life, junk, and an empty column marked '?'. Then a boiler with three furnace doors turns up on the screen, and at 2:20 a.m. everyone goes out on the fantail and stands quietly over the cable.",
+      "minutes": 4.0,
       "started": 1792024279842,
-      "secs": 0,
+      "secs": 735,
       "error": null,
       "dwell": 0.0,
       "visits": 0,
       "tries": 2,
+      "genome": {
+        "era": "1980s",
+        "feeling": "desire",
+        "medium": "first-person 3D",
+        "register": "epic",
+        "scale": "an ocean",
+        "source": "a historical event",
+        "structure": "ritual in steps",
+        "verb": "sort and classify"
+      },
+      "thread": "On the middle watch aboard R/V Knorr, 1 September 1985, the player sorted the seafloor still by still until a riveted boiler came up on the Argo monitor. They matched it to a 1911 plate, crossed out the '?' on the board and wrote TITANIC, and phoned the galley to wake the chief. The van cheered, then fell silent when the clock reached 2:20, the hour she sank, and the watch stood on the fantail over the tow cable. The player followed the cable down. Carried: a warm thermal print of the boiler, round-faced with three shut furnace doors, stamped 01:05. Still open: what you owe a thing you wanted so badly to find, once you've found it.",
+      "delight": "I loved that an epic search for the most famous wreck in the world comes down to a tired person holding a curl of warm printer paper and asking 'is this a rock?' a hundred times. The board labelled in marker, Gerald the rattail fish, and a dropstone an iceberg let go of all felt true, and the strike through the '?' felt like the hinge of the whole thing. Then the clock says 02:14 and the cheering just stops."
+    },
+    {
+      "n": 2,
+      "status": "building",
+      "name": "",
+      "summary": "",
+      "minutes": 0.0,
+      "started": 1792025015188,
+      "secs": 0,
+      "error": null,
+      "dwell": 0.0,
+      "visits": 0,
+      "tries": 1,
       "thread": "",
       "delight": ""
     }
