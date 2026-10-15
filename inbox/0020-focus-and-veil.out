@@ -2,3 +2,5 @@
 == started 2026-10-14 20:44:10 on msainzmbp, Darwin arm64
 == in /Users/msainz/Projects/branches at 7a93a33
 
+stopped old space builds
+2026-10-15T00:44:23.718621Z  INFO branches_server: branches listening on http://localhost:7878/
