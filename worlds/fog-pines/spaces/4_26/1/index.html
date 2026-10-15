@@ -1,0 +1,662 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>RM-0441</title>
+<style>
+html,body{margin:0;background:#0b1512;overflow:hidden}
+#ov{position:fixed;inset:0;pointer-events:none;font-family:ui-monospace,Menlo,Consolas,monospace;color:#d8fff4;display:none}
+#ov .bar{position:absolute;left:3%;right:3%;top:2.5%;padding:10px 14px;background:rgba(6,22,20,.78);border:1px solid #4fb8a6;font-size:14px;line-height:1.5}
+#ov .bar b{color:#8ff0dc;font-size:12px;letter-spacing:.08em}
+#ov .held{position:absolute;left:3%;top:22%;padding:8px 12px;background:rgba(6,22,20,.78);border:1px solid #4fb8a6;font-size:13px;max-width:24vw}
+#ov .insp{position:absolute;left:3%;right:3%;bottom:5%;padding:10px 14px;background:rgba(6,22,20,.85);border-left:4px solid #4fb8a6;font-size:15px;min-height:22px}
+#ov .insp.pass{border-color:#5fe08a;color:#c8ffd8}
+#ov .insp.fail{border-color:#e0584f;color:#ffd0cb}
+#ov .leave{position:absolute;right:3%;top:22%;font-size:12px;opacity:.8}
+#ov .opts{position:absolute;left:50%;top:34%;transform:translateX(-50%);padding:12px 16px;background:rgba(6,22,20,.88);border:1px solid #d9b45a;color:#ffe9b0;font-size:15px;line-height:1.7;display:none}
+#heat{position:absolute;right:3%;bottom:16%;width:260px;padding:14px;background:#2a0f0a;border:2px solid #ff8a4a;color:#ffd2b0;font:bold 14px ui-monospace,Menlo,monospace;text-align:center;cursor:pointer;pointer-events:auto;display:none;user-select:none}
+#heat i{display:block;height:6px;margin-top:8px;background:#ff8a4a;width:0}
+#scan{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(2,10,9,.7);pointer-events:auto;font-family:ui-monospace,Menlo,monospace}
+#scan div{background:#e9e4d4;color:#2a2a2a;padding:16px 20px;max-width:640px;box-shadow:0 0 40px #000}
+#scan canvas{display:block;width:100%;background:#f1ecdc}
+#scan button{margin-top:10px;font:14px ui-monospace,monospace;padding:6px 14px;cursor:pointer}
+#veil{position:fixed;inset:0;pointer-events:none;opacity:1;transition:opacity 2.6s ease-out}
+</style></head><body>
+<div id="ov">
+  <div class="bar"><b id="cardh"></b><br><span id="cardt"></span></div>
+  <div class="held" id="held"></div>
+  <div class="leave">R / right-click: leave the console</div>
+  <div class="opts" id="opts"></div>
+  <div class="insp" id="insp"></div>
+  <div id="heat">HOLD TO HEAT THE RING (or hold E)<i></i></div>
+</div>
+<div id="scan"><div>
+  <b>MICRO-SCAN, ITEM 6 (unfolded). Graphite on 80 g paper.</b>
+  <canvas id="scanc" width="600" height="260"></canvas>
+  <button id="scanok">Close scan</button>
+</div></div>
+<div id="veil"></div>
+<script type="module">
+import * as THREE from '/vendor/three.module.js';
+import { createSpace } from '/kit/space.js';
+
+const B = window.branches;
+const arrival = B?.arrival?.color || '#cfe6da';
+const s = createSpace({ background: arrival, eye: 1.6, speed: 2.6, fov: 70 });
+const { scene, camera, player, renderer, keys } = s;
+const $ = (id) => document.getElementById(id);
+const veil = $('veil');
+veil.style.background = arrival;
+requestAnimationFrame(() => requestAnimationFrame(() => (veil.style.opacity = '0')));
+
+const M = (c, o = {}) => new THREE.MeshStandardMaterial({ color: c, roughness: 0.8, ...o });
+function box(w, h, d, c, x, y, z, parent, o) {
+  const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), c instanceof THREE.Material ? c : M(c, o));
+  m.position.set(x, y, z);
+  (parent || scene).add(m);
+  return m;
+}
+function label(text, w, h, { fg = '#1a2a28', bg = 'rgba(255,255,255,0)', px = 40 } = {}) {
+  const c = document.createElement('canvas');
+  c.width = 512; c.height = Math.round(512 * h / w);
+  const g = c.getContext('2d');
+  g.fillStyle = bg; g.fillRect(0, 0, c.width, c.height);
+  g.fillStyle = fg; g.font = `bold ${px}px ui-monospace,Menlo,monospace`; g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.fillText(text, c.width / 2, c.height / 2);
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+
+// ---------- lights ----------
+scene.add(new THREE.HemisphereLight('#ffffff', '#8a9a96', 0.8));
+const sun = new THREE.DirectionalLight('#f4f8ff', 0.4); sun.position.set(1, 3, 2); scene.add(sun);
+
+// ---------- rooms ----------
+s.room({ x: 0, z: 0, w: 10, d: 7, h: 3.2, wall: '#DCE8E2', floor: '#B9C2BF', ceiling: '#F2F5F3', doors: [{ side: 's', at: 0, w: 1.2 }] });
+const airlock = s.room({ x: 0, z: 4.7, w: 2.2, d: 2.2, h: 2.6, wall: '#E6ECEA', floor: '#9aa5a2', ceiling: '#f0f0f0', doors: [{ side: 'n', at: 0, w: 1.2 }] });
+const aColor = new THREE.Color(arrival);
+airlock.traverse((o) => { if (o.material) { o.material.emissive = aColor.clone(); o.material.emissiveIntensity = 0.55; } });
+const aLight = new THREE.PointLight(arrival, 5, 0, 2); aLight.position.set(0, 2.2, 4.7); scene.add(aLight);
+for (let i = 0; i < 5; i++) {
+  const x = [-3, 3, 0, -3, 3][i], z = [-1.8, -1.8, 0.5, 2, 2][i];
+  box(1.0, 0.04, 0.4, '#ffffff', x, 3.16, z, null, { emissive: '#ffffff', emissiveIntensity: 1 });
+}
+const exitDoor = box(1.0, 2.1, 0.05, '#7d8a87', 0, 1.05, 5.68);
+const exitLamp = box(0.2, 0.12, 0.04, '#ff2a2a', 0, 2.3, 5.66, null, { emissive: '#ff1010', emissiveIntensity: 1.5 });
+
+// ---------- bench, monitor, console ----------
+const BZ = -1.5;
+box(2, 0.9, 0.9, '#9aa4a6', 0, 0.45, BZ, null, { metalness: 0.5, roughness: 0.4 });
+s.walls.push({ x0: -1, z0: BZ - 0.45, x1: 1, z1: BZ + 0.45 });
+const TOP = 0.9;
+
+// microscope head and light cone
+box(0.16, 0.14, 0.16, '#3a4446', 0, 1.42, BZ);
+box(0.05, 1.1, 0.05, '#3a4446', 0, 2.1, BZ - 0.45);
+box(0.05, 0.05, 0.5, '#3a4446', 0, 1.5, BZ - 0.2);
+const cone = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.05, 0.28, 24, 1, true), new THREE.MeshBasicMaterial({ color: '#7fe8ff', transparent: true, opacity: 0.16, side: THREE.DoubleSide, depthWrite: false }));
+cone.position.set(0, 1.14, BZ); scene.add(cone);
+
+// monitor
+const rt = new THREE.WebGLRenderTarget(1024, 598, { samples: 4 });
+const monitor = new THREE.Mesh(new THREE.PlaneGeometry(1.2, 0.7), new THREE.MeshBasicMaterial({ map: rt.texture, toneMapped: false }));
+monitor.position.set(0, 1.9, -2.05); scene.add(monitor);
+box(1.3, 0.8, 0.06, '#1a2022', 0, 1.9, -2.09);
+box(0.08, 0.85, 0.08, '#2a3234', 0, 2.78, -2.15);
+const mcam = new THREE.PerspectiveCamera(40, 1.2 / 0.7, 0.02, 10);
+const mc = new THREE.Vector3(0, TOP + 0.03, BZ);
+mcam.position.set(mc.x, mc.y + 0.5, mc.z + 0.29); mcam.lookAt(mc);
+
+// console
+const consoleG = new THREE.Group(); consoleG.position.set(0.62, TOP, -1.15); scene.add(consoleG);
+box(0.4, 0.06, 0.25, '#2c3436', 0, 0.03, 0, consoleG);
+const slope = box(0.4, 0.04, 0.2, '#223a3a', 0, 0.09, 0, consoleG); slope.rotation.x = -0.4;
+box(0.05, 0.02, 0.05, '#ff5a3a', 0.12, 0.13, 0.05, consoleG, { emissive: '#ff3a1a', emissiveIntensity: 0.8 });
+box(0.12, 0.01, 0.07, '#7fe8ff', -0.08, 0.125, 0.0, consoleG, { emissive: '#4fd0ee', emissiveIntensity: 0.9 });
+
+// clipboard
+const clip = new THREE.Group(); clip.position.set(-0.72, TOP + 0.01, -1.3); clip.rotation.y = 0.2; scene.add(clip);
+box(0.24, 0.015, 0.32, '#8a6a42', 0, 0.008, 0, clip);
+box(0.2, 0.004, 0.28, '#f4f1e6', 0, 0.02, 0, clip);
+
+// ---------- the model ----------
+const model = new THREE.Group(); model.position.set(0, TOP, BZ); scene.add(model);
+box(0.46, 0.02, 0.36, '#4a4f55', 0, 0.01, 0, model);
+const roomG = new THREE.Group(); roomG.position.y = 0.02; model.add(roomG);
+const WALL = '#C9A35A';
+box(0.4, 0.003, 0.3, '#8E3B2E', 0, 0.0015, 0, roomG);
+box(0.4, 0.25, 0.008, WALL, 0, 0.125, -0.146, roomG);
+box(0.008, 0.25, 0.3, WALL, -0.196, 0.125, 0, roomG);
+box(0.008, 0.25, 0.3, WALL, 0.196, 0.125, 0, roomG);
+box(0.26, 0.06, 0.008, WALL, -0.07, 0.03, 0.146, roomG);
+box(0.06, 0.06, 0.008, WALL, 0.17, 0.03, 0.146, roomG);
+const leaf = box(0.07, 0.055, 0.004, '#6a4a30', 0.115, 0.03, 0.18, roomG); leaf.rotation.y = -0.6;
+// lamp
+box(0.004, 0.12, 0.004, '#333', -0.175, 0.06, -0.125, roomG);
+const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.01, 12, 8), new THREE.MeshStandardMaterial({ color: '#FFC37A', emissive: '#FFC37A', emissiveIntensity: 0.3 }));
+bulb.position.set(-0.175, 0.135, -0.125); roomG.add(bulb);
+const lamp = new THREE.PointLight('#FFC37A', 0.1, 0, 2); lamp.position.copy(bulb.position); roomG.add(lamp);
+const glow = new THREE.Sprite(new THREE.SpriteMaterial({ color: '#FFC37A', transparent: true, opacity: 0.15, depthWrite: false, blending: THREE.AdditiveBlending }));
+glow.scale.setScalar(0.05); glow.position.copy(bulb.position); roomG.add(glow);
+let lampTarget = 0.1;
+
+// bell jar (open-topped)
+const jar = new THREE.Group(); jar.position.set(0, TOP, BZ); model.parent.add(jar);
+const glassMat = new THREE.MeshPhysicalMaterial({ color: '#cfeeff', transparent: true, opacity: 0.12, side: THREE.DoubleSide, depthWrite: false, roughness: 0.05 });
+const JW = 0.46, JD = 0.36, JH = 0.28;
+for (const [w, d, x, z] of [[JW, 0.004, 0, JD / 2], [JW, 0.004, 0, -JD / 2], [0.004, JD, JW / 2, 0], [0.004, JD, -JW / 2, 0]]) box(w, JH, d, glassMat, x, JH / 2, z, jar);
+const rimMat = new THREE.MeshStandardMaterial({ color: '#cfeeff', emissive: '#ffffff', emissiveIntensity: 0, transparent: true, opacity: 0.5 });
+for (const [w, d, x, z] of [[JW + 0.01, 0.01, 0, JD / 2], [JW + 0.01, 0.01, 0, -JD / 2], [0.01, JD, JW / 2, 0], [0.01, JD, -JW / 2, 0]]) box(w, 0.008, d, rimMat, x, JH, z, jar);
+
+// ---------- west wall: work cards and hatch ----------
+const boardG = new THREE.Group(); boardG.position.set(-4.86, 1.7, -1.2); scene.add(boardG);
+box(0.04, 1.0, 1.4, '#a07848', 0, 0, 0, boardG);
+const cardPaper = new THREE.MeshBasicMaterial({ map: label('WORK CARDS', 0.5, 0.35, { px: 52 }) });
+const paper = new THREE.Mesh(new THREE.PlaneGeometry(0.5, 0.35), cardPaper); paper.position.set(0.03, 0.05, -0.2); paper.rotation.y = Math.PI / 2; boardG.add(paper);
+const paper2 = new THREE.Mesh(new THREE.PlaneGeometry(0.4, 0.3), new THREE.MeshBasicMaterial({ color: '#f4f1e6' })); paper2.position.set(0.03, -0.1, 0.35); paper2.rotation.y = Math.PI / 2; boardG.add(paper2);
+const trayG = new THREE.Group(); scene.add(trayG);
+box(0.04, 0.9, 2.0, '#3d4648', -4.88, 1.4, 1.55, trayG);
+box(0.55, 0.05, 1.8, '#5b6668', -4.62, 0.95, 1.55, trayG);
+const hatchLabel = new THREE.Sprite(new THREE.SpriteMaterial({ map: label('PASS-THROUGH HATCH: EVIDENCE', 1.2, 0.12, { fg: '#cfeee6', px: 34 }), transparent: true }));
+hatchLabel.scale.set(1.2, 0.12, 1); hatchLabel.position.set(-4.8, 1.95, 1.55); scene.add(hatchLabel);
+s.walls.push({ x0: -4.9, z0: 0.6, x1: -4.3, z1: 2.5 });
+const SLOTS = ['1 WINDOW', '2 TABLE', '3 CHAIR', '4 CHAIR', '5 STOVE', '6 FOLDED PAPER', '7 KETTLE'];
+const slotCols = ['#9fd0ee', '#8a5a34', '#6a4a30', '#6a4a30', '#e8e8e8', '#f1ead0', '#b8c0c4'];
+const slotObjs = SLOTS.map((t, i) => {
+  const z = 0.8 + i * 0.25;
+  const blk = box(0.1, 0.06, 0.16, slotCols[i], -4.62, 1.0, z, trayG);
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: label(t, 0.34, 0.07, { fg: '#ffffff', bg: 'rgba(20,30,30,.8)', px: 40 }), transparent: true }));
+  sp.scale.set(0.34, 0.07, 1); sp.position.set(-4.62, 1.17, z); trayG.add(sp);
+  return { blk, sp };
+});
+
+// ---------- Lisk and his bench ----------
+box(1.6, 0.9, 0.8, '#b9a98a', 3.6, 0.45, -0.2);
+s.walls.push({ x0: 2.8, z0: -0.6, x1: 4.4, z1: 0.2 });
+const bunk = new THREE.Group(); bunk.position.set(3.6, 0.9, -0.2); scene.add(bunk);
+for (const y of [0.03, 0.12]) box(0.4, 0.02, 0.2, '#c88a5a', 0, y, 0, bunk);
+for (const [x, z] of [[-0.19, -0.09], [0.19, -0.09], [-0.19, 0.09], [0.19, 0.09]]) box(0.015, 0.2, 0.015, '#a86a3a', x, 0.1, z, bunk);
+const lisk = new THREE.Group(); lisk.position.set(3.6, 0, 0.75); scene.add(lisk);
+const stool = box(0.4, 0.05, 0.4, '#555', 0, 0.55, 0, lisk);
+const fig = new THREE.Group(); lisk.add(fig); fig.scale.y = 0.8;
+box(0.28, 0.5, 0.2, '#555a5e', 0, 0.25, 0, fig);
+box(0.4, 0.55, 0.24, '#8b9094', 0, 0.78, 0, fig);
+const head = new THREE.Mesh(new THREE.SphereGeometry(0.11, 14, 10), M('#d9b8a0')); head.position.set(0, 1.2, 0); fig.add(head);
+box(0.22, 0.05, 0.1, '#222', 0, 1.22, -0.08, fig);
+fig.position.y = 0.2;
+let liskStanding = false;
+s.walls.push({ x0: 3.4, z0: 0.55, x1: 3.8, z1: 0.95 });
+
+// ---------- parts ----------
+let roomRoot = roomG;
+let tableG = null, stoveG = null, kettleG = null;
+const rings = {};
+const SQ = Math.PI;
+function mkWindow(k) {
+  const g = new THREE.Group(); g.position.set(...k.p); roomG.add(g);
+  box(k.z[0], k.z[1], k.z[2], '#f2efe6', 0, 0, 0, g);
+  const n = k.n.startsWith('N');
+  box(n ? 0.07 : 0.018, 0.06, n ? 0.018 : 0.07, '#d6efff', 0, 0, 0, g, { emissive: '#bfe6ff', emissiveIntensity: 0.9 });
+}
+function mkTable(k) {
+  tableG = new THREE.Group(); tableG.position.set(k.p[0], 0, k.p[2]); roomG.add(tableG);
+  box(0.12, 0.006, 0.09, '#8a5a34', 0, 0.07, 0, tableG);
+  for (const [x, z] of [[0.052, -0.037], [-0.052, -0.037], [0.052, 0.037], [-0.052, 0.037]]) box(0.006, 0.07, 0.006, '#6a4424', x, 0.035, z, tableG);
+}
+function mkShim(k) { box(0.02, 0.004, 0.02, '#f1ead0', k.p[0] + tableG.position.x * 0, 0.002, k.p[2], roomG); }
+function mkChair(k) {
+  const g = new THREE.Group(); g.position.set(k.p[0], 0, 0); g.rotation.y = k.rot; roomG.add(g);
+  box(0.04, 0.004, 0.04, '#6a4a30', 0, 0.03, 0, g);
+  box(0.004, 0.04, 0.04, '#6a4a30', -0.018, 0.052, 0, g);
+  for (const [x, z] of [[-0.016, -0.016], [0.016, -0.016], [-0.016, 0.016], [0.016, 0.016]]) box(0.004, 0.03, 0.004, '#4a3220', x, 0.015, z, g);
+}
+function mkStove(k) {
+  stoveG = new THREE.Group(); stoveG.position.set(k.p[0], 0, k.p[2]); stoveG.rotation.y = k.rot; roomG.add(stoveG);
+  box(0.07, 0.075, 0.07, '#ececec', 0, 0.0375, 0, stoveG);
+  box(0.05, 0.035, 0.004, '#444', 0, 0.035, 0.036, stoveG);
+  for (const [key, x, z] of [['bn', 0.017, -0.017], ['bs', -0.017, -0.017], ['fn', 0.017, 0.017], ['fs', -0.017, 0.017]]) {
+    const r = new THREE.Mesh(new THREE.CylinderGeometry(0.011, 0.011, 0.003, 16), new THREE.MeshStandardMaterial({ color: '#222', emissive: '#ff5a10', emissiveIntensity: 0 }));
+    r.position.set(x, 0.0765, z); stoveG.add(r); rings[key] = r;
+  }
+}
+const steam = [];
+function mkKettle(k) {
+  kettleG = new THREE.Group(); kettleG.position.set(k.p[0], 0.0795, k.p[2]); stoveG.add(kettleG);
+  const body = new THREE.Mesh(new THREE.CylinderGeometry(0.011, 0.013, 0.02, 16), M('#c4cbd0', { metalness: 0.7, roughness: 0.3 })); body.position.y = 0.01; kettleG.add(body);
+  const sp = new THREE.Mesh(new THREE.ConeGeometry(0.004, 0.014, 8), M('#b0b8bc', { metalness: 0.7 })); sp.position.set(0.015, 0.018, 0); sp.rotation.z = -1.0; kettleG.add(sp);
+  const tex = (() => { const c = document.createElement('canvas'); c.width = c.height = 64; const g = c.getContext('2d'); const gr = g.createRadialGradient(32, 32, 2, 32, 32, 30); gr.addColorStop(0, 'rgba(255,255,255,.9)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = gr; g.fillRect(0, 0, 64, 64); return new THREE.CanvasTexture(c); })();
+  for (let i = 0; i < 7; i++) {
+    const sm = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, opacity: 0, depthWrite: false }));
+    sm.visible = false; kettleG.add(sm); steam.push({ sm, ph: i / 7 });
+  }
+}
+const D = Math.PI / 2;
+const STEPS = [null,
+  { item: 'Item 1: window', slot: 0, hint: 'Lisk: “Trams. Where’s the depot?”', build: mkWindow, par: () => roomG, socks: [
+    { n: 'N wall', p: [0, 0.12, -0.14], z: [0.09, 0.08, 0.014] },
+    { n: 'E wall', ok: 1, p: [0.19, 0.12, 0], z: [0.014, 0.08, 0.09] },
+    { n: 'W wall', p: [-0.19, 0.12, 0], z: [0.014, 0.08, 0.09] }] },
+  { item: 'Item 2: table', slot: 1, hint: 'Lisk: “She had an opinion about tables under windows. It’s in §2.”', build: mkTable, par: () => roomG, socks: [
+    { n: 'under the window', p: [0.13, 0.035, 0], z: [0.12, 0.07, 0.09] },
+    { n: 'centre', ok: 1, p: [0, 0.035, 0], z: [0.12, 0.07, 0.09] },
+    { n: 'against the N wall', p: [0, 0.035, -0.095], z: [0.12, 0.07, 0.09] }] },
+  { item: 'Item 6: folded paper, contents sealed', slot: 5, hint: 'Lisk: “Short leg’s the one the fall runs toward.”', build: mkShim, par: () => roomG, socks: [
+    { n: 'under NE leg', ok: 1, p: [0.052, 0.006, -0.037], z: [0.026, 0.026, 0.026] },
+    { n: 'under NW leg', p: [-0.052, 0.006, -0.037], z: [0.026, 0.026, 0.026] },
+    { n: 'under SE leg', p: [0.052, 0.006, 0.037], z: [0.026, 0.026, 0.026] },
+    { n: 'under SW leg', p: [-0.052, 0.006, 0.037], z: [0.026, 0.026, 0.026] }] },
+  { item: 'Item 3: chair', slot: 2, hint: 'Lisk: “Two chairs and he remembers which way his faced. They always do.”', build: mkChair, par: () => roomG, socks: [
+    { n: 'W side of table, facing E', ok: 1, p: [-0.095, 0.03, 0], rot: 0, z: [0.045, 0.06, 0.05] },
+    { n: 'E side of table, facing W', p: [0.095, 0.03, 0], rot: SQ, z: [0.045, 0.06, 0.05] }] },
+  { item: 'Item 4: chair', slot: 3, hint: 'Lisk: “Two chairs and he remembers which way his faced. They always do.”', build: mkChair, par: () => roomG, socks: [
+    { n: 'E side of table, facing W', ok: 1, p: [0.095, 0.03, 0], rot: SQ, z: [0.045, 0.06, 0.05] }] },
+  { item: 'Item 5: stove', slot: 4, hint: 'Lisk: “Where was he sitting? What was behind him?”', build: mkStove, par: () => roomG, socks: [
+    { n: 'W wall', ok: 1, p: [-0.16, 0.0375, 0], rot: D, z: [0.07, 0.075, 0.07] },
+    { n: 'N wall', p: [0, 0.0375, -0.11], rot: 0, z: [0.07, 0.075, 0.07] },
+    { n: 'S wall, by the door', p: [-0.1, 0.0375, 0.11], rot: SQ, z: [0.07, 0.075, 0.07] }] },
+  { item: 'Item 7: kettle', slot: 6, hint: 'Lisk: “Back two. The door’s south.”', build: mkKettle, par: () => stoveG, socks: [
+    { n: 'back ring, N', p: [0.017, 0.082, -0.017], z: [0.026, 0.026, 0.026] },
+    { n: 'back ring, S', ok: 1, p: [-0.017, 0.082, -0.017], z: [0.026, 0.026, 0.026] },
+    { n: 'front ring, N', p: [0.017, 0.082, 0.017], z: [0.026, 0.026, 0.026] },
+    { n: 'front ring, S', p: [-0.017, 0.082, 0.017], z: [0.026, 0.026, 0.026] }] },
+];
+const DEV = [0, 0.04, 0.07, 0.03, 0.05, 0.02, 0.06, 0.04];
+
+const HEAD = (n) => `RESTITUTION MODELLING OFFICE — CASE RM-0441 — CARD ${n}/9`;
+const CARDS = [null,
+  'Fit window. Source: statement §1. Tolerance ±0.2 mm. Take part from hatch. Place at console.',
+  'Fit table. Source: §2.',
+  'Model out of level. Source: §2. Use the part the client supplied for this. Do not open it.',
+  "Fit client's chair. Source: §3.",
+  "Fit subject's chair. Source: §3.",
+  'Fit stove. Source: §4. Note: §4 refers to §3.',
+  'Fit kettle. Source: §5.',
+  'Live test. Heat ring. Restitution models are tested in use.',
+  "Engrave credit plate. Wording at modeller's discretion; the law requires only that it be true."];
+const PLATES = ['THEME: MARA SZELL', 'MARA SZELL, 2649–2703. SHE HUMMED IT FIRST.', 'RETURNED TO MARA SZELL BY HESPER VAHL, WHO TOOK IT.'];
+const STATEMENT = (open) => `RESTITUTION STATEMENT. Client: Hesper Vahl, composer, b. 2647. Subject: Mara Szell, 2649–2703. Room: Block 14, Flat 9, Ostrava Ring. Demolished 2706. Door: south wall.
+
+§1 The window faced east, over the tram depot. She said the first tram at 05:10 was the only alarm clock she trusted.
+
+§2 The table stood in the middle of the room. She said a table under a window is for people who want to be seen working. One leg was short. She folded paper under it. I said I would fix it.
+
+§3 Two chairs. I took the one facing the window, because I said I needed the light to write. Hers faced the other way.
+
+§4 The stove was behind me. I worked with my back to it all those years and never once made the tea.
+
+§5 The front rings were dead. Of the back two she used the one nearer the door, because the other scorched. The spout was dented. She said it sang.
+
+` + (open
+  ? '§6 That is the opening of my Fourth Symphony. She used to hum over the kettle to make it less shrill, and one Tuesday she wrote it down. I found the paper under the table leg when I moved out in 2704. I took it and left the leg short. The Fourth has been performed 11,402 times. I have never said her name in public. Build the room so that I can’t say it was somewhere else.'
+  : '§6 [SEALED: to be read by the modeller only after §1–5 pass inspection.]');
+const LISK = { 1: '“Read it twice. Clients lie in the adjectives, never in the compass.”', 2: '“Middle means middle.”', 3: '“Don’t open it. That’s the client’s to open.”', 4: '“Two chairs and he remembers which way his faced. They always do.”', 5: '“Two chairs and he remembers which way his faced. They always do.”', 6: '“Apprentices build what’s written. Masters build what’s implied.”', 7: '“Nearly there. Then we turn it on.”', 8: '“Hold it. It takes its time. So does everyone.”', 9: '“Most of them are a ring or a letter. He’s paying to have it said in brass.”', 10: '“Seal it. The click’s the point.”' };
+
+// ---------- state ----------
+let step = 1, held = 0, misses = 0, readCard = false, unsealed = false, plateText = '', sealed = false, exited = false;
+let mode = 'walk'; // walk | in | screen | out
+let dolly = null, saved = null;
+let btnHeld = false, heatP = 0, whistling = false, steaming = false, heatDone = false;
+let inspectText = '', inspectCls = '';
+let sockets = [], hover = null;
+
+// ---------- audio ----------
+let ac = null, hissG = null, hissF = null, noiseBuf = null;
+function audio() {
+  if (ac) { if (ac.state === 'suspended') ac.resume(); return ac; }
+  try {
+    ac = new (window.AudioContext || window.webkitAudioContext)();
+    noiseBuf = ac.createBuffer(1, ac.sampleRate * 2, ac.sampleRate);
+    const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    const mk = () => { const n = ac.createBufferSource(); n.buffer = noiseBuf; n.loop = true; return n; };
+    const o = ac.createOscillator(); o.frequency.value = 55; const og = ac.createGain(); og.gain.value = 0.035; o.connect(og).connect(ac.destination); o.start();
+    const n1 = mk(); const lp = ac.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 400; const ng = ac.createGain(); ng.gain.value = 0.03; n1.connect(lp).connect(ng).connect(ac.destination); n1.start();
+    const n2 = mk(); hissF = ac.createBiquadFilter(); hissF.type = 'bandpass'; hissF.frequency.value = 2000; hissG = ac.createGain(); hissG.gain.value = 0; n2.connect(hissF).connect(hissG).connect(ac.destination); n2.start();
+    burst(0.6, 0.12);
+  } catch (e) { ac = null; }
+  return ac;
+}
+function tone(type, f0, f1, dur, vol = 0.1, delay = 0) {
+  const a = audio(); if (!a) return;
+  const t = a.currentTime + delay;
+  const o = a.createOscillator(); o.type = type; o.frequency.setValueAtTime(f0, t); o.frequency.linearRampToValueAtTime(f1, t + dur);
+  const g = a.createGain(); g.gain.setValueAtTime(vol, t); g.gain.linearRampToValueAtTime(0, t + dur);
+  o.connect(g).connect(a.destination); o.start(t); o.stop(t + dur + 0.05);
+}
+function burst(dur, vol) {
+  const a = ac; if (!a || !noiseBuf) return;
+  const n = a.createBufferSource(); n.buffer = noiseBuf; const f = a.createBiquadFilter(); f.type = 'highpass'; f.frequency.value = 1500;
+  const g = a.createGain(); const t = a.currentTime; g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + 0.1); g.gain.linearRampToValueAtTime(0, t + dur);
+  n.connect(f).connect(g).connect(a.destination); n.start(t); n.stop(t + dur + 0.1);
+}
+const sfx = {
+  servo: () => tone('sawtooth', 900, 1400, 0.25, 0.04),
+  pass: () => { tone('sine', 1318, 1318, 0.5, 0.1); tone('sine', 1760, 1760, 0.6, 0.1, 0.12); },
+  fail: () => tone('square', 220, 220, 0.2, 0.07),
+  clunk: () => tone('square', 90, 50, 0.15, 0.12),
+  click: () => { tone('square', 600, 300, 0.05, 0.1); tone('sine', 90, 60, 0.4, 0.1, 0.05); },
+};
+function whistle() {
+  const a = audio(); if (!a) return;
+  const notes = [440, 523.25, 659.25, 587.33, 440], durs = [0.5, 0.5, 0.5, 0.5, 1.2];
+  let t = a.currentTime + 0.05; const t0 = t;
+  const o = a.createOscillator(); o.type = 'sine';
+  const g = a.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.12, t + 0.08);
+  const lfo = a.createOscillator(); lfo.frequency.value = 6; const lg = a.createGain(); lg.gain.value = 8; lfo.connect(lg).connect(o.frequency);
+  o.frequency.setValueAtTime(notes[0], t);
+  notes.forEach((f, i) => {
+    if (i > 0) o.frequency.linearRampToValueAtTime(f, t + 0.08);
+    o.frequency.setValueAtTime(f, t + durs[i]);
+    t += durs[i];
+  });
+  g.gain.setValueAtTime(0.12, t - 0.1); g.gain.linearRampToValueAtTime(0, t + 0.1);
+  o.connect(g).connect(a.destination); o.start(t0); lfo.start(t0); o.stop(t + 0.2); lfo.stop(t + 0.2);
+}
+addEventListener('keydown', audio, true);
+addEventListener('pointerdown', audio, true);
+try { audio(); } catch (e) {}
+
+// ---------- overlay ----------
+const ov = $('ov'), heatBtn = $('heat');
+function refresh() {
+  const n = Math.min(step, 9);
+  $('cardh').textContent = HEAD(n);
+  $('cardt').textContent = step > 9 ? 'All nine cards passed. Seal the bell jar.' : CARDS[n];
+  $('held').textContent = held ? 'HELD: ' + STEPS[held].item : step <= 7 ? 'HELD: nothing. Take the part for this card from the hatch.' : '';
+  $('held').style.display = held || step <= 7 ? 'block' : 'none';
+  const insp = $('insp'); insp.textContent = inspectText || 'AWAITING PLACEMENT.'; insp.className = 'insp ' + inspectCls;
+  const o = $('opts');
+  if (step === 9 && !plateText) { o.style.display = 'block'; o.innerHTML = 'ENGRAVE (press 1, 2 or 3):<br>' + PLATES.map((p, i) => `${i + 1}. ${p}`).join('<br>'); } else o.style.display = 'none';
+  heatBtn.style.display = step === 8 && mode === 'screen' && !heatDone ? 'block' : 'none';
+  ov.style.display = mode === 'screen' ? 'block' : 'none';
+}
+heatBtn.addEventListener('mousedown', (e) => { btnHeld = true; e.preventDefault(); });
+addEventListener('mouseup', () => (btnHeld = false));
+
+// ---------- sockets ----------
+const sockMat = () => new THREE.MeshBasicMaterial({ color: '#5ff0ff', transparent: true, opacity: 0.42, depthTest: false });
+function clearSockets() { sockets.forEach((k) => k.mesh.parent?.remove(k.mesh)); sockets = []; hover = null; }
+function showSockets() {
+  clearSockets();
+  if (!held || step > 7) return;
+  const st = STEPS[held];
+  for (const k of st.socks) {
+    const m = new THREE.Mesh(new THREE.BoxGeometry(...k.z), sockMat());
+    m.position.set(...k.p); m.renderOrder = 10; m.rotation.y = k.rot || 0;
+    st.par().add(m);
+    sockets.push({ k, mesh: m });
+  }
+}
+function say(t) { s.say(t); }
+function setInspect(t, cls) { inspectText = t; inspectCls = cls || ''; refresh(); }
+
+function place(sk) {
+  if (!held) return;
+  const st = STEPS[held];
+  sfx.servo();
+  if (sk.k.ok) {
+    st.build(sk.k);
+    clearSockets();
+    s.inventory.remove(st.item);
+    let line = `INSPECTION: deviation ${DEV[held].toFixed(2)} mm. Within tolerance. PASS.`;
+    const done = held;
+    held = 0; step = done === 0 ? step : step + 1;
+    misses = 0;
+    lampTarget = 0.1 + 0.15 * (step - 1);
+    setTimeout(sfx.pass, 250);
+    if (done === 2) { line += '  LEVEL: 0.6° fall to NE leg. Out of tolerance.'; tilt = { x: -0.03, z: -0.03 }; }
+    if (done === 3) { line = 'INSPECTION: deviation 0.02 mm. LEVEL: 0.00°. PASS.'; tilt = { x: 0, z: 0 }; }
+    line += `  CARD ${Math.min(step, 9)} UNLOCKED.`;
+    setInspect(line, 'pass');
+    if (step <= 7) setTimeout(() => mode === 'screen' && leaveScreen(), 2600);
+  } else {
+    misses++;
+    const ok = sockets.find((x) => x.k.ok);
+    sk.mesh.updateWorldMatrix(true, false); ok.mesh.updateWorldMatrix(true, false);
+    const a = new THREE.Vector3().setFromMatrixPosition(sk.mesh.matrixWorld), b = new THREE.Vector3().setFromMatrixPosition(ok.mesh.matrixWorld);
+    const mm = Math.max(1, a.distanceTo(b) * 1000 * 12 / 12 * 2.6);
+    sfx.fail();
+    sk.mesh.material.color.set('#ff4a3a'); sk.mesh.material.opacity = 0.8;
+    setTimeout(() => { sk.mesh.material.color.set('#5ff0ff'); sk.mesh.material.opacity = 0.42; }, 500);
+    let line = `INSPECTION: deviation ${mm.toFixed(1)} mm (scale 37.2 cm). Out of tolerance. Reseat.`;
+    if (misses >= 2) { line += '  ' + st.hint; say(st.hint); }
+    setInspect(line, 'fail');
+  }
+}
+let tilt = { x: 0, z: 0 };
+
+// ---------- screen mode ----------
+function screenTarget() {
+  const t = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
+  const d = Math.max(0.42 / t, 0.66 / (t * camera.aspect));
+  return { x: 0, z: -2.05 + d, yaw: 0, pitch: 0, eye: 1.9 };
+}
+function norm(a) { return ((a + Math.PI) % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2) - Math.PI; }
+function startDolly(to, dur, next) {
+  dolly = { from: { x: player.position.x, z: player.position.z, yaw: player.yaw, pitch: player.pitch, eye: player.eye }, to, t: 0, dur, next };
+  dolly.from.yaw = norm(dolly.from.yaw); player.yaw = dolly.from.yaw;
+}
+function enterScreen() {
+  if (mode !== 'walk') return;
+  document.exitPointerLock?.();
+  saved = { x: player.position.x, z: player.position.z, yaw: player.yaw, pitch: player.pitch, eye: player.eye };
+  player.enabled = false; mode = 'in';
+  startDolly(screenTarget(), 0.6, () => { mode = 'screen'; showSockets(); refresh(); });
+}
+function leaveScreen() {
+  if (mode !== 'screen') return;
+  clearSockets(); mode = 'out'; refresh();
+  const to = { ...saved }; to.yaw = norm(to.yaw);
+  startDolly(to, 0.45, () => { mode = 'walk'; player.enabled = true; refresh(); });
+}
+const rc = new THREE.Raycaster();
+function pick(cx, cy) {
+  if (mode !== 'screen' || !sockets.length) return null;
+  rc.setFromCamera(new THREE.Vector2(cx / innerWidth * 2 - 1, -(cy / innerHeight * 2 - 1)), camera);
+  const h = rc.intersectObject(monitor)[0];
+  if (!h || !h.uv) return null;
+  rc.setFromCamera(new THREE.Vector2(h.uv.x * 2 - 1, h.uv.y * 2 - 1), mcam);
+  const hs = rc.intersectObjects(sockets.map((x) => x.mesh));
+  return hs.length ? sockets.find((x) => x.mesh === hs[0].object) : null;
+}
+addEventListener('mousemove', (e) => {
+  if (mode !== 'screen') return;
+  const p = pick(e.clientX, e.clientY);
+  if (p !== hover) {
+    if (hover) { hover.mesh.material.opacity = 0.42; hover.mesh.material.color.set('#5ff0ff'); }
+    hover = p;
+    if (p) { p.mesh.material.opacity = 0.8; p.mesh.material.color.set('#c8ffff'); }
+  }
+});
+addEventListener('click', (e) => {
+  if (mode === 'walk') return;
+  if (e.target === renderer.domElement) {
+    e.stopPropagation();
+    const p = pick(e.clientX, e.clientY);
+    if (p) place(p);
+  }
+}, true);
+addEventListener('contextmenu', (e) => { if (mode !== 'walk') { e.preventDefault(); leaveScreen(); } });
+addEventListener('keydown', (e) => {
+  if (e.code === 'KeyR' && mode === 'screen') leaveScreen();
+  if (step === 9 && !plateText && ['Digit1', 'Digit2', 'Digit3'].includes(e.code) && (mode === 'screen' || mode === 'walk')) engrave(+e.code.slice(5) - 1);
+});
+
+// ---------- story beats ----------
+let plateMesh = null;
+function engrave(i) {
+  plateText = PLATES[i];
+  const c = document.createElement('canvas'); c.width = 1024; c.height = 80;
+  const g = c.getContext('2d');
+  const gr = g.createLinearGradient(0, 0, 0, 80); gr.addColorStop(0, '#e3c36a'); gr.addColorStop(1, '#a98a3a');
+  g.fillStyle = gr; g.fillRect(0, 0, 1024, 80);
+  g.fillStyle = '#3a2c0c'; g.font = 'bold 30px ui-monospace,Menlo,monospace'; g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.fillText(plateText, 512, 42);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace;
+  plateMesh = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.003, 0.024), [M('#a98a3a'), M('#a98a3a'), new THREE.MeshStandardMaterial({ map: t, metalness: 0.6, roughness: 0.35 }), M('#a98a3a'), M('#a98a3a'), M('#a98a3a')]);
+  plateMesh.position.set(0, 0.0215, 0.165); model.add(plateMesh);
+  sfx.servo();
+  step = 10;
+  setInspect('PLATE ENGRAVED: ' + plateText + '  SEAL THE BELL JAR AT THE BENCH.', 'pass');
+  say('Plate engraved. Now seal the bell jar (E).');
+  if (mode === 'screen') setTimeout(leaveScreen, 1800);
+}
+function startWhistle() {
+  whistling = true; heatDone = true; steaming = true;
+  whistle();
+  setTimeout(() => { liskStanding = true; fig.scale.y = 1; fig.position.y = 0; stool.position.x = 0.5; }, 1300);
+  setTimeout(() => {
+    say('Lisk: “…That’s the Fourth. My mother walked down the aisle to that.”');
+    unsealed = true; step = 9; lampTarget = 0.1 + 0.15 * 8; whistling = false;
+    drawScan(); $('scan').style.display = 'flex';
+    setInspect('LIVE TEST: PASS. §6 UNSEALED.  CARD 9 UNLOCKED.', 'pass');
+  }, 3700);
+}
+function drawScan() {
+  const c = $('scanc'), g = c.getContext('2d');
+  g.fillStyle = '#f1ecdc'; g.fillRect(0, 0, 600, 260);
+  g.strokeStyle = '#8a8a8a'; g.lineWidth = 1.4;
+  const base = 190, ls = 18; // y of bottom line
+  for (let i = 0; i < 5; i++) { g.beginPath(); g.moveTo(40, base - i * ls + (i % 2)); g.lineTo(560, base - i * ls - 1 + (i % 2)); g.stroke(); }
+  const pos = [3, 5, 7, 6, 3]; // half-steps above E4
+  g.fillStyle = '#3a3a3a';
+  pos.forEach((p, i) => {
+    const x = 120 + i * 90, y = base - p * (ls / 2);
+    g.beginPath(); g.ellipse(x, y, 10, 7, -0.35, 0, 7); g.fill();
+    g.beginPath(); g.moveTo(x + 9, y); g.lineTo(x + 9, y - 46); g.lineWidth = 2; g.stroke();
+  });
+  g.font = 'italic 21px "Bradley Hand","Segoe Script",cursive'; g.fillStyle = '#4a4a4a';
+  g.fillText('kettle, back ring — Tues. put words to it?', 90, 238);
+}
+$('scanok').addEventListener('click', () => { $('scan').style.display = 'none'; refresh(); leaveScreen(); });
+
+function liskUse() { say('Lisk: ' + (sealed ? '“Good. Same time tomorrow. The bunk bed’s a worse one.”' : LISK[unsealed && step < 9 ? 9 : step])); return undefined; }
+
+// ---------- things ----------
+const marker = new THREE.Mesh(new THREE.SphereGeometry(0.05, 12, 10), new THREE.MeshBasicMaterial({ color: '#ffd27a', transparent: true, opacity: 0.9 }));
+scene.add(marker);
+
+s.thing(boardG, { label: 'the work cards', use() {
+  if (mode !== 'walk') return;
+  readCard = true;
+  const n = Math.min(step, 9);
+  let extra = '';
+  if (step === 9 && !plateText) extra = '\n\nChoose the wording (press 1, 2 or 3):\n' + PLATES.map((p, i) => `${i + 1}. ${p}`).join('\n');
+  if (step > 9) extra = '\n\nAll nine cards passed. Seal the bell jar.';
+  s.read(HEAD(n), CARDS[n] + extra);
+} });
+s.thing(clip, { label: 'the client statement', use() { if (mode !== 'walk') return; s.read('Client statement, RM-0441', STATEMENT(unsealed)); } });
+s.thing(trayG, { label: 'the evidence tray', use() {
+  if (mode !== 'walk') return;
+  if (step >= 8) return say('The tray is empty. Foam, mostly.');
+  if (held) return say('You are already holding ' + STEPS[held].item + '. Take it to the console.');
+  held = step; const st = STEPS[held];
+  slotObjs[st.slot].blk.visible = false; slotObjs[st.slot].sp.visible = false;
+  sfx.clunk(); s.inventory.add(st.item);
+  say(st.item + '. Place it at the console (E).');
+  refresh();
+} });
+s.thing(consoleG, { label: 'the console', use() {
+  if (mode !== 'walk') return;
+  if (step <= 7 && !held) return say('Take the part for this card from the hatch first.');
+  if (step === 10 && !sealed) return say('Nothing left to place. Seal the bell jar.');
+  enterScreen();
+} });
+s.thing(jar, { label: 'the bell jar', use() {
+  if (mode !== 'walk') return;
+  if (sealed) return;
+  if (step < 10) return say(step === 9 ? 'The plate first. Wording is on card 9.' : 'Not yet. The model has to pass every card.');
+  sealed = true; sfx.click();
+  rimMat.emissiveIntensity = 1.2; rimMat.opacity = 0.95; glassMat.opacity = 0.22;
+  exitLamp.material.color.set('#2aff7a'); exitLamp.material.emissive.set('#10ff60');
+  exitDoor.position.y = 3.4;
+  setTimeout(() => burst(1.2, 0.15), 600);
+  s.inventory.items.length = 0;
+  s.inventory.add('credit plate: ' + plateText);
+  s.inventory.add('the kettle’s five notes');
+  say('Lisk: “Good. Same time tomorrow. The bunk bed’s a worse one.”');
+  setTimeout(() => say('The airlock is open.'), 4200);
+} });
+s.thing(lisk, { label: 'Lisk', use: liskUse });
+
+// ---------- frame ----------
+const markerPos = {
+  board: new THREE.Vector3(-4.6, 2.35, -1.2), tray: new THREE.Vector3(-4.5, 1.5, 1.55),
+  console: new THREE.Vector3(0.62, TOP + 0.4, -1.15), jar: new THREE.Vector3(0, TOP + 0.5, BZ),
+};
+function markerTarget() {
+  if (mode !== 'walk' || sealed) return null;
+  if (!readCard) return markerPos.board;
+  if (step <= 7) return held ? markerPos.console : markerPos.tray;
+  if (step === 8) return markerPos.console;
+  if (step === 9) return plateText ? markerPos.jar : markerPos.board;
+  return markerPos.jar;
+}
+const tmp = new THREE.Vector3();
+s.onFrame((dt, t) => {
+  // arrival wash
+  const k = Math.min(1, t / 3);
+  aLight.color.copy(aColor).lerp(tmp.set(0.95, 0.97, 1), k);
+  airlock.traverse((o) => { if (o.material && o.material.emissive) o.material.emissiveIntensity = 0.55 * (1 - k); });
+  if (t > 3.2 && scene.background && !scene.userData.bgset) { scene.userData.bgset = 1; scene.background = new THREE.Color('#DCE8E2'); }
+  if (t > 1.8 && !scene.userData.greet) { scene.userData.greet = 1; say('Lisk: “You’re the new one. Card one’s on the board. The statement’s on your bench. Don’t touch my bunk bed.”'); setTimeout(() => say('Read the work card on the board (E).'), 6500); }
+
+  // marker
+  const mt = markerTarget();
+  marker.visible = !!mt;
+  if (mt) { marker.position.copy(mt); marker.position.y += Math.sin(t * 4) * 0.04; marker.scale.setScalar(1 + 0.25 * Math.sin(t * 6)); }
+
+  // dolly
+  if (dolly) {
+    dolly.t += dt; const u = Math.min(1, dolly.t / dolly.dur), e = u * u * (3 - 2 * u), a = dolly.from, b = dolly.to;
+    player.position.x = a.x + (b.x - a.x) * e; player.position.z = a.z + (b.z - a.z) * e;
+    player.yaw = a.yaw + (b.yaw - a.yaw) * e; player.pitch = a.pitch + (b.pitch - a.pitch) * e; player.eye = a.eye + (b.eye - a.eye) * e;
+    if (u >= 1) { const n = dolly.next; dolly = null; n(); }
+  }
+
+  // lamp
+  lamp.intensity += (lampTarget - lamp.intensity) * Math.min(1, dt * 2);
+  bulb.material.emissiveIntensity = 0.3 + (lamp.intensity - 0.1) * 1.5;
+  glow.scale.setScalar(0.04 + lamp.intensity * 0.05);
+
+  // table tilt
+  if (tableG) {
+    tableG.rotation.x += (tilt.x - tableG.rotation.x) * Math.min(1, dt * 3);
+    tableG.rotation.z += (tilt.z - tableG.rotation.z) * Math.min(1, dt * 3);
+  }
+
+  // heating
+  const heating = (btnHeld || keys.has('KeyE')) && mode === 'screen' && step === 8 && !heatDone;
+  if (step === 8 && !heatDone) {
+    heatP = heating ? Math.min(1, heatP + dt / 4) : Math.max(0, heatP - dt / 2);
+    if (rings.bs) rings.bs.material.emissiveIntensity = heatP * 1.6;
+    if (heatBtn.firstChild) heatBtn.querySelector('i').style.width = heatP * 100 + '%';
+    if (hissG) { hissG.gain.value = heatP * 0.12; hissF.frequency.value = 1500 + heatP * 4500; }
+    if (heatP >= 1) startWhistle();
+  } else if (heatDone && hissG) {
+    hissG.gain.value = Math.max(0, hissG.gain.value - dt * 0.04);
+  }
+  if (heatDone && rings.bs) rings.bs.material.emissiveIntensity = 1.4;
+
+  // steam
+  for (const st of steam) {
+    st.sm.visible = steaming;
+    if (!steaming) continue;
+    const p = (t * 0.45 + st.ph) % 1;
+    st.sm.position.set(0.02 + Math.sin(p * 9 + st.ph * 6) * 0.004, 0.03 + p * 0.1, 0);
+    st.sm.scale.setScalar(0.012 + p * 0.03);
+    st.sm.material.opacity = 0.55 * (1 - p);
+  }
+
+  // exit
+  if (sealed && !exited && player.position.z > 5.3) { exited = true; B?.onward(); }
+
+  // monitor feed
+  monitor.visible = false;
+  renderer.setRenderTarget(rt);
+  renderer.render(scene, mcam);
+  renderer.setRenderTarget(null);
+  monitor.visible = true;
+});
+refresh();
+player.position.set(0, 0, 4.9);
+player.yaw = 0;
+</script>
+</body></html>
