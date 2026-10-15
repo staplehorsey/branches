@@ -35,14 +35,14 @@
     }
   ],
   "claim": null,
-  "attention": 3.94205933,
+  "attention": 8.202106870000001,
   "weights": {
-    "light": 1.0532482,
-    "stone": 1.1848264,
-    "water": 1.0958947
+    "light": 1.0958488,
+    "stone": 1.227427,
+    "water": 1.1384953
   },
   "investors": {
-    "94b402ce6e6a1d1b": 3.94205933
+    "94b402ce6e6a1d1b": 8.202106870000001
   },
   "building": null,
   "last_visit": {
@@ -50,7 +50,7 @@
   },
   "things": [],
   "looks": {
-    "theme:light": 2.3
+    "theme:light": 3.8
   },
   "touches": {},
   "replunged": false,

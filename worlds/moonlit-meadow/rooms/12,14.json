@@ -32,17 +32,31 @@
       "player": "94b402ce6e6a1d1b",
       "text": "stopped by",
       "at": 1792023883043
+    },
+    {
+      "id": "05360e88a81c",
+      "kind": "compass",
+      "who": "the dreamer",
+      "text": "this world isn't generating a new room even thoguh i've hugn out for the right amount of time is there a bug",
+      "at": 1792024160771
+    },
+    {
+      "id": "018a5ef73d03",
+      "kind": "compass",
+      "who": "the dreamer",
+      "text": "i see what happened, a game was generated but was unclear that it existed, there should always be a visual tie n that jumps to hte world of the game if the game is very different than the world",
+      "at": 1792024255578
     }
   ],
   "claim": null,
-  "attention": 125.18736629199978,
+  "attention": 245.68749975899982,
   "weights": {
-    "light": 2.4414458,
-    "music": 2.4302335,
-    "neon": 2.4393153
+    "light": 3.6464443,
+    "music": 3.635232,
+    "neon": 3.6443138
   },
   "investors": {
-    "94b402ce6e6a1d1b": 125.18736629199978
+    "94b402ce6e6a1d1b": 245.68749975899982
   },
   "building": null,
   "last_visit": {
@@ -50,8 +64,8 @@
   },
   "things": [],
   "looks": {
-    "theme:light": 92.4,
-    "theme:music": 6.7999997,
+    "theme:light": 130.20001,
+    "theme:music": 7.2999997,
     "theme:neon": 0.4
   },
   "touches": {},
@@ -74,8 +88,8 @@
       "started": 1792023882996,
       "secs": 125,
       "error": null,
-      "dwell": 0.0,
-      "visits": 0,
+      "dwell": 44.985,
+      "visits": 1,
       "tries": 1,
       "genome": {
         "era": "1950s",
@@ -89,8 +103,23 @@
       },
       "thread": "Johnny's fever broke at 37.0. The Fever left through the vent and the night shift sat down. You carry a thermometer, shaken down. Unresolved: what the foremen do now that there is nothing to guard against.",
       "delight": "Each foreman asks for exactly what a mother would have brought (half an aspirin, flat ginger ale), and the thermometer being shaken down twice lands as the exhale."
+    },
+    {
+      "n": 2,
+      "status": "building",
+      "name": "",
+      "summary": "",
+      "minutes": 0.0,
+      "started": 1792024167863,
+      "secs": 0,
+      "error": null,
+      "dwell": 0.0,
+      "visits": 0,
+      "tries": 1,
+      "thread": "",
+      "delight": ""
     }
   ],
-  "space_visited": 0,
-  "space_seen_at": 1792024089901
+  "space_visited": 1,
+  "space_seen_at": 1792024212859
 }
