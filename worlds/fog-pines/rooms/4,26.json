@@ -25,14 +25,14 @@
     }
   ],
   "claim": null,
-  "attention": 117.49514722200011,
+  "attention": 121.21921763700011,
   "weights": {
-    "cozy": 2.3565595,
-    "light": 2.2923021,
-    "snow": 2.2291186
+    "cozy": 2.3937998,
+    "light": 2.3295424,
+    "snow": 2.2663589
   },
   "investors": {
-    "94b402ce6e6a1d1b": 117.49514722200011
+    "94b402ce6e6a1d1b": 121.21921763700011
   },
   "building": null,
   "last_visit": {
