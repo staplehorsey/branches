@@ -47,10 +47,10 @@
   "replunged": false,
   "idea": {
     "name": "RM-0441",
-    "premise": "In the far future, restitution law makes anyone who took something rebuild it to tolerance as a dollhouse model. After a composer's guilty model of his dead muse's kitchen is finished, he uses the law's grief clause to add one more room, the landing where he failed to knock, and the apprentice builds it clause by clause until the knock is finally made and her name is spoken.",
+    "premise": "In the far future, restitution law makes anyone who took something rebuild it to tolerance as a dollhouse model. A composer's guilty model of his dead muse's kitchen, the grief annex where he finally knocks, and then, after his death, her own untranslated notebook: a confession in note-cipher that the model proves true and that turns out to be the first music she ever wrote.",
     "look": null,
     "muses": [],
-    "refined": 2,
+    "refined": 3,
     "at": 1792025755218
   },
   "spaces": [
@@ -110,20 +110,30 @@
     },
     {
       "n": 3,
-      "status": "building",
-      "name": "",
-      "summary": "",
-      "minutes": 0.0,
+      "status": "ready",
+      "name": "SZ-2690-M",
+      "summary": "Vahl has died, which opens Mara Szell's counter-file: one notebook she wrote the morning after the landing, in a note-cipher keyed to her kettle, untranslated for 101 years. On the wall screen of Translation Bay 4 you enter the key, decode her five-clause confession, settle each ambiguous word by checking evidence in the returned dollhouse model, sign the one clause the evidence can't settle, and file it, at which point it plays back as the melody it also is.",
+      "minutes": 7.0,
       "started": 1792026136442,
-      "secs": 0,
+      "secs": 482,
       "error": null,
       "dwell": 0.0,
       "visits": 0,
       "tries": 1,
-      "thread": "",
-      "delight": "",
-      "stage": "designing",
-      "stage_at": 1792026136442
+      "genome": {
+        "era": "far future",
+        "feeling": "grief",
+        "medium": "a screen within the world",
+        "register": "austere",
+        "scale": "a dollhouse",
+        "source": "one of the dreamer's muses",
+        "structure": "a confession in clauses",
+        "verb": "translate and decode"
+      },
+      "thread": "Hesper Vahl died in Room 9, six days after signing RD-9. His death opened Mara Szell's counter-file. Her notebook, logged in 2690 as 'music, not statement', turned out to be her confession in note-cipher: she heard him on the fourth stair, moved the kettle to the front ring so he'd know she was near, said the tune was never hers (it's stamped on the kettle, VESTRY & DOLE Model 4), stood at the stove until it boiled dry without going to the door, and would have opened it. The translator chose the last word (LOVE or SAVE) and signed, and the statement was filed to the public record and played as a 214-note melody, the first thing on record composed by Szell, M. Unresolved: the world can now read her words and hear her tune, and someone will want to perform it; Brandt went to the window. Carried: the signed translation SZ-2690-M, her statement's melody, receipt RD-9.",
+      "delight": "I loved that a cipher drops octave marks, so TAKE and MAKE are both spelled F-A-D-E and the machine solemnly offers LORRY for SORRY. And I loved that the dollhouse he built out of guilt turns out to be the evidence for her side: a scorch on the front ring, a worn patch facing the hall, a kettle stamped 'Model 4'. Best of all, her confession, read as notes, is a melody. The Fourth Symphony was the kettle's tune; this one is hers.",
+      "stage": "",
+      "stage_at": 1792026352706
     }
   ],
   "space_visited": 1,

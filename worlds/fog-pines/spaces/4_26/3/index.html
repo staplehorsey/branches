@@ -1,0 +1,763 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>SZ-2690-M</title>
+<style>
+html,body{margin:0;height:100%;background:#cfe3df;overflow:hidden}
+#ov{position:fixed;inset:0;display:none;opacity:0;transition:opacity .5s;font-family:ui-monospace,Menlo,Consolas,monospace;color:#cfe3df;z-index:5}
+#bez{position:absolute;inset:2.5vh 3.5vw;border:20px solid #262b2f;border-radius:18px;display:flex;flex-direction:column;box-shadow:0 0 0 2px #0a0c0d;overflow:hidden}
+#hd,#tabs,#foot,#note{background:#0f1416}
+#hd{display:flex;justify-content:space-between;padding:8px 14px;font-size:13px;letter-spacing:.08em;border-bottom:1px solid #2b3a3c}
+#hd b{color:#f2b45a;font-weight:normal}
+#tabs{display:flex;gap:6px;padding:8px 10px;flex-wrap:wrap;border-bottom:1px solid #2b3a3c}
+button{font:inherit;color:#cfe3df;background:#16201f;border:1px solid #3c5456;padding:6px 12px;cursor:pointer;letter-spacing:.05em}
+button:hover:not(:disabled){background:#22302f;border-color:#cfe3df}
+button:disabled{opacity:.35;cursor:default}
+button.on{background:#cfe3df;color:#0f1416}
+button.done::after{content:" ✓"}
+button.go{border-color:#f2b45a;color:#f2b45a}
+#main{flex:1;overflow:auto;background:#0f1416;padding:16px 22px;font-size:15px;line-height:1.55;position:relative}
+#main.model{background:transparent;padding:0;overflow:hidden;display:flex;flex-direction:column}
+#feed{flex:1;position:relative;border:2px solid #3c5456;margin:0}
+#feed .lab{position:absolute;left:10px;top:8px;background:rgba(15,20,22,.8);padding:3px 8px;font-size:12px;letter-spacing:.1em}
+#feed .lab i{display:inline-block;width:8px;height:8px;border-radius:50%;background:#e25b4a;margin-right:6px;animation:bl 1s steps(2) infinite}
+@keyframes bl{50%{opacity:0}}
+.hs{position:absolute;width:26px;height:26px;margin:-13px 0 0 -13px;border-radius:50%;border:2px solid rgba(207,227,223,.5);background:rgba(207,227,223,.08);padding:0}
+.hs.pulse{border-color:#f2b45a;animation:pu 1.2s ease-in-out infinite}
+@keyframes pu{0%,100%{box-shadow:0 0 0 0 rgba(242,180,90,.0)}50%{box-shadow:0 0 12px 4px rgba(242,180,90,.55)}}
+#note{padding:10px 16px;min-height:44px;border-top:1px solid #2b3a3c;font-size:14px}
+#foot{padding:6px 14px;font-size:12px;opacity:.75;display:flex;justify-content:space-between;border-top:1px solid #2b3a3c}
+h2{font-weight:normal;margin:0 0 8px;font-size:18px;letter-spacing:.1em;color:#f2b45a}
+.sm{font-size:13px;opacity:.8}
+.grid{display:inline-grid;grid-template-columns:auto repeat(7,38px);gap:4px;margin:10px 0}
+.grid div{height:30px;line-height:30px;text-align:center;border:1px solid #2b3a3c}
+.grid .h{border:none;opacity:.6}
+.grid .ok{border-color:#cfe3df}
+.nb{width:46px;margin:2px}
+.slots span{display:inline-block;width:34px;height:34px;line-height:34px;text-align:center;border:1px solid #3c5456;margin-right:5px}
+.words{display:flex;flex-wrap:wrap;gap:6px 14px;margin:14px 0}
+.w{text-align:center}
+.w svg{display:block}
+.w .t{font-size:16px;letter-spacing:.12em;min-height:24px}
+.w.f .t button{margin:0 3px}
+.w .lock{color:#f2b45a}
+.bar{display:inline-block;width:46px;height:6px;background:#2b3a3c;margin-left:8px;vertical-align:middle}
+.bar i{display:block;height:100%;background:#cfe3df}
+.sup{color:#8fe0a0;margin-left:6px;font-size:12px}
+.msg{min-height:24px;margin:8px 0;color:#f2b45a}
+.ruled{display:inline-block;border-bottom:2px solid #cfe3df;padding:6px 14px 2px;margin:8px 10px 8px 0;min-width:180px}
+.faint{opacity:.35;font-style:italic}
+.fl span{opacity:.3;transition:opacity .1s}
+.fl span.lit{opacity:1;color:#f2b45a}
+.fl div{margin:6px 0;letter-spacing:.1em}
+#veil{position:fixed;inset:0;z-index:20;pointer-events:none;transition:opacity 3s ease-out}
+#white{position:fixed;inset:0;background:#fff;opacity:0;transition:opacity 2s;z-index:30;pointer-events:none}
+</style></head>
+<body>
+<div id="ov"><div id="bez">
+ <div id="hd"><span>SZ-2690-M · COUNTER-FILE · TRANSLATION BAY 4</span><b id="feedlab">FEED: HOOD CAM 2</b></div>
+ <div id="tabs"></div>
+ <div id="main"></div>
+ <div id="note" style="display:none"></div>
+ <div id="foot"><span>§31(4) · RESTITUTION MODELLING OFFICE</span><span>Q / STEP BACK returns to the room</span></div>
+</div></div>
+<div id="veil"></div><div id="white"></div>
+<script type="module">
+import * as THREE from '/vendor/three.module.js';
+import { createSpace } from '/kit/space.js';
+
+const B = window.branches || {};
+const arrival = (B.arrival && B.arrival.color) || '#dfe8e4';
+const veil = document.getElementById('veil');
+veil.style.background = arrival;
+function fail(m){ const d=document.createElement('div'); d.style.cssText='position:fixed;left:10px;top:10px;color:#fff;background:#900;padding:6px;z-index:99;font:12px monospace'; d.textContent=m; document.body.appendChild(d); }
+addEventListener('error', e => fail(String(e.message)));
+
+const $ = id => document.getElementById(id);
+const ov = $('ov'), tabsEl = $('tabs'), mainEl = $('main'), noteEl = $('note');
+
+// ---------------------------------------------------------------- audio
+let AC = null, master = null;
+const FREQ = [440, 493.88, 523.25, 587.33, 659.25, 698.46, 783.99];
+function audio() {
+  if (!AC) {
+    try {
+      AC = new (window.AudioContext || window.webkitAudioContext)();
+      master = AC.createGain(); master.gain.value = 0.9; master.connect(AC.destination);
+      const h = AC.createOscillator(); h.frequency.value = 55;
+      const hg = AC.createGain(); hg.gain.value = 0.012;
+      h.connect(hg); hg.connect(master); h.start();
+    } catch (e) { AC = null; }
+  }
+  if (AC && AC.state === 'suspended') AC.resume();
+  return AC;
+}
+addEventListener('pointerdown', audio);
+addEventListener('keydown', audio);
+let noiseBuf = null;
+function noise() {
+  if (!noiseBuf) {
+    noiseBuf = AC.createBuffer(1, AC.sampleRate, AC.sampleRate);
+    const d = noiseBuf.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+  }
+  return noiseBuf;
+}
+function tone(col, when = 0, dur = 0.5, vol = 0.12, freqOverride) {
+  if (!audio()) return;
+  const t = AC.currentTime + when + 0.01;
+  const f = freqOverride || FREQ[col];
+  const o = AC.createOscillator(); o.type = 'sine';
+  o.frequency.setValueAtTime(f * 0.97, t);
+  o.frequency.exponentialRampToValueAtTime(f, t + 0.06);
+  const g = AC.createGain();
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.linearRampToValueAtTime(vol, t + 0.03);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  o.connect(g); g.connect(master); o.start(t); o.stop(t + dur + 0.05);
+  const n = AC.createBufferSource(); n.buffer = noise(); n.loop = true;
+  const bp = AC.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = f * 2; bp.Q.value = 4;
+  const ng = AC.createGain();
+  ng.gain.setValueAtTime(0.0001, t);
+  ng.gain.linearRampToValueAtTime(vol * 0.25, t + 0.03);
+  ng.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  n.connect(bp); bp.connect(ng); ng.connect(master); n.start(t); n.stop(t + dur + 0.05);
+}
+function tick(when = 0) {
+  if (!audio()) return;
+  const t = AC.currentTime + when;
+  const n = AC.createBufferSource(); n.buffer = noise();
+  const g = AC.createGain();
+  g.gain.setValueAtTime(0.08, t);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + 0.015);
+  n.connect(g); g.connect(master); n.start(t, Math.random() * 0.5, 0.03);
+}
+const confirmSound = () => { tone(4, 0, 0.35, 0.08); tone(6, 0.14, 0.5, 0.08); };
+const thunk = () => tone(0, 0, 0.25, 0.1, 110);
+
+// ---------------------------------------------------------------- room
+const s = createSpace({ background: '#1a1e22', reach: 3.2, eye: 1.6, speed: 2.6 });
+const { scene, camera, player, renderer } = s;
+s.room({ w: 6, d: 5, h: 3, wall: '#e9e7e2', floor: '#59606a', ceiling: '#d9d8d4' });
+player.position.set(0, 0, 0.9);
+s.walls.push({ x0: -1, z0: -2.5, x1: 1, z1: -1.7 });
+
+scene.add(new THREE.AmbientLight(0xb8c4d0, 1.1));
+const dl = new THREE.DirectionalLight(0xcfe0ff, 0.9); dl.position.set(5, 3, 0.5); scene.add(dl);
+const dl2 = new THREE.DirectionalLight(0xdfeeea, 0.5); dl2.position.set(0, 2, 4); scene.add(dl2);
+
+function box(w, h, d, color, x, y, z, parent = scene, opts = {}) {
+  const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), new THREE.MeshStandardMaterial(Object.assign({ color, roughness: 0.8 }, opts)));
+  m.position.set(x, y, z); parent.add(m); return m;
+}
+function ctex(w, h, fn) {
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  const g = c.getContext('2d'); fn(g, w, h);
+  return new THREE.CanvasTexture(c);
+}
+function texPlane(w, h, tex, x, y, z, ry = 0, basic = false) {
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), basic ? new THREE.MeshBasicMaterial({ map: tex }) : new THREE.MeshStandardMaterial({ map: tex, roughness: 0.9 }));
+  m.position.set(x, y, z); m.rotation.y = ry; scene.add(m); return m;
+}
+
+// desk
+box(2.0, 0.05, 0.8, '#8a7e6c', 0, 0.725, -2.1);
+for (const [lx, lz] of [[-0.95, -2.45], [0.95, -2.45], [-0.95, -1.75], [0.95, -1.75]]) box(0.05, 0.7, 0.05, '#555b61', lx, 0.35, lz);
+
+// door behind the player
+box(1.0, 2.1, 0.06, '#c9c6bf', 1.4, 1.05, 2.45);
+box(0.08, 0.04, 0.08, '#777', 1.8, 1.0, 2.4);
+const door = s.thing(box(1.0, 2.1, 0.08, '#c9c6bf', -1.5, 1.05, 2.44), {
+  label: 'the corridor door',
+  use() { s.read('Door', 'Corridor to Bay 3. It is the same door as every other door on this floor.'); },
+});
+
+// wall screen
+box(2.5, 1.45, 0.04, '#0a0c0d', 0, 1.675, -2.48);
+const scrCanvas = document.createElement('canvas'); scrCanvas.width = 1024; scrCanvas.height = 576;
+const scrCtx = scrCanvas.getContext('2d');
+const scrTex = new THREE.CanvasTexture(scrCanvas);
+const screenMesh = new THREE.Mesh(new THREE.PlaneGeometry(2.4, 1.35), new THREE.MeshBasicMaterial({ map: scrTex }));
+screenMesh.position.set(0, 1.675, -2.455); scene.add(screenMesh);
+let lastBlink = -1;
+function drawScreen(blink) {
+  const g = scrCtx;
+  g.fillStyle = '#0f1416'; g.fillRect(0, 0, 1024, 576);
+  g.fillStyle = '#cfe3df'; g.font = '34px monospace';
+  g.fillText('RESTITUTION MODELLING OFFICE', 60, 90);
+  g.font = '28px monospace';
+  g.fillText('COUNTER-FILE  SZ-2690-M', 60, 150);
+  g.fillText('Szell, M. · 1 notebook · 14 leaves', 60, 200);
+  g.fillText(S.filed ? 'STATUS: TRANSLATED' : 'STATUS: UNTRANSLATED 101 YRS', 60, 250);
+  g.fillText('Claimant: Vahl, H. (deceased)', 60, 300);
+  if (blink && !S.filed) { g.font = '44px monospace'; g.fillText('E: OPEN FILE', 60, 470); }
+  scrTex.needsUpdate = true;
+}
+s.thing(screenMesh, { label: 'the wall screen', use() { openScreen(); } });
+
+// hood
+const DX = -0.55, DY = 0.79, DZ = -2.1;
+box(0.62, 0.04, 0.42, '#0c0c0c', DX, 0.77, DZ);
+texPlane(0.62, 0.04, ctex(1024, 64, (g, w, h) => { g.fillStyle = '#0c0c0c'; g.fillRect(0, 0, w, h); g.fillStyle = '#e8e2d0'; g.font = 'bold 34px monospace'; g.textAlign = 'center'; g.fillText('RETURNED — CLAIMANT DECEASED', w / 2, 44); }), DX, 0.77, DZ + 0.211, 0, true);
+const hood = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.35, 0.4), new THREE.MeshPhysicalMaterial({ color: '#dfeeee', transparent: true, opacity: 0.16, roughness: 0.05 }));
+hood.position.set(DX, 0.79 + 0.175, DZ); scene.add(hood);
+s.thing(hood, { label: 'the glass hood', use() { s.read('Hood', 'Returned under seal. Room 9 asked that the annex door stay open. It has.\n\nOn the landing wall of the annex: the credit plate, sealed in.'); } });
+
+// dollhouse
+const doll = new THREE.Group(); doll.position.set(DX, DY, DZ); scene.add(doll);
+box(0.5, 0.01, 0.3, '#b9a98f', 0, 0.005, 0, doll);
+box(0.5, 0.12, 0.01, '#d8d2c4', 0, 0.07, -0.145, doll);
+box(0.01, 0.12, 0.3, '#cfc8b8', -0.245, 0.07, 0, doll);
+box(0.01, 0.12, 0.3, '#cfc8b8', 0.245, 0.07, 0, doll);
+box(0.01, 0.12, 0.2, '#c8c0ae', 0.08, 0.07, -0.05, doll);
+box(0.16, 0.012, 0.28, '#8a8070', 0.165, 0.011, 0, doll);          // landing boards
+const annexDoor = box(0.004, 0.08, 0.04, '#7a5a3a', 0.08, 0.05, 0.075, doll); annexDoor.rotation.y = -1.2;
+box(0.02, 0.008, 0.002, '#d9b650', 0.2, 0.06, -0.138, doll);       // credit plate
+box(0.14, 0.05, 0.07, '#444a50', -0.15, 0.035, -0.1, doll);        // stove
+for (const x of [-0.19, -0.11]) {
+  const r = new THREE.Mesh(new THREE.CylinderGeometry(0.016, 0.016, 0.003, 20), new THREE.MeshStandardMaterial({ color: '#1b1b1b' }));
+  r.position.set(x, 0.0615, -0.1); doll.add(r);
+}
+const kettle = new THREE.Group(); kettle.position.set(-0.11, 0.0755, -0.1); doll.add(kettle);
+{
+  const kb = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.015, 0.024, 16), new THREE.MeshStandardMaterial({ color: '#c3cdd2', metalness: 0.5, roughness: 0.4 }));
+  kettle.add(kb);
+  const sp = box(0.014, 0.004, 0.004, '#c3cdd2', 0.016, 0.004, 0, kettle); sp.rotation.z = 0.5;
+  box(0.002, 0.016, 0.014, '#222', -0.015, 0.004, 0, kettle);
+}
+const clockTex = ctex(128, 128, g => {
+  g.fillStyle = '#f2efe6'; g.beginPath(); g.arc(64, 64, 62, 0, 7); g.fill();
+  g.strokeStyle = '#222'; g.lineWidth = 6; g.beginPath(); g.arc(64, 64, 60, 0, 7); g.stroke();
+  const hand = (a, l, w) => { g.lineWidth = w; g.beginPath(); g.moveTo(64, 64); g.lineTo(64 + Math.sin(a) * l, 64 - Math.cos(a) * l); g.stroke(); };
+  hand((23 + 41 / 60) / 12 * Math.PI * 2, 30, 7); hand(41 / 60 * Math.PI * 2, 46, 4);
+});
+const clock = new THREE.Mesh(new THREE.CircleGeometry(0.02, 24), new THREE.MeshBasicMaterial({ map: clockTex }));
+clock.position.set(-0.02, 0.09, -0.138); doll.add(clock);
+box(0.004, 0.07, 0.05, '#8da0b8', -0.238, 0.08, 0.02, doll);       // curtain
+box(0.004, 0.08, 0.06, '#e8e4d8', -0.243, 0.08, 0.02, doll);       // window
+box(0.08, 0.004, 0.05, '#7a5c3c', 0.0, 0.034, 0.03, doll);         // table
+for (const [tx, tz] of [[-0.035, 0.01], [0.035, 0.01], [-0.035, 0.05], [0.035, 0.05]]) box(0.004, 0.032, 0.004, '#6a4e30', tx, 0.017, tz, doll);
+const patch = new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.014, 0.001, 16), new THREE.MeshStandardMaterial({ color: '#6e6250' }));
+patch.position.set(-0.14, 0.0108, -0.03); doll.add(patch);
+
+// amber lamp (the only warm light)
+const lampRod = box(0.002, 0.1, 0.002, '#444', 0.2, 0.26, 0.02, doll);
+const lampBulb = new THREE.Mesh(new THREE.SphereGeometry(0.012, 12, 12), new THREE.MeshBasicMaterial({ color: '#f2b45a' }));
+lampBulb.position.set(0.2, 0.205, 0.02); doll.add(lampBulb);
+const lamp = new THREE.PointLight(0xf2b45a, 1.5, 1.4, 1.2);
+lamp.position.set(0.2, 0.2, 0.02); doll.add(lamp);
+const LAMP_BASE = 1.5;
+
+// wisp
+const wisps = [];
+for (let i = 0; i < 4; i++) {
+  const w = new THREE.Mesh(new THREE.SphereGeometry(0.006, 8, 8), new THREE.MeshBasicMaterial({ color: '#ffffff', transparent: true, opacity: 0 }));
+  kettle.parent.add(w); wisps.push(w);
+}
+
+// notebook in sleeve
+const nbTex = ctex(420, 300, (g, w, h) => {
+  g.fillStyle = '#efe6cf'; g.fillRect(0, 0, w, h);
+  g.strokeStyle = '#6b5a3a'; g.lineWidth = 1.5;
+  for (let r = 0; r < 5; r++) for (let l = 0; l < 5; l++) { const y = 30 + r * 52 + l * 6; g.beginPath(); g.moveTo(24, y); g.lineTo(w - 24, y); g.stroke(); }
+  g.fillStyle = '#3a2f1c'; g.font = '16px serif';
+  for (let r = 0; r < 5; r++) { g.fillText('‡', 28, 52 + r * 52); for (let i = 0; i < 24; i++) { g.beginPath(); g.arc(60 + i * 14, 56 + r * 52 - ((i * 7 + r * 3) % 7) * 3, 3, 0, 7); g.fill(); } }
+});
+const nb = new THREE.Mesh(new THREE.BoxGeometry(0.21, 0.012, 0.15), [0, 1, 2, 3, 4, 5].map(i => new THREE.MeshStandardMaterial(i === 2 ? { map: nbTex } : { color: '#d8cfb4' })));
+nb.position.set(0.55, 0.756, -2.0); nb.rotation.y = 0.12; scene.add(nb);
+box(0.225, 0.016, 0.165, '#e8f0f0', 0.55, 0.757, -2.0, scene, { transparent: true, opacity: 0.25 }).rotation.y = 0.12;
+s.thing(nb, { label: 'the notebook', use() { s.read('SZ-2690-M · the notebook', 'Szell, M. Stave paper, 14 leaves, one used. Dated 12.XI.2690 in her hand. Five lines of notes, each beginning with the copyist\'s mark ‡. 2690 clearance log: \'Music, not statement. No action.\''); } });
+
+// receipt + kettle card
+const recTex = ctex(256, 360, (g, w, h) => {
+  g.fillStyle = '#f4f1e8'; g.fillRect(0, 0, w, h); g.fillStyle = '#222'; g.font = '20px monospace';
+  g.fillText('RECEIPT RD-9', 20, 40); g.font = '15px monospace';
+  g.fillText('Model SZ-2690 and', 20, 80); g.fillText('Grief Annex, received.', 20, 104);
+  g.save(); g.translate(40, 280); g.rotate(-0.12); g.font = 'italic 34px serif'; g.fillText('H', 0, 0); g.fillText('.  V', 26, 6); g.restore();
+});
+const receipt = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.003, 0.2), [0, 1, 2, 3, 4, 5].map(i => new THREE.MeshStandardMaterial(i === 2 ? { map: recTex } : { color: '#f4f1e8' })));
+receipt.position.set(0.0, 0.752, -1.88); receipt.rotation.y = 0.2; scene.add(receipt);
+s.thing(receipt, { label: 'receipt RD-9', use() { s.read('Receipt RD-9', 'Delivery receipt RD-9. Model SZ-2690 and Grief Annex, received. H. V.\n\nThe letters wander.'); } });
+const cardTex = ctex(256, 160, (g, w, h) => { g.fillStyle = '#e9dfc8'; g.fillRect(0, 0, w, h); g.fillStyle = '#222'; g.font = '28px monospace'; g.fillText('kettle: A C E D A', 14, 90); });
+const card = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.003, 0.09), [0, 1, 2, 3, 4, 5].map(i => new THREE.MeshStandardMaterial(i === 2 ? { map: cardTex } : { color: '#e9dfc8' })));
+card.position.set(0.24, 0.752, -1.88); card.rotation.y = -0.15; scene.add(card);
+s.thing(card, { label: 'a card in your hand', use() { s.read('The card', 'kettle: A C E D A\n\nThe record from the last room.'); } });
+
+// window (east wall)
+const winTex = ctex(128, 512, (g, w, h) => {
+  const gr = g.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, '#f2f6f8'); gr.addColorStop(1, '#dfe7ec');
+  g.fillStyle = gr; g.fillRect(0, 0, w, h);
+  g.fillStyle = '#ffffff'; g.fillRect(0, 380, w, 140);
+  g.fillStyle = '#c9d2d8'; g.fillRect(0, 372, w, 8);
+});
+box(0.5, 2.0, 0.06, '#8a8f94', 2.97, 1.5, -0.3).rotation.y = Math.PI / 2;
+const win = texPlane(0.4, 1.9, winTex, 2.935, 1.5, -0.3, -Math.PI / 2, true);
+s.thing(win, { label: 'the window', use() { s.read('Window', 'Snow on the archive roof. Nobody has walked on it.'); } });
+const winLight = new THREE.PointLight(0xcfe0ff, 1.2, 6, 1); winLight.position.set(2.5, 1.6, -0.3); scene.add(winLight);
+
+// second camera: the micromanipulator feed
+const cam2 = new THREE.PerspectiveCamera(50, 16 / 9, 0.01, 5);
+cam2.position.set(DX, DY + 0.28, DZ + 0.2);
+cam2.lookAt(DX, DY + 0.03, DZ - 0.03);
+
+// ---------------------------------------------------------------- content
+const ALPHA = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+const colOf = ch => ALPHA.indexOf(ch) % 7;
+const NOTEN = 'ABCDEFG';
+const C = [
+  { num: 'I', text: 'THAT I HEARD YOU ON THE FOURTH STAIR AND KNEW IT WAS {}.',
+    cands: ['SAFE', 'LATE'], right: 1, conf: [46, 54],
+    wrong: 'Not supported. Clock reads 23:41.', stat: '§31(5): Clauses citing physical fact must be verified against the model.', hs: ['clock'] },
+  { num: 'II', text: 'THAT I MOVED THE KETTLE TO THE FRONT RING SO YOU WOULD HEAR IT AND KNOW I WAS {}.',
+    cands: ['NEAR', 'GLAD'], right: 0, conf: [51, 49],
+    wrong: 'Not verifiable. §31 accepts hopes as context, not as evidence.', stat: '§31(5): Clauses citing physical fact must be verified against the model.', hs: ['ring1', 'ring2'] },
+  { num: 'III', text: 'THAT THE TUNE IS NOT MINE. IT IS STAMPED ON THE BOTTOM OF THE KETTLE. I AM NOT {} YOU TOOK IT.',
+    cands: ['SORRY', 'LORRY'], right: 0, conf: [58, 42],
+    wrong: 'Rejected: grammar. No lorry in model.', stat: '§31(5): Clauses citing physical fact must be verified against the model.', hs: ['kettle'] },
+  { num: 'IV', text: 'THAT I STOOD AT THE STOVE UNTIL IT BOILED DRY, AND DID NOT GO TO THE {}.',
+    cands: ['ROAD', 'DOOR'], right: 1, conf: [47, 53],
+    wrong: 'Not supported. Curtain undisturbed; she did not go to the window.', stat: '§31(5): Clauses citing physical fact must be verified against the model.', hs: ['patch', 'curtain'] },
+  { num: 'V', text: 'THAT I WOULD HAVE OPENED IT. THE TUNE IS YOURS NOW. {} IT. — M.',
+    cands: ['LOVE', 'SAVE'], right: -1, conf: [50, 50],
+    wrong: '', stat: '§31(6): Where the record is silent, the translator chooses, and signs.', hs: [] },
+];
+for (const c of C) c.tokens = c.text.split(' ').map(t => ({ raw: t, flag: t.includes('{}'), letters: t.replace(/[^A-Z]/g, '') }));
+const flagLetters = c => c.cands[0];
+const HS = {
+  clock: { pos: [-0.02, 0.09, -0.138], note: 'Hands 23:41. Battery removed by clearance crew 2690; hands not moved since.' },
+  ring1: { pos: [-0.19, 0.066, -0.075], note: 'Back ring: wear 0.4 mm (daily use). Front ring, 30 cm nearer the hall wall: wear nil, one scorch, 61 mm: kettle base.' },
+  ring2: { pos: [-0.11, 0.066, -0.068], note: 'Back ring: wear 0.4 mm (daily use). Front ring, 30 cm nearer the hall wall: wear nil, one scorch, 61 mm: kettle base.' },
+  kettle: { pos: [-0.11, 0.108, -0.1], note: 'Base stamp: VESTRY & DOLE · MODEL 4 \'SONGBIRD\' · WHISTLE A–C–E–D–A.' },
+  patch: { pos: [-0.14, 0.012, -0.03], note: 'Wear patch 0.2 mm, one pair of shoes, facing the hall. Kettle interior: scale ring, boiled dry.' },
+  curtain: { pos: [-0.238, 0.082, 0.02], note: 'Undisturbed.' },
+};
+
+// ---------------------------------------------------------------- state
+const S = {
+  open: false, p: 0, dir: 0, tab: 'note', view: 'main',
+  keyOK: false, keyIn: [], wrong: 0, sweeping: false,
+  decoded: [false, false, false, false, false], decoding: false,
+  pick: [null, null, null, null, null], seen: [false, false, false, false, false], solved: [false, false, false, false, false],
+  signed: false, filed: false, filing: false, feedNote: null, msg: '', kettleT: 0, boost: 0,
+};
+const scrambled = (() => { const a = ALPHA.split(''); let r = 7; for (let i = a.length - 1; i > 0; i--) { r = (r * 9301 + 49297) % 233280; const j = r % (i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; })();
+const done = n => S.solved[n];
+const clauseOpen = i => S.keyOK && (i === 0 || S.solved[i - 1]);
+const allDone = () => S.solved.every(Boolean);
+const curClause = () => (/^c\d$/.test(S.tab) ? +S.tab[1] : -1);
+
+function mk(tag, cls, html) { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; }
+function btn(label, fn, cls) { const b = mk('button', cls, label); b.onclick = () => { audio(); fn(); }; return b; }
+
+// feed element persists, so its hotspots do too
+const feedEl = mk('div'); feedEl.id = 'feed';
+feedEl.appendChild(mk('div', 'lab', '<i></i>FEED: HOOD CAM 2 · MICROMANIPULATOR'));
+const hsEls = {};
+for (const k of Object.keys(HS)) {
+  const b = mk('button', 'hs'); b.title = k; b.onclick = () => hotspot(k);
+  feedEl.appendChild(b); hsEls[k] = b;
+}
+
+function hotspot(k) {
+  S.feedNote = HS[k].note;
+  const i = curClause();
+  if (i >= 0 && C[i].hs.includes(k)) S.seen[i] = true;
+  if (k === 'kettle') { S.kettleT = 2.4; setTimeout(() => { if (S.view === 'model') { S.feedNote = HS.kettle.note + '  Model 4. His Fourth.'; renderNote(); } }, 600); }
+  tick();
+  renderNote();
+}
+function renderNote() {
+  if (S.view !== 'model') { noteEl.style.display = 'none'; return; }
+  noteEl.style.display = 'block';
+  const i = curClause();
+  const def = i === 4 ? 'No evidence in model.' : 'Feed live. Pulsing marks bear on this clause.';
+  noteEl.textContent = S.feedNote || def;
+}
+
+// ---------------------------------------------------------------- render
+function renderTabs() {
+  tabsEl.innerHTML = '';
+  const add = (id, label, enabled, isDone) => {
+    const b = mk('button', (S.tab === id && S.view === 'main' ? 'on ' : '') + (isDone ? 'done' : ''), label);
+    b.disabled = !enabled;
+    b.onclick = () => { S.tab = id; S.view = 'main'; S.feedNote = null; render(); };
+    tabsEl.appendChild(b);
+  };
+  add('note', 'BRANDT', true, false);
+  add('key', 'KEY', true, S.keyOK);
+  C.forEach((c, i) => add('c' + i, c.num, clauseOpen(i), S.solved[i]));
+  add('file', 'FILE', allDone(), S.filed);
+  const m = btn('MODEL', () => { S.view = S.view === 'model' ? 'main' : 'model'; S.feedNote = null; render(); }, S.view === 'model' ? 'on' : '');
+  m.style.marginLeft = 'auto';
+  tabsEl.appendChild(m);
+  tabsEl.appendChild(btn('STEP BACK (Q)', closeScreen));
+}
+
+function render() {
+  renderTabs();
+  mainEl.innerHTML = '';
+  mainEl.className = S.view === 'model' ? 'model' : '';
+  $('feedlab').style.visibility = S.view === 'model' ? 'visible' : 'hidden';
+  if (S.view === 'model') {
+    mainEl.appendChild(feedEl);
+    renderNote();
+    return;
+  }
+  renderNote();
+  if (S.tab === 'note') renderBrandt();
+  else if (S.tab === 'key') renderKey();
+  else if (S.tab === 'file') renderFile();
+  else renderClause(curClause());
+}
+
+function renderBrandt() {
+  const m = mainEl;
+  m.appendChild(mk('h2', null, 'NOTE FROM THE SUPERVISOR'));
+  m.appendChild(mk('div', null,
+    'Vahl died Thursday night. Room 9 says he asked them to leave the model open.<br><br>' +
+    'Under §31(4) his death opens her counter-file. SZ-2690-M: one notebook, untranslated 101 years. In 2690 they logged it as music. It isn\'t music. It\'s her.<br><br>' +
+    'Key is probably the kettle. File by end of shift. — I. Brandt, Supervisor'));
+  const row = mk('div'); row.style.marginTop = '18px';
+  row.appendChild(btn('OPEN KEY', () => { S.tab = 'key'; render(); }, 'go'));
+  m.appendChild(row);
+}
+
+function renderKey() {
+  const m = mainEl;
+  m.appendChild(mk('h2', null, 'KEY'));
+  const g = mk('div', 'grid');
+  g.appendChild(mk('div', 'h', ''));
+  for (let c = 0; c < 7; c++) g.appendChild(mk('div', 'h', S.keyOK ? NOTEN[c] : '?'));
+  for (let r = 0; r < 4; r++) {
+    g.appendChild(mk('div', 'h', 'row' + (r + 1)));
+    for (let c = 0; c < 7; c++) {
+      const idx = r * 7 + c;
+      const e = mk('div', S.keyOK ? 'ok' : '', idx < 26 ? (S.keyOK ? ALPHA[idx] : scrambled[idx]) : '');
+      if (idx >= 26) e.style.border = 'none';
+      g.appendChild(e);
+    }
+  }
+  m.appendChild(g);
+  if (S.keyOK) {
+    m.appendChild(mk('div', null, 'Key accepted. Notation: French cryptogram, octave marks omitted. Each note = up to four letters. Ambiguities will be flagged.'));
+    const row = mk('div'); row.style.marginTop = '16px';
+    row.appendChild(btn('BEGIN CLAUSE I', () => { S.tab = 'c0'; render(); }, 'go'));
+    m.appendChild(row);
+    return;
+  }
+  m.appendChild(mk('div', 'sm', 'The grid is scrambled. Enter the key: five notes.'));
+  const notes = mk('div'); notes.style.margin = '10px 0';
+  for (let c = 0; c < 7; c++) {
+    notes.appendChild(btn(NOTEN[c], () => {
+      tone(c, 0, 0.6, 0.12);
+      if (S.keyIn.length < 5 && !S.sweeping) { S.keyIn.push(NOTEN[c]); renderSlots(); }
+    }, 'nb'));
+  }
+  m.appendChild(notes);
+  const slots = mk('div', 'slots'); slots.id = 'slots'; m.appendChild(slots);
+  const row = mk('div'); row.style.margin = '10px 0';
+  row.appendChild(btn('ENTER KEY (5 NOTES)', enterKey, 'go'));
+  row.appendChild(btn('CLEAR', () => { S.keyIn = []; renderSlots(); }));
+  m.appendChild(row);
+  const msg = mk('div', 'msg', S.msg); msg.id = 'msg'; m.appendChild(msg);
+  renderSlots();
+}
+function renderSlots() {
+  const e = $('slots'); if (!e) return;
+  e.innerHTML = '';
+  for (let i = 0; i < 5; i++) e.appendChild(mk('span', null, S.keyIn[i] || '·'));
+}
+function enterKey() {
+  if (S.sweeping) return;
+  if (S.keyIn.length < 5) { S.msg = 'Five notes.'; $('msg').textContent = S.msg; return; }
+  if (S.keyIn.join('') === 'ACEDA') {
+    S.sweeping = true; S.msg = '';
+    const cells = mainEl.querySelectorAll('.grid div:not(.h)');
+    let n = 0;
+    cells.forEach((cell, k) => {
+      if (!cell.textContent) return;
+      setTimeout(() => { cell.textContent = ALPHA[n % 26]; cell.className = 'ok'; n++; tick(); }, k * 30);
+    });
+    setTimeout(() => { S.keyOK = true; S.sweeping = false; confirmSound(); render(); }, cells.length * 30 + 200);
+  } else {
+    S.wrong++; S.keyIn = [];
+    S.msg = 'Key rejected.' + (S.wrong >= 2 ? ' Hint: the notebook\'s first five notes are unlabelled. So is the kettle.' : '');
+    thunk(); render();
+  }
+}
+
+// stave svg for a letter string
+function stave(letters) {
+  const n = Math.max(letters.length, 1), W = n * 11 + 8, H = 46;
+  let h = `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">`;
+  for (let l = 0; l < 5; l++) h += `<line x1="0" x2="${W}" y1="${10 + l * 6}" y2="${10 + l * 6}" stroke="#4d6a6c" stroke-width="1"/>`;
+  [...letters].forEach((ch, i) => {
+    const y = 40 - colOf(ch) * 4.5;
+    h += `<ellipse cx="${8 + i * 11}" cy="${y}" rx="3.4" ry="2.6" fill="#cfe3df"/>`;
+  });
+  return h + '</svg>';
+}
+
+function renderClause(i) {
+  const c = C[i], m = mainEl;
+  m.appendChild(mk('h2', null, 'CLAUSE ' + c.num));
+  const words = mk('div', 'words');
+  c.tokens.forEach(tk => {
+    const w = mk('div', 'w' + (tk.flag ? ' f' : ''));
+    const lets = tk.flag ? flagLetters(c) : tk.letters;
+    w.insertAdjacentHTML('beforeend', stave(lets));
+    const t = mk('div', 't');
+    if (tk.flag) {
+      if (!S.decoded[i]) {
+        [...lets].forEach(() => t.appendChild(mk('span', 'fc', '·')));
+      } else if (S.pick[i] !== null && (i < 4 || S.signed)) {
+        t.appendChild(mk('span', 'lock', c.cands[S.pick[i]] + tk.raw.replace('{}', '')));
+      } else {
+        c.cands.forEach((cw, k) => {
+          const b = mk('button', S.pick[i] === k ? 'on' : '', `${cw}<span class="bar"><i style="width:${c.conf[k]}%"></i></span> ${c.conf[k]}%`);
+          b.onclick = () => { audio(); choose(i, k); };
+          t.appendChild(b);
+          if (S.seen[i] && c.right === k) t.appendChild(mk('span', 'sup', 'SUPPORTED'));
+        });
+      }
+    } else {
+      [...tk.raw].forEach(ch => {
+        if (/[A-Z]/.test(ch)) { const sp = mk('span', 'c', S.decoded[i] ? ch : '·'); t.appendChild(sp); }
+        else t.appendChild(document.createTextNode(S.decoded[i] ? ch : ''));
+      });
+    }
+    w.appendChild(t);
+    words.appendChild(w);
+  });
+  m.appendChild(words);
+  const row = mk('div');
+  const d = btn('DECODE', () => decode(i), 'go');
+  d.disabled = S.decoded[i] || S.decoding;
+  row.appendChild(d);
+  m.appendChild(row);
+  const msg = mk('div', 'msg', S.msg); msg.id = 'msg'; m.appendChild(msg);
+  m.appendChild(mk('div', 'sm', c.stat + (i < 4 ? ' Click MODEL to open the feed.' : '')));
+  if (i === 2 && S.solved[2]) m.appendChild(mk('div', null, '<br>Model 4. His Fourth.'));
+  if (i === 4 && S.pick[4] !== null) {
+    const o = c.cands[S.pick[4]], other = c.cands[1 - S.pick[4]];
+    if (!S.signed) {
+      const r = mk('div'); r.style.marginTop = '14px';
+      r.appendChild(btn('SIGN', signIt, 'go'));
+      m.appendChild(r);
+    } else {
+      const bx = mk('div'); bx.style.marginTop = '14px';
+      bx.innerHTML = `<span class="ruled">Translator, Bay 4</span><span class="ruled faint">H. V.</span><div>Your reading: ${o}. Alternative noted in margin: ${other}.</div>`;
+      m.appendChild(bx);
+    }
+  }
+  if (S.solved[i]) {
+    const r = mk('div'); r.style.marginTop = '16px';
+    r.appendChild(btn(i < 4 ? 'NEXT CLAUSE' : 'TO FILE', () => { S.msg = ''; S.tab = i < 4 ? 'c' + (i + 1) : 'file'; render(); }, 'go'));
+    m.appendChild(r);
+  }
+}
+
+function choose(i, k) {
+  const c = C[i];
+  if (i === 4) { S.pick[4] = k; S.msg = ''; confirmSound(); render(); return; }
+  if (k === c.right) {
+    S.pick[i] = k; S.solved[i] = true; S.msg = ''; confirmSound(); render();
+  } else {
+    S.msg = c.wrong; thunk();
+    const e = $('msg'); if (e) e.textContent = S.msg;
+  }
+}
+function signIt() {
+  S.signed = true; S.solved[4] = true; confirmSound(); render();
+}
+function decode(i) {
+  if (S.decoding || S.decoded[i]) return;
+  S.decoding = true; S.msg = '';
+  const c = C[i];
+  const spans = [...mainEl.querySelectorAll('.w:not(.f) .c')];
+  const seq = [];
+  c.tokens.forEach(tk => { const ls = tk.flag ? flagLetters(c) : tk.letters; [...ls].forEach(ch => seq.push(colOf(ch))); });
+  seq.forEach((col, k) => tone(col, k * 0.12, 0.3, 0.09));
+  let si = 0;
+  c.tokens.forEach((tk, ti) => {
+    if (tk.flag) return;
+    [...tk.letters].forEach((ch, li) => {
+      const before = c.tokens.slice(0, ti).reduce((a, t2) => a + (t2.flag ? flagLetters(c).length : t2.letters.length), 0);
+      const sp = spans[si++];
+      setTimeout(() => { if (sp) sp.textContent = ch; }, (before + li) * 120);
+    });
+  });
+  setTimeout(() => { S.decoding = false; S.decoded[i] = true; if (S.tab === 'c' + i && S.view === 'main') render(); }, seq.length * 120 + 250);
+}
+
+// ---------------------------------------------------------------- filing
+function renderFile() {
+  const m = mainEl;
+  m.appendChild(mk('h2', null, 'FILE TO PUBLIC RECORD'));
+  if (!S.filing && !S.filed) {
+    m.appendChild(mk('div', null, 'Five clauses translated. One signed.<br><br>'));
+    m.appendChild(btn('FILE TO PUBLIC RECORD', fileIt, 'go'));
+    return;
+  }
+  buildFile();
+}
+let fileBuilt = null;
+function buildFile() {
+  const m = mainEl;
+  const box = mk('div', 'fl');
+  const lines = [];
+  C.forEach((c, i) => {
+    const line = mk('div');
+    const spans = [];
+    c.tokens.forEach(tk => {
+      const word = tk.flag ? c.cands[S.pick[i]] + tk.raw.replace('{}', '') : tk.raw;
+      [...word].forEach(ch => {
+        const sp = document.createElement('span'); sp.textContent = ch; line.appendChild(sp);
+        if (/[A-Z]/.test(ch)) spans.push({ sp, col: colOf(ch) });
+      });
+      line.appendChild(document.createTextNode(' '));
+    });
+    box.appendChild(line); lines.push(spans);
+  });
+  m.appendChild(box);
+  const out = mk('div'); out.id = 'out'; out.style.marginTop = '14px'; m.appendChild(out);
+  if (fileBuilt) { out.innerHTML = fileBuilt.outHTML; box.querySelectorAll('span').forEach(x => x.classList.add('lit')); if (fileBuilt.closeBtn) out.appendChild(btn('CLOSE FILE', closeFile, 'go')); }
+  S.fileLines = lines;
+}
+function fileIt() {
+  if (S.filing) return;
+  S.filing = true; S.boost = 0;
+  render();
+  const lines = S.fileLines;
+  let weights = 0;
+  C.forEach((c, i) => { weights += lines[i].length + c.tokens.length * 0.7 + 5; });
+  const dt = Math.max(0.08, Math.min(0.25, 28 / weights));
+  let t = 0.5, total = 0;
+  lines.forEach((spans, i) => {
+    const c = C[i];
+    setTimeout(() => { S.boost = i + 1; }, t * 1000);
+    let k = 0;
+    c.tokens.forEach(tk => {
+      const n = (tk.flag ? c.cands[S.pick[i]] : tk.letters).length;
+      for (let j = 0; j < n; j++) {
+        const { sp, col } = spans[k++]; total++;
+        const tt = t;
+        tone(col, tt, dt * 1.7, 0.11);
+        setTimeout(() => { sp.classList.add('lit'); }, tt * 1000);
+        t += dt;
+      }
+      t += dt * 0.7;
+    });
+    t += dt * 5;
+  });
+  setTimeout(() => {
+    const out = $('out');
+    const html = '<div>SZ-2690-M — TRANSLATED. Public record updated 09:12.</div><div>Statement length: ' + total + ' notes.</div><div>Archive note: first item on record composed by Szell, M.</div>';
+    S.filed = true; S.filing = false; lastBlink = -1;
+    fileBuilt = { outHTML: html, closeBtn: false };
+    if (out) out.innerHTML = html;
+    renderTabs();
+    setTimeout(() => {
+      fileBuilt.outHTML += '<br><div class="lit" style="color:#f2b45a">Read it twice. Went to the window. Go home. — I.B.</div><br>';
+      fileBuilt.closeBtn = true;
+      const o2 = $('out');
+      if (o2 && S.tab === 'file' && S.view === 'main') { o2.innerHTML = fileBuilt.outHTML; o2.appendChild(btn('CLOSE FILE', closeFile, 'go')); }
+      else if (o2 === null && S.open) { /* will build on re-render */ }
+    }, 4000);
+  }, (t + 1) * 1000);
+}
+function closeFile() {
+  try { B.carry && B.carry(['translation SZ-2690-M (signed: Translator, Bay 4)', 'her statement\'s melody', 'receipt RD-9']); } catch (e) {}
+  $('white').style.opacity = '1';
+  setTimeout(() => { try { B.onward && B.onward(); } catch (e) {} }, 2000);
+}
+
+// ---------------------------------------------------------------- open / close
+const e01 = x => x * x * (3 - 2 * x);
+function openScreen() {
+  if (S.open || S.dir !== 0) return;
+  audio();
+  idleSay = true;
+  S.open = true; S.dir = 1; player.enabled = false;
+  if (document.exitPointerLock) document.exitPointerLock();
+  render();
+}
+function closeScreen() {
+  if (!S.open) return;
+  ov.style.opacity = '0';
+  setTimeout(() => { ov.style.display = 'none'; }, 300);
+  S.open = false; S.dir = -1;
+}
+addEventListener('keydown', e => { if (e.code === 'KeyQ' && S.open && S.p >= 1) closeScreen(); });
+
+// keep E from re-triggering things while the screen is up (use() above guards by state)
+let idleSay = false;
+const t0 = performance.now();
+setTimeout(() => { veil.style.opacity = '0'; }, 60);
+setTimeout(() => { try { B.say && B.say('A file is open on the wall screen. The model is back on your desk.'); } catch (e) {} }, 1800);
+setTimeout(() => { if (!idleSay) { try { B.say && B.say('The file is on the wall screen. The key is on the desk.'); } catch (e) {} } }, 25000);
+
+const TP = new THREE.Vector3(0, 1.68, -0.35), QI = new THREE.Quaternion();
+const tmp = new THREE.Vector3();
+s.onFrame((dt, t) => {
+  const bl = Math.floor(t * 2) % 2;
+  if (bl !== lastBlink) { lastBlink = bl; drawScreen(bl === 0); }
+  if (S.dir !== 0) {
+    S.p = Math.max(0, Math.min(1, S.p + S.dir * dt / 1.0));
+    if (S.p >= 1 && S.dir > 0) { S.dir = 0; ov.style.display = 'block'; requestAnimationFrame(() => { ov.style.opacity = '1'; }); }
+    if (S.p <= 0 && S.dir < 0) { S.dir = 0; player.enabled = true; }
+  }
+  if (S.p > 0) {
+    const e = e01(S.p);
+    camera.position.lerp(TP, e);
+    camera.quaternion.slerp(QI, e);
+  }
+  // lamp, kettle, wisps
+  const lt = LAMP_BASE + 0.35 * S.boost;
+  lamp.intensity += (lt - lamp.intensity) * Math.min(1, dt * 3);
+  if (S.kettleT > 0) {
+    S.kettleT -= dt;
+    const k = Math.sin(Math.min(1, (2.4 - S.kettleT) / 2.4) * Math.PI);
+    kettle.position.y = 0.0755 + 0.03 * k; kettle.rotation.z = 0.5 * k;
+  }
+  wisps.forEach((w, i) => {
+    const on = S.filing || (S.filed && S.boost > 0 && false);
+    const ph = (t * 0.4 + i * 0.25) % 1;
+    w.position.set(-0.11 + 0.012 + Math.sin(t * 2 + i) * 0.004, 0.1 + ph * 0.05, -0.1);
+    w.material.opacity = on ? 0.5 * (1 - ph) : 0;
+  });
+  // hotspots
+  if (S.open && S.view === 'model' && feedEl.isConnected) {
+    cam2.updateMatrixWorld();
+    const r = feedEl.getBoundingClientRect();
+    const i = curClause();
+    for (const k of Object.keys(HS)) {
+      tmp.set(DX + HS[k].pos[0], DY + HS[k].pos[1], DZ + HS[k].pos[2]).project(cam2);
+      const b = hsEls[k];
+      b.style.left = ((tmp.x * 0.5 + 0.5) * r.width) + 'px';
+      b.style.top = ((-tmp.y * 0.5 + 0.5) * r.height) + 'px';
+      const rel = i >= 0 && C[i].hs.includes(k);
+      b.classList.toggle('pulse', rel && !S.seen[i]);
+    }
+  }
+});
+
+// render the feed into the feed rect after the main render
+const origRender = renderer.render.bind(renderer);
+renderer.render = (sc, cam) => {
+  origRender(sc, cam);
+  if (cam === camera && S.open && S.p >= 1 && S.view === 'model' && feedEl.isConnected) {
+    const r = feedEl.getBoundingClientRect();
+    if (r.width > 4 && r.height > 4) {
+      cam2.aspect = r.width / r.height; cam2.updateProjectionMatrix();
+      const y = innerHeight - r.bottom;
+      renderer.setScissorTest(true);
+      renderer.setViewport(r.left, y, r.width, r.height);
+      renderer.setScissor(r.left, y, r.width, r.height);
+      origRender(sc, cam2);
+      renderer.setScissorTest(false);
+      renderer.setViewport(0, 0, innerWidth, innerHeight);
+    }
+  }
+};
+drawScreen(true);
+</script>
+</body></html>
