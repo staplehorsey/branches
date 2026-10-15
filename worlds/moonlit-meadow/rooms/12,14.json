@@ -49,14 +49,14 @@
     }
   ],
   "claim": null,
-  "attention": 245.68749975899982,
+  "attention": 245.68749975899985,
   "weights": {
     "light": 3.6464443,
     "music": 3.635232,
     "neon": 3.6443138
   },
   "investors": {
-    "94b402ce6e6a1d1b": 245.68749975899982
+    "94b402ce6e6a1d1b": 245.68749975899985
   },
   "building": null,
   "last_visit": {
@@ -106,13 +106,13 @@
     },
     {
       "n": 2,
-      "status": "building",
+      "status": "failed",
       "name": "",
       "summary": "",
       "minutes": 0.0,
       "started": 1792024167863,
       "secs": 0,
-      "error": null,
+      "error": "interrupted",
       "dwell": 0.0,
       "visits": 0,
       "tries": 1,
