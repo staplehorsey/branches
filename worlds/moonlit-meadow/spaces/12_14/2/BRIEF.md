@@ -1,15 +1,15 @@
 You are making space 2 of a house in Branches, a game someone plays to wander through ideas: endless streets of identical houses; inside each, beyond its entry hall, a chain of spaces, each one a self-contained web page that you write.
 
 WHERE THIS SPACE IS
-The game keeps an atlas of every idea explored so far and picked these coordinates for you (a step; changed verb: "hide and seek" → "cook", structure: "a negotiation" → "journey with stations"):
+The game keeps an atlas of every idea explored so far and picked these coordinates for you (a step; changed structure: "a negotiation" → "letters and documents", verb: "hide and seek" → "assemble a machine"):
   era: 1950s
   feeling: relief
   medium: a table game
   register: industrial grit
   scale: the inside of a body
   source: a childhood ritual
-  structure: journey with stations
-  verb: cook
+  structure: letters and documents
+  verb: assemble a machine
 Synthesise ONE concrete, specific idea that sits exactly at these coordinates. Not a vibe: a situation with people, objects and stakes. These coordinates are the brief; don't drift back toward the familiar.
 
 Nearest ideas already explored (be clearly unlike them):
@@ -18,12 +18,14 @@ Nearest ideas already explored (be clearly unlike them):
 
 The house's idea so far: Inside Johnny — A 1950s tabletop game where a sick child's body is a factory run by a night shift of foremen. The Fever is hiding in one department and hops when you offer the wrong thing; each foreman will only talk for the small comforts a mother would bring. Finding it is half; the other half is letting it leave on its own terms, so the fever breaks.
 Spaces before this one in this house:
-- space 1: Inside Johnny — A 1954 tin-and-cardboard board game in which a feverish boy's body is a night-shift factory. You count to ten, then bargain with five department foremen using the small comforts a mother brings, find where the Fever is hiding, and negotiate it out through the sweat vent. (not visited yet)
+- space 1: Inside Johnny — A 1954 tin-and-cardboard board game in which a feverish boy's body is a night-shift factory. You count to ten, then bargain with five department foremen using the small comforts a mother brings, find where the Fever is hiding, and negotiate it out through the sweat vent. (people stayed 45s on average over 1 visits)
 The thread so far: Johnny's fever broke at 37.0. The Fever left through the vent and the night shift sat down. You carry a thermometer, shaken down. Unresolved: what the foremen do now that there is nothing to guard against.
 What the player said in this house:
+- a note on Inside Johnny: "i see what happened, a game was generated but was unclear that it existed, there should always be a visual tie n that jumps to hte world of the game if the game is very different than the world"
 - a note on Inside Johnny: "this world isn't generating a new room even thoguh i've hugn out for the right amount of time is there a bug"
 
 What the dreamer said, in their words (most recent first):
+- on Inside Johnny: "i see what happened, a game was generated but was unclear that it existed, there should always be a visual tie n that jumps to hte world of the game if the game is very different than the world"
 - on Inside Johnny: "this world isn't generating a new room even thoguh i've hugn out for the right amount of time is there a bug"
 Their feedback is mixed: step from the warm ideas, in a direction not yet tried.
 Neighbouring houses' ideas (this street should feel like wandering through a dream: a neighbour is a close variation, further away the ideas drift):

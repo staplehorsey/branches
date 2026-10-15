@@ -4,9 +4,139 @@
     "outside": 0.0,
     "visits": 1
   },
+  "10,14": {
+    "inside": 0.0,
+    "outside": 7.3156333,
+    "visits": 0
+  },
+  "10,15": {
+    "inside": 0.0,
+    "outside": 1.6916468,
+    "visits": 0
+  },
+  "11,14": {
+    "inside": 9.299152,
+    "outside": 6.434277,
+    "visits": 1
+  },
+  "11,15": {
+    "inside": 0.0,
+    "outside": 1.3931224,
+    "visits": 0
+  },
   "12,14": {
     "inside": 19.412415,
     "outside": 3.7811487,
     "visits": 3
+  },
+  "4,25": {
+    "inside": 0.0,
+    "outside": 0.2022185,
+    "visits": 0
+  },
+  "4,26": {
+    "inside": 14.575552,
+    "outside": 8.408952,
+    "visits": 1
+  },
+  "5,25": {
+    "inside": 0.0,
+    "outside": 6.780404,
+    "visits": 0
+  },
+  "6,16": {
+    "inside": 0.0,
+    "outside": 3.2009835,
+    "visits": 0
+  },
+  "6,17": {
+    "inside": 0.0,
+    "outside": 2.975061,
+    "visits": 0
+  },
+  "6,18": {
+    "inside": 0.0,
+    "outside": 3.183306,
+    "visits": 0
+  },
+  "6,19": {
+    "inside": 0.0,
+    "outside": 3.2915814,
+    "visits": 0
+  },
+  "6,20": {
+    "inside": 0.0,
+    "outside": 3.074386,
+    "visits": 0
+  },
+  "6,21": {
+    "inside": 0.0,
+    "outside": 3.1675045,
+    "visits": 0
+  },
+  "6,22": {
+    "inside": 0.0,
+    "outside": 3.0661745,
+    "visits": 0
+  },
+  "6,23": {
+    "inside": 0.0,
+    "outside": 2.8659735,
+    "visits": 0
+  },
+  "6,24": {
+    "inside": 0.0,
+    "outside": 2.1241536,
+    "visits": 0
+  },
+  "6,25": {
+    "inside": 0.0,
+    "outside": 10.241589,
+    "visits": 0
+  },
+  "7,15": {
+    "inside": 0.0,
+    "outside": 2.1091383,
+    "visits": 0
+  },
+  "7,16": {
+    "inside": 0.0,
+    "outside": 1.5825406,
+    "visits": 0
+  },
+  "7,23": {
+    "inside": 0.0,
+    "outside": 0.20076971,
+    "visits": 0
+  },
+  "7,24": {
+    "inside": 0.0,
+    "outside": 1.15105,
+    "visits": 0
+  },
+  "7,25": {
+    "inside": 0.0,
+    "outside": 0.20820312,
+    "visits": 0
+  },
+  "8,15": {
+    "inside": 0.0,
+    "outside": 12.157292,
+    "visits": 0
+  },
+  "8,16": {
+    "inside": 0.0,
+    "outside": 0.4166404,
+    "visits": 0
+  },
+  "9,14": {
+    "inside": 0.0,
+    "outside": 0.20935696,
+    "visits": 0
+  },
+  "9,15": {
+    "inside": 0.0,
+    "outside": 12.124967,
+    "visits": 0
   }
 }

@@ -1,0 +1,101 @@
+<!doctype html><meta charset=utf-8><title>The Counting Desk</title>
+<style>
+*{box-sizing:border-box}body{margin:0;height:100vh;overflow:hidden;background:#2a1a10;color:#2b1b0c;font:17px Georgia,serif;display:flex;flex-direction:column}
+#top{flex:0 0 46%;background:linear-gradient(#5a7a8a,#8fb0b8 70%,#6b5a42);padding:10px;display:flex;flex-wrap:wrap;gap:8px;align-content:flex-end;justify-content:center;position:relative}
+#msg{position:absolute;left:0;right:0;top:0;padding:8px 14px;background:rgba(30,15,5,.82);color:#f3e2b8;min-height:44px;z-index:5}
+.p{width:158px;background:#e8d5a8;border:2px solid #3a2411;border-radius:6px;padding:6px 8px;font-size:14px;cursor:pointer;position:relative;transition:transform .2s}
+.p b{display:block;font-size:13px;color:#7a2a12}.p:hover{transform:translateY(-4px)}
+.p.shake{animation:sh .35s}@keyframes sh{25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+.p.gone{opacity:.25;pointer-events:none;filter:grayscale(1)}
+#desk{flex:1;background:repeating-linear-gradient(90deg,#6b4423 0 38px,#5e3b1d 38px 40px);border-top:8px solid #3a2411;position:relative;display:flex;gap:16px;align-items:center;justify-content:center;padding:14px;flex-wrap:wrap}
+.o{background:#f1e3bd;border:2px solid #3a2411;padding:8px;width:130px;text-align:center;cursor:pointer;font-size:13px;box-shadow:3px 4px 0 rgba(0,0,0,.4);transition:transform .15s}
+.o:hover{transform:rotate(-2deg) translateY(-3px)}.o.held{outline:4px solid #d4a017;transform:translateY(-8px)}
+.o .s{display:inline-block;width:22px;height:22px;border-radius:50%;background:#9a1b12;margin-bottom:4px;border:2px solid #5c0d08}
+.o .s.br{background:none;border:2px dashed #888}.o.done{opacity:.35;pointer-events:none}
+.t{background:#3a2411;color:#f3e2b8;width:110px}
+#pan{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(520px,92vw);background:#f4e8c4;border:3px solid #3a2411;padding:18px 22px;z-index:6;display:none;box-shadow:0 10px 40px #000a;line-height:1.5}
+#pan .x{position:absolute;right:8px;top:4px;cursor:pointer;font-size:20px}
+.num{border-bottom:2px dotted #9a1b12;cursor:pointer}.num.bad{color:#9a1b12;font-weight:bold}
+.str{text-decoration:line-through;color:#777}.ink{color:#1a2a6a;font-style:italic}
+#end{position:fixed;inset:0;background:rgba(20,10,4,.92);color:#f3e2b8;display:none;z-index:9;align-items:center;justify-content:center;text-align:center;padding:30px;flex-direction:column;gap:20px}
+button{font:inherit;padding:10px 20px;background:#d4a017;border:2px solid #3a2411;cursor:pointer}
+</style>
+<div id=top><div id=msg></div></div>
+<div id=desk></div>
+<div id=pan></div>
+<div id=end><div id=endt style="max-width:560px;line-height:1.6"></div><button id=go>Take the pouch down to the quay</button></div>
+<script>
+const B=window.branches||{say(){},onward(){},carry(){}};
+const $=s=>document.querySelector(s);
+const persons=[
+ {id:"chiara",t:"Factor of the <i>Santa Chiara</i>",s:"“Chiara, bound Alexandria, rides the tide at sext! Whatever the master wrote, hand it here!”",want:"L1"},
+ {id:"fam",t:"Purser of the <i>Santa Chiara della Riva</i>",s:"“Chiara, for Famagusta! Anything for Famagusta? Cotton factors are waiting!”",want:"L5"},
+ {id:"zac",t:"Boy of the <i>San Zaccaria</i>",s:"“Zaccaria, Bruges and the Flanders galleys! Wool men won't wait for the wind!”",want:"L2"},
+ {id:"ron",t:"Mate of the <i>Rondine</i>",s:"“Rondine for Tyre. Glass, my friend, glass! Mind how you hand it.”",want:"L3"},
+ {id:"ele",t:"Old pilot of the <i>Sant'Elena</i>",s:"“Elena, Ragusa and the Dalmatian shore. Nobody remembers Ragusa. Have you something?”",want:"L4"},
+ {id:"cat",t:"A cat-seller",s:"“Cats, signore! Excellent against rats! Your master needs two!”",want:null}];
+const letters={
+ L1:{n:"To Master Piero Morosini, the Chiara, Alexandria",body:"“…as to the pepper at the Alexandria fondaco: take @@ sacks, not more, against our bill of exchange; the remainder in cloves. Salute the factor. Ser Andrea Dandolo, Rialto.”"},
+ L2:{n:"To the Flemish factor, aboard the San Zaccaria, for Bruges",body:"Six bales of Cotswold wool, fine, to be paid in Bruges cloth. Seal intact."},
+ L3:{n:"To the glassmen, aboard the Rondine, for Tyre",body:"Soda ash by the Tyrian road. Seal intact."},
+ L4:{n:"To the notary at Ragusa, aboard the Sant'Elena",body:"A legacy, a small one, for the widow Vukosava. Seal intact."},
+ L5:{n:"To the cotton factor at Famagusta, aboard the Chiara della Riva",body:"Prices of the season, and a request for patience. Seal intact."}};
+let held=null,fixed=false,sealed=false,done=new Set(),read1=false,sawLedger=false;
+const say=t=>{$("#msg").innerHTML=t;try{B.say(t.replace(/<[^>]+>/g,""))}catch(e){}};
+const top_=$("#top");
+persons.forEach(p=>{const d=document.createElement("div");d.className="p";d.id="p_"+p.id;d.innerHTML="<b>"+p.t+"</b>"+p.s;d.onclick=()=>tryDeliver(p,d);top_.appendChild(d)});
+const desk=$("#desk");
+function mk(id,html,cls,fn){const d=document.createElement("div");d.className="o "+(cls||"");d.id="o_"+id;d.innerHTML=html;d.onclick=fn;desk.appendChild(d)}
+["L1","L2","L3","L4","L5"].forEach(k=>mk(k,'<div class="s '+(k=="L1"?"br":"")+'" id="s_'+k+'"></div><br>'+letters[k].n,"",()=>pick(k)));
+mk("quill","🪶 Quill &amp; ink","t",()=>pick("quill"));
+mk("wax","🕯 Wax &amp; Dandolo's seal","t",()=>pick("wax"));
+mk("led","📖 The house ledger","t",()=>openLedger());
+mk("note","📝 Note from the master","t",()=>openPan("<p>A slip, weighted with an inkwell:</p><p><i>Tomà. The Chiara letter. Read it over once more before it goes. I have not looked at it myself; I trust your hand. A.D.</i></p>"));
+function openPan(h){const p=$("#pan");p.innerHTML='<span class=x onclick="this.parentNode.style.display=\'none\'">✕</span>'+h;p.style.display="block"}
+function showL1(){
+ const n=fixed?'<span class=str>forty</span> <span class=ink>fourteen</span>':'<span class="num bad" id=num>forty</span>';
+ openPan("<p><b>"+letters.L1.n+"</b></p><p>"+letters.L1.body.replace("@@",n)+"</p><p>"+(sealed?"🔴 Sealed with the red wax.":"Seal broken: Tomà opened it Tuesday to add a postscript and never closed it.")+"</p>");
+ const e=$("#num");if(e)e.onclick=()=>strike();
+}
+function pick(k){
+ if(k=="L1"){held="L1";showL1();if(!read1){read1=true;say("You read the letter again. Forty sacks of pepper. <i>Forty?</i> Something in your stomach turns over. Check the ledger.")}else say("The Chiara letter is in your hand"+(sealed?". Find the right Chiara.":". Seal broken: nobody will take that."))}
+ else if(letters[k]){held=k;openPan("<p><b>"+letters[k].n+"</b></p><p>"+letters[k].body+"</p>");say("Held: "+letters[k].n+". Click the agent it belongs to.")}
+ else if(k=="quill"){held="quill";say("The quill is wet. Click the figure you would correct (open the Chiara letter first).")}
+ else if(k=="wax"){held="wax";if(!sealed&&read1){say("The wax drips. Click anywhere on the open Chiara letter to close it.");showL1()}else say("Wax is ready, but there is nothing broken to close.")}
+ hl();
+}
+function hl(){document.querySelectorAll(".o").forEach(o=>o.classList.toggle("held",o.id=="o_"+held))}
+function openLedger(){sawLedger=true;
+ openPan("<p><b>House ledger, Rialto: Morosini accounts</b></p><p>Alexandria, outbound: <i>Chiara</i>.<br>Pepper, per master's order of Monday: <b>fourteen</b> sacks, against bill of exchange, 90 ducats.<br>Cloves: the remainder.</p><p style='color:#9a1b12'>Beneath it, in your own hand, three days ago: “forty, as spoken.” You wrote it down wrong.</p>");
+ say("Fourteen. Not forty. Twenty-six sacks of credit the house does not have, and a factor in Alexandria who would have trusted it. That is on you, Tomà.")}
+function strike(){
+ if(held!="quill"){say("A figure on a page does not change by being stared at. Take the quill.");return}
+ if(!sawLedger){say("Before you strike: what <i>should</i> it say? The ledger knows.");return}
+ fixed=true;showL1();say("You strike the forty, once, cleanly, and write <i>fourteen</i> above it. Your hand is not entirely steady.");
+}
+$("#pan").addEventListener("click",e=>{
+ if(held=="wax"&&!sealed&&read1&&e.target.id!="num"&&e.target.className!="x"){
+  if(!fixed){say("Seal it with the wrong number and it is a lie with a crest on it. Correct it first.");return}
+  sealed=true;$("#s_L1").classList.remove("br");showL1();say("The wax takes the seal with a small wet kiss. Now: which Chiara is it?")}
+});
+function tryDeliver(p,d){
+ const shake=()=>{d.classList.add("shake");setTimeout(()=>d.classList.remove("shake"),400)};
+ if(!held||!letters[held]){say(p.s+"<br><i>(Pick up a letter first.)</i>");return}
+ if(held=="L1"&&(!fixed||!sealed)&&p.want){shake();say("“Open, and with a scratch in the pepper count? I'll not carry that.” The letter is not yet ready.");return}
+ if(p.want==held){
+  done.add(held);d.classList.add("gone");$("#o_"+held).classList.add("done");
+  const lines={L1:"The factor reads the number twice, nods, and tucks it inside his coat. “Fourteen. Good.” The tide bell goes.",L2:"The boy is already running for the Flanders galley.",L3:"“Glass,” says the mate, gently, and carries it like an egg.",L4:"The old pilot holds it to the light. “Ragusa,” he says, as if to the sea.",L5:"The purser kisses the seal and shouts something about cotton."};
+  held=null;hl();$("#pan").style.display="none";
+  say(lines[p.want]+" ("+done.size+"/5)");
+  if(done.size==5)setTimeout(finish,1500);
+ }else{
+  shake();
+  say(p.want?"“Not mine! Read the ship, boy. The <i>whole</i> ship.”":"“No letters? I thought you'd want cats.”");
+ }
+}
+function finish(){
+ $("#endt").innerHTML="<p>The quay empties by degrees. Five letters on five hulls, and one of them now says what the house actually owes.</p><p>The cat-seller sells one cat to a customs man and leaves.</p><p>Behind you the master: “It was forty when I said it, Tomà? No. Fourteen is what I said. You'll repeat it back to me next time.” He puts a hand on your shoulder, briefly, and goes back to the Rialto.</p><p style='opacity:.7'>You keep the factor's receipt, with fourteen written in it.</p>";
+ $("#end").style.display="flex";try{B.carry(["receipt for fourteen sacks"])}catch(e){}}
+$("#go").onclick=()=>{try{B.onward()}catch(e){}};
+say("Rialto, the counting house, a hundred voices at the counter. Tide bell at sext. Letters to the ships. Start with the master's note.");
+</script>

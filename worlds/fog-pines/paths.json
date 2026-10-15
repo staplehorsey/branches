@@ -5,5 +5,54 @@
     "speed": 2.686,
     "straight": 0.221,
     "turn": 0.823
+  },
+  {
+    "heading": 2.67,
+    "revisit": 0.9,
+    "speed": 3.221,
+    "straight": 0.373,
+    "turn": 0.441
+  },
+  {
+    "heading": 2.941,
+    "revisit": 0.8,
+    "speed": 3.349,
+    "straight": 0.473,
+    "turn": 0.292
+  },
+  {
+    "heading": 2.759,
+    "revisit": 0.633,
+    "speed": 3.473,
+    "straight": 0.551,
+    "turn": 0.24
+  },
+  {
+    "heading": 2.542,
+    "revisit": 0.483,
+    "speed": 4.409,
+    "straight": 0.58,
+    "turn": 0.186
+  },
+  {
+    "heading": 1.929,
+    "revisit": 0.267,
+    "speed": 5.888,
+    "straight": 0.736,
+    "turn": 0.107
+  },
+  {
+    "heading": 1.935,
+    "revisit": 0.242,
+    "speed": 6.081,
+    "straight": 0.743,
+    "turn": 0.101
+  },
+  {
+    "heading": 1.845,
+    "revisit": 0.383,
+    "speed": 5.336,
+    "straight": 0.728,
+    "turn": 0.106
   }
 ]

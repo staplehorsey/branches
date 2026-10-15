@@ -58,16 +58,16 @@
   "spaces": [
     {
       "n": 1,
-      "status": "failed",
+      "status": "building",
       "name": "",
       "summary": "",
       "minutes": 0.0,
-      "started": 1792024261793,
+      "started": 1792024279842,
       "secs": 0,
-      "error": "interrupted",
-      "dwell": 4.997799999713898,
-      "visits": 1,
-      "tries": 1,
+      "error": null,
+      "dwell": 0.0,
+      "visits": 0,
+      "tries": 2,
       "thread": "",
       "delight": ""
     }

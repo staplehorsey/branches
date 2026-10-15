@@ -2,14 +2,14 @@ You are making space 1 of a house in Branches, a game someone plays to wander th
 
 WHERE THIS SPACE IS
 The game keeps an atlas of every idea explored so far and picked these coordinates for you (a new house: as far as possible from everything explored, leaning toward what was warm):
-  era: medieval
-  feeling: guilt
-  medium: a desk of objects and papers
-  register: noisy and crowded
+  era: 1980s
+  feeling: desire
+  medium: first-person 3D
+  register: epic
   scale: an ocean
-  source: one of the dreamer's muses
-  structure: an apprenticeship
-  verb: deliver
+  source: a historical event
+  structure: ritual in steps
+  verb: sort and classify
 Synthesise ONE concrete, specific idea that sits exactly at these coordinates. Not a vibe: a situation with people, objects and stakes. These coordinates are the brief; don't drift back toward the familiar.
 
 Nearest ideas already explored (be clearly unlike them):

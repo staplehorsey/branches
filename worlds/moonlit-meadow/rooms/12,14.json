@@ -106,16 +106,16 @@
     },
     {
       "n": 2,
-      "status": "failed",
+      "status": "building",
       "name": "",
       "summary": "",
       "minutes": 0.0,
-      "started": 1792024167863,
+      "started": 1792024279842,
       "secs": 0,
-      "error": "interrupted",
+      "error": null,
       "dwell": 0.0,
       "visits": 0,
-      "tries": 1,
+      "tries": 2,
       "thread": "",
       "delight": ""
     }

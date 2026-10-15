@@ -1,0 +1,170 @@
+<!doctype html><html><head><meta charset="utf-8"><title>The Convalescent Line</title>
+<style>html,body{margin:0;background:#15130f}#t{position:fixed;left:0;right:0;top:12px;text-align:center;color:#e9d9b0;font:15px Georgia,serif;text-shadow:0 1px 4px #000;pointer-events:none}</style></head>
+<body><div id="t">WASD to walk · click to look · E to use · the first meal after a fever, stations 1–4</div>
+<script type="module">
+import * as THREE from '/vendor/three.module.js';
+import { createSpace } from '/kit/space.js';
+const s = createSpace({ background: '#15130f', speed: 3.2 });
+const { scene } = s;
+const M = (c, r = 0.8, m = 0) => new THREE.MeshStandardMaterial({ color: c, roughness: r, metalness: m });
+const box = (w, h, d, c, x, y, z, parent = scene) => { const b = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), M(c)); b.position.set(x, y, z); parent.add(b); return b; };
+const cyl = (rt, rb, h, c, x, y, z, seg = 20) => { const b = new THREE.Mesh(new THREE.CylinderGeometry(rt, rb, h, seg), M(c, 0.5, 0.3)); b.position.set(x, y, z); scene.add(b); return b; };
+
+// the hall: one long enamel-green room, stations every 10 units
+s.room({ x: 0, z: -22, w: 9, d: 50, h: 4, wall: '#6d7f72', floor: '#3a3631', ceiling: '#2b2a26' });
+scene.add(new THREE.AmbientLight('#ffe9c4', 0.9));
+const Z = [-5, -15, -25, -35];
+Z.forEach((z) => {
+  const l = new THREE.PointLight('#ffd9a0', 30, 14); l.position.set(0, 3.5, z); scene.add(l);
+  box(8.8, 0.02, 0.25, '#d9c28a', 0, 0.01, z + 4.6);
+});
+function plate(text, w, h, x, y, z, ry = 0, bg = '#1c1b18', fg = '#f0e2b6', size = 34) {
+  const c = document.createElement('canvas'); c.width = 512; c.height = Math.round(512 * h / w);
+  const g = c.getContext('2d'), tex = new THREE.CanvasTexture(c);
+  const draw = (t) => {
+    g.fillStyle = bg; g.fillRect(0, 0, c.width, c.height); g.fillStyle = fg;
+    g.font = `bold ${size}px Georgia`; g.textAlign = 'center';
+    const ls = String(t).split('\n');
+    ls.forEach((ln, k) => g.fillText(ln, c.width / 2, c.height / 2 + (k - (ls.length - 1) / 2) * (size + 8) + size / 3));
+    tex.needsUpdate = true;
+  };
+  draw(text);
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ map: tex }));
+  m.position.set(x, y, z); m.rotation.y = ry; scene.add(m); m.draw = draw; return m;
+}
+['1  THE MILL', '2  THE VAT', '3  THE BENCH', '4  THE SPOON'].forEach((t, i) => plate(t, 2.6, 0.6, -4.37, 3.2, Z[i], Math.PI / 2, '#2a2823', '#e8c46a', 40));
+
+function foreman(x, z, ry, col, lines) {
+  const g = new THREE.Group(); g.position.set(x, 0, z); g.rotation.y = ry; scene.add(g);
+  box(0.6, 0.7, 0.4, col, 0, 0.75, 0, g); box(0.5, 0.1, 0.5, '#222', 0, 0.4, 0.1, g);
+  const hd = new THREE.Mesh(new THREE.SphereGeometry(0.2, 14, 12), M('#d9b896')); hd.position.set(0, 1.35, 0); g.add(hd);
+  box(0.46, 0.08, 0.46, '#3b3a35', 0, 1.52, 0, g);
+  let n = 0;
+  s.thing(g, { label: 'talk', use() { s.say(lines[Math.min(n++, lines.length - 1)]); } });
+  return g;
+}
+
+const st = { stage: 0, cracker: false, crumbs: 0, hopper: false, broth: false, valve: false, level: 0.1, hold: 0, vat: false, salt: false, temp: 61, spoon: false };
+const bowl = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.2, 0.18, 20), M('#c9ccc8', 0.3, 0.7));
+bowl.position.set(2.8, 0.95, Z[0]); scene.add(bowl);
+const soup = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.25, 0.02, 20), M('#e8e2d0')); soup.position.set(0, 0.09, 0); soup.visible = false; bowl.add(soup);
+let bowlTarget = bowl.position.clone();
+s.onFrame((dt) => { bowl.position.lerp(bowlTarget, Math.min(1, dt * 2.2)); });
+const goStation = (i) => { bowlTarget = new THREE.Vector3(2.8, 0.95, Z[i]); st.stage = i; };
+box(0.5, 0.06, 50, '#55524a', 2.8, 0.78, -22); box(0.1, 0.8, 50, '#2a2925', 2.8, 0.4, -22);
+
+// ---------- 1. THE MILL
+foreman(-3.2, Z[0] - 1, Math.PI * 0.6, '#7a5a3a', [
+  'MILL: "Fever\'s out, so we stand down? Nobody told the grinders. Saltine\'s on the tray. Crank\'s the big wheel."',
+  'MILL: "Not too fine. Fine is for flour. He needs it to feel like something."']);
+box(0.7, 0.06, 0.5, '#8d8a80', 1.2, 0.95, Z[0] - 1.2);
+const saltine = box(0.32, 0.03, 0.32, '#e4c98a', 1.2, 1.0, Z[0] - 1.2);
+s.thing(saltine, { label: 'take the saltine', use() {
+  if (st.cracker) return;
+  st.cracker = true; saltine.position.set(0.2, 1.35, Z[0] + 0.2); saltine.scale.set(0.8, 1, 0.8);
+  s.forget(saltine); s.say('A saltine with its square of little holes. You set it in the mill\'s throat.'); } });
+const wheel = cyl(0.55, 0.55, 0.12, '#444039', 0, 1.35, Z[0] + 0.3); wheel.rotation.x = Math.PI / 2;
+box(0.2, 1.1, 0.2, '#2e2c28', 0, 0.55, Z[0] + 0.3);
+let cranks = 0;
+s.thing(wheel, { label: 'turn the mill wheel', use() {
+  if (!st.cracker) { s.say('Nothing in the throat to grind. The saltine is on the tray.'); return; }
+  if (st.crumbs) return;
+  cranks++; wheel.rotation.y += 1.1; saltine.scale.set(Math.max(0.2, 0.8 - cranks * 0.12), 1 + cranks * 0.5, Math.max(0.2, 0.8 - cranks * 0.12));
+  s.say(['Clack.', 'Clack-clack. It gives, a little.', 'Grit on the plates now.', 'Almost sand.', 'And the last turn: a small heap of crumbs.'][cranks - 1]);
+  if (cranks >= 5) {
+    st.crumbs = 1; saltine.visible = false;
+    const h = box(0.3, 0.12, 0.3, '#e4c98a', 0.2, 0.8, Z[0] + 0.2);
+    s.thing(h, { label: 'scoop the crumbs into the bowl', use() {
+      h.visible = false; s.forget(h); soup.visible = true; soup.material.color.set('#e4c98a');
+      goStation(1); s.say('The bowl rides the rail down to the Vat. Station 2.'); } });
+  }
+} });
+
+// ---------- 2. THE VAT
+foreman(-3.2, Z[1] - 1, Math.PI * 0.6, '#8a4a3a', [
+  'STOKER: "Broth\'s on the cock, crumbs in the hopper. Then it\'s the acid valve. Open climbs, shut falls. Hold the needle in the green four seconds. We\'re cooking, not digesting a brick."']);
+cyl(0.9, 0.8, 1.3, '#5e5a52', -0.5, 0.65, Z[1] - 0.8);
+const vatTop = cyl(0.78, 0.78, 0.04, '#2a2720', -0.5, 1.3, Z[1] - 0.8);
+const hopper = box(0.7, 0.5, 0.7, '#9a7b3d', 1.0, 1.6, Z[1] - 1.8);
+const brothCock = cyl(0.12, 0.12, 0.5, '#b28a3a', -0.5, 2.2, Z[1] - 0.8);
+const valve = cyl(0.3, 0.3, 0.1, '#a33a2a', -1.9, 1.3, Z[1] - 0.2); valve.rotation.z = Math.PI / 2;
+const gauge = plate('level', 1.5, 0.9, 0.7, 2.1, Z[1] + 0.1, 0, '#101010', '#9be08a', 40);
+s.thing(hopper, { label: 'tip the crumbs in the hopper', use() {
+  if (!st.crumbs || st.stage !== 1) { s.say('The hopper waits for something from the Mill.'); return; }
+  if (st.hopper) return;
+  st.hopper = true; s.say('Crumbs fall into the dark. A soft hiss.'); return 'the hopper (full)'; } });
+s.thing(brothCock, { label: 'open the broth cock', use() {
+  if (st.broth) return;
+  st.broth = true; vatTop.material.color.set('#d9a94a'); s.say('Chicken broth, amber, the smell your whole childhood knows.'); return 'the broth cock (open)'; } });
+s.thing(valve, { label: 'work the acid valve (open / shut)', use() {
+  if (!st.hopper || !st.broth) { s.say('The Stoker clears his throat. Crumbs and broth first.'); return; }
+  if (st.vat) return;
+  st.valve = !st.valve; valve.rotation.y = st.valve ? 1.2 : 0; s.say(st.valve ? 'Valve open. The needle climbs.' : 'Valve shut. It sinks.'); } });
+s.onFrame((dt) => {
+  if (st.stage !== 1 || !st.hopper || !st.broth || st.vat) return;
+  st.level = Math.max(0, Math.min(1, st.level + (st.valve ? 0.16 : -0.07) * dt));
+  const inBand = st.level > 0.45 && st.level < 0.65;
+  st.hold = inBand ? st.hold + dt : Math.max(0, st.hold - dt * 2);
+  const bars = Math.round(st.level * 12);
+  gauge.draw('#'.repeat(bars) + '.'.repeat(12 - bars) + '\n' + (inBand ? `GREEN  ${Math.min(4, st.hold).toFixed(1)} / 4` : st.level >= 0.65 ? 'TOO HOT' : 'COLD'));
+  if (st.hold >= 4) {
+    st.vat = true; st.valve = false; gauge.draw('DONE\nsimmered'); vatTop.material.color.set('#e8d9a8');
+    soup.material.color.set('#e0c070');
+    const lad = box(0.15, 0.15, 0.5, '#aaa', 0.4, 1.5, Z[1] + 0.4);
+    s.thing(lad, { label: 'ladle it into the bowl', use() {
+      s.forget(lad); lad.visible = false; goStation(2); s.say('Broth in the bowl. Down the rail to the Bench.'); } });
+    s.say('Ready. The Stoker wipes his hands and doesn\'t say so.');
+  }
+});
+
+// ---------- 3. THE BENCH
+foreman(-3.2, Z[2] - 1, Math.PI * 0.6, '#3f5f7a', [
+  'CHEMIST: "Read the ticket. Mother\'s order, in her hand. I don\'t improvise on children."']);
+box(2.4, 0.9, 0.9, '#4b4338', 1.0, 0.45, Z[2] - 1.4);
+const ticket = box(0.5, 0.02, 0.7, '#f1ead6', 0.2, 0.92, Z[2] - 1.4);
+s.thing(ticket, { label: 'read the ticket', use() { s.read('Ticket, in pencil', 'For Johnny.\n\nBroth, a saltine, and then just a little.\nNot the sugar: that was for when he was sick,\nand he isn\'t.\nNot the green: they make their own.\nThe grey one. The one that tastes like the sea\nwhen you lick your finger.\n\n- M.'); } });
+[['sugar', '#f4f4f0', 0.8], ['bile', '#4f8a3a', 1.3], ['salt', '#9aa4ad', 1.8]].forEach(([name, col, x]) => {
+  const j = cyl(0.14, 0.14, 0.32, col, x, 1.06, Z[2] - 1.4, 14);
+  s.thing(j, { label: `the ${name} jar`, use() {
+    if (st.stage !== 2) { s.say('The bowl isn\'t here yet.'); return; }
+    if (st.salt) return;
+    if (name === 'salt') { st.salt = true; soup.material.color.set('#e8cf86'); goStation(3); s.say('A pinch. You can almost hear the whole body relax. The bowl rolls on to the Spoon.'); }
+    else s.say(name === 'sugar' ? 'Sugar. That\'s the fever\'s order, not his. You put it back.' : 'Bile. The Chemist coughs. "Please."'); } });
+});
+
+// ---------- 4. THE SPOON
+foreman(-3.2, Z[3] - 1, Math.PI * 0.6, '#6a6a40', [
+  'WARDEN: "Mother tests it on her wrist and blows. Three breaths. You\'ll know it\'s right when it\'s the same as him."']);
+box(0.8, 0.9, 0.8, '#4b4338', 1.8, 0.45, Z[3] - 0.6);
+const spoon = box(0.12, 0.05, 0.7, '#cfd2d4', 1.8, 0.95, Z[3] - 0.6); spoon.rotation.y = 0.3;
+const therm = plate('61.0', 1.1, 0.6, 2.2, 1.7, Z[3] - 1.9, 0, '#101010', '#ff8a6a', 60);
+const hasT = s.inventory.items.some((i) => /thermom/i.test(i));
+let blows = 0;
+s.thing(spoon, { label: 'blow on the spoon', use() {
+  if (st.stage !== 3) { s.say('Nothing on the spoon yet.'); return; }
+  if (blows >= 3) {
+    if (st.spoon) return;
+    st.spoon = true; s.say('You taste it. It tastes like nothing hurts.'); unlock(); return;
+  }
+  blows++; st.temp -= 8; therm.draw(st.temp.toFixed(1));
+  s.say(blows < 3 ? ['', 'Hhhhh.', ''][blows] || 'Hhhhh.' : (hasT ? 'You dip the thermometer, still shaken down from last night. It climbs and stops: 37.0. The same as him.' : 'You touch it to the inside of your wrist. Exactly body-warm. Exactly him.'));
+  if (blows >= 3) return 'taste it'; } });
+
+// ---------- the way on
+const hatch = box(1.2, 1.2, 0.2, '#2a2925', 0, 1.5, -46.8);
+const lampL = new THREE.PointLight('#ff8a40', 0, 10); lampL.position.set(0, 2, -45); scene.add(lampL);
+plate('to the bedside', 1.4, 0.3, 0, 2.4, -46.65, 0, '#2a2925', '#8a8473', 30);
+let open = false;
+function unlock() {
+  setTimeout(() => {
+    open = true; hatch.material.color.set('#e8c46a'); lampL.intensity = 20;
+    s.read('The bowl goes up', 'The bowl rides the last of the rail and tips through the hatch, and the line goes quiet in the way a kitchen does when the plate has left.\n\nFour foremen with nothing to guard, and what they did with it was cook. Nobody told them to. The Mill sits down on his stool. The Stoker turns the valve a quarter-turn open and lets the vat tick over, just so it is warm for the morning.\n\nUp above, a mother is holding a spoon to a boy\'s mouth. He says: more.\n\nThe hatch at the far end of the hall is open. Walk down to it.');
+  }, 900);
+}
+s.thing(hatch, { label: 'climb up to the bedside', use() {
+  if (!open) { s.say('Sealed. The line isn\'t finished.'); return; }
+  s.inventory.add('empty spoon'); s.say('You go up. It is morning, and the room smells of toast.'); setTimeout(() => s.onward(), 1600); } });
+
+s.player.position.set(0, 0, 1.5);
+s.say('The fever\'s gone. The night shift is still at their posts with nothing to guard. Johnny is hungry. Start at the Mill.');
+</script></body></html>
