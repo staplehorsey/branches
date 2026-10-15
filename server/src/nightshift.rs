@@ -156,7 +156,8 @@ pub fn work(app: &Arc<App>, p: Project) -> Result<String, String> {
     let text = brief(&p, &manifest, night.max_minutes);
     std::fs::write(dir.join("BRIEF.md"), &text).map_err(|e| e.to_string())?;
     tracing::info!("night shift: {} in {}", p.title, dir.display());
-    let result = run_agent(&night.command, &dir, &text, Duration::from_secs(night.max_minutes as u64 * 60));
+    let build_model = app.settings.lock().unwrap().build_model.clone();
+    let result = run_agent(&crate::agent::with_model(&night.command, &build_model), &dir, &text, Duration::from_secs(night.max_minutes as u64 * 60));
     let index = dir.join("index.html");
     let size = std::fs::metadata(&index).map(|m| m.len()).unwrap_or(0);
     if size == 0 || size > 5_000_000 {

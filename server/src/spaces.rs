@@ -195,12 +195,18 @@ fn build(app: &Arc<App>, world: &str, x: i32, z: i32, n: u32) {
             brief(app, &uni, world, x, z, n, &choice)
         };
         let _ = std::fs::write(d.join("BRIEF.md"), &prompt);
-        let cmd = {
+        let tools = "--permission-mode acceptEdits --allowedTools Read Write Edit Glob Grep";
+        let (design, build) = {
             let s = app.settings.lock().unwrap();
-            let model = if s.space_model.trim().is_empty() || s.command.contains("--model") { String::new() } else { format!(" --model {}", s.space_model.trim()) };
-            format!("{}{model} --permission-mode acceptEdits --allowedTools Read Write Edit Glob Grep", s.command.trim())
+            (format!("{} {tools}", s.design_cmd()), format!("{} {tools}", s.build_cmd()))
         };
-        crate::agent::run(&cmd, &prompt, Some(&d), BUILD_TIMEOUT)?;
+        // Two hands: the design model imagines the space and writes it down;
+        // the build model makes it real.
+        crate::agent::run(&design, &format!("{prompt}\n{DESIGN_ROLE}"), Some(&d), BUILD_TIMEOUT)?;
+        if !d.join("DESIGN.md").is_file() {
+            return Err("the designer didn't write DESIGN.md".into());
+        }
+        crate::agent::run(&build, &format!("{prompt}\n{BUILD_ROLE}"), Some(&d), BUILD_TIMEOUT)?;
         if !d.join("index.html").is_file() {
             return Err("it didn't write index.html".into());
         }
@@ -263,6 +269,10 @@ fn build(app: &Arc<App>, world: &str, x: i32, z: i32, n: u32) {
     app.broadcast(world, &json!({ "t": "space", "x": x, "z": z, "n": n, "status": status, "name": name }));
     ensure_all(app);
 }
+
+const DESIGN_ROLE: &str = "YOUR ROLE: the designer. Don't write any code. Think hard and imagine this space completely, then write DESIGN.md in this folder, detailed enough that a skilled programmer can build it without asking anything: the concrete idea at these coordinates and the beauty you found in it; the medium and why; the layout (with sizes) and what you see on arrival; every object, person and mechanism, and exactly what each interaction does and how state changes; the arc, beginning to end, with the text people will read (write the actual words, every line of dialogue and every document); the way onward and how it's earned; colours, light, sound; and the first thing to try. Also write space.json now (everything but the code: name, summary, minutes, motifs, thread, delight, idea, new_values), in your own voice.";
+
+const BUILD_ROLE: &str = "YOUR ROLE: the builder. A designer has already written DESIGN.md and space.json in this folder: read them first. Build exactly that design, faithfully and completely, as index.html (plus any files you need), following the contract above. Use the designer's words verbatim. Where the design is silent, choose what serves it best. Don't rewrite space.json except to correct \"minutes\" if the build turned out longer or shorter. Read your code over carefully before you finish: it must run without errors and never show a blank screen.";
 
 const BRIDGE_KEYS: &str = "Esc (back to the house), = and - (warmer, colder), G (feedback), ? (keys), ` (the workshop)";
 

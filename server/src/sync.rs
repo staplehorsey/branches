@@ -306,7 +306,7 @@ pub fn sync_from(app: &App, url: &str, branch: &str, token: Option<&str>, tags: 
     };
     let agent = {
         let s = app.settings.lock().unwrap();
-        (s.architect == "command" && !s.command.trim().is_empty()).then(|| s.command.clone())
+        (s.architect == "command" && !s.command.trim().is_empty()).then(|| s.build_cmd())
     };
     let message = |rep: &Report| {
         let mut m = format!("Merge {label}");

@@ -162,9 +162,9 @@ fn urlencode(s: &str) -> String {
 fn thinker(app: &App) -> Option<String> {
     let s = app.settings.lock().unwrap().clone();
     if s.architect == "command" && !s.command.trim().is_empty() {
-        Some(s.command)
+        Some(s.design_cmd())
     } else {
-        crate::agent::find_claude().map(|_| "claude -p".to_string())
+        crate::agent::find_claude().map(|_| crate::agent::with_model("claude -p", &s.design_model))
     }
 }
 

@@ -437,7 +437,7 @@ fn heuristic(uni: &Universe, r: &Resident, rng: &mut Rng) -> Decision {
 
 fn agent_command(app: &App) -> Option<String> {
     let s = app.settings.lock().unwrap();
-    (s.architect == "command" && !s.command.trim().is_empty()).then(|| s.command.clone())
+    (s.architect == "command" && !s.command.trim().is_empty()).then(|| s.build_cmd())
 }
 
 /// Think once (blocking): ask the agent (paid from the wallet) or the rules.

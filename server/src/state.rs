@@ -101,19 +101,38 @@ pub struct Settings {
     /// Whether you have chosen an architect (asked once, before the first build).
     #[serde(default)]
     pub asked: bool,
-    /// The Claude model that writes spaces ("sonnet" makes one in about a
-    /// minute; a bigger model is richer and much slower). Empty: your default.
-    #[serde(default = "default_space_model")]
-    pub space_model: String,
+    /// The Claude model for high-level work: designing spaces, house ideas,
+    /// muses, the architect, the workshop. Empty: your Claude default.
+    #[serde(default = "default_design_model")]
+    pub design_model: String,
+    /// The Claude model for implementation: writing spaces from their
+    /// designs, the night shift, residents, merges.
+    #[serde(default = "default_build_model", alias = "space_model")]
+    pub build_model: String,
 }
 
-fn default_space_model() -> String {
-    "sonnet".into()
+fn default_design_model() -> String {
+    "claude-opus-5-5".into()
+}
+
+fn default_build_model() -> String {
+    "claude-sonnet-5-5".into()
+}
+
+impl Settings {
+    /// The agent command for high-level work.
+    pub fn design_cmd(&self) -> String {
+        crate::agent::with_model(&self.command, &self.design_model)
+    }
+    /// The agent command for implementation.
+    pub fn build_cmd(&self) -> String {
+        crate::agent::with_model(&self.command, &self.build_model)
+    }
 }
 
 impl Default for Settings {
     fn default() -> Self {
-        Settings { architect: "heuristic".into(), command: "claude -p".into(), night: Default::default(), asked: false, space_model: default_space_model() }
+        Settings { architect: "heuristic".into(), command: "claude -p".into(), night: Default::default(), asked: false, design_model: default_design_model(), build_model: default_build_model() }
     }
 }
 
@@ -161,7 +180,7 @@ impl App {
         if s.architect != "command" || s.command.trim().is_empty() {
             Arc::new(architect::Heuristic)
         } else {
-            Arc::new(architect::Command { cmd: s.command, dir: crate::agent::workdir(&self.store.root) })
+            Arc::new(architect::Command { cmd: s.design_cmd(), dir: crate::agent::workdir(&self.store.root) })
         }
     }
 

@@ -144,6 +144,10 @@ fn run(app: &Arc<App>, root: &Path, claude: &Path, session: Option<String>, inpu
         .env("PATH", crate::agent::path())
         .args(["-p", "--output-format", "stream-json", "--verbose", "--permission-mode", "acceptEdits", "--append-system-prompt", SYSTEM])
         .args(["--allowedTools", "Bash(cargo:*)", "Bash(git:*)", "Bash(node:*)", "Bash(ls:*)", "Bash(grep:*)", "Bash(find:*)"]);
+    let model = app.settings.lock().unwrap().design_model.trim().to_string();
+    if !model.is_empty() {
+        cmd.args(["--model", &model]);
+    }
     if let Some(s) = &session {
         cmd.args(["--resume", s]);
     }

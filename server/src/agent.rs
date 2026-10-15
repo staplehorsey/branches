@@ -72,6 +72,21 @@ pub fn use_subscription(c: &mut Command) {
     }
 }
 
+/// The command with a model chosen for Claude Code, unless it names one
+/// already (other programs are left alone).
+pub fn with_model(cmd: &str, model: &str) -> String {
+    let cmd = cmd.trim();
+    if !is_claude(cmd) || model.trim().is_empty() || cmd.contains("--model") {
+        return cmd.to_string();
+    }
+    let mut parts = cmd.splitn(2, ' ');
+    let bin = parts.next().unwrap_or("claude");
+    match parts.next() {
+        Some(rest) => format!("{bin} --model {} {rest}", model.trim()),
+        None => format!("{bin} --model {}", model.trim()),
+    }
+}
+
 /// A shell command for an agent, ready to spawn.
 pub fn command(cmd: &str) -> Command {
     let mut c = Command::new("/bin/sh");
@@ -161,5 +176,8 @@ mod tests {
         assert!(super::run("definitely-not-a-command-xyz", "", None, d).unwrap_err().contains("not installed"));
         assert!(super::run("sleep 3", "", None, std::time::Duration::from_millis(300)).unwrap_err().contains("no answer"));
         assert!(super::is_claude("claude -p --model sonnet") && !super::is_claude("python3 claude.py"));
+        assert_eq!(super::with_model("claude -p", "claude-opus-5-5"), "claude --model claude-opus-5-5 -p");
+        assert_eq!(super::with_model("claude -p --model sonnet", "claude-opus-5-5"), "claude -p --model sonnet");
+        assert_eq!(super::with_model("llm -m local", "claude-opus-5-5"), "llm -m local");
     }
 }
