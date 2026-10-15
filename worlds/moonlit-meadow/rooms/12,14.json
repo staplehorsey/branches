@@ -35,14 +35,14 @@
     }
   ],
   "claim": null,
-  "attention": 75.23525717199996,
+  "attention": 125.18736629199978,
   "weights": {
-    "light": 1.9419259,
-    "music": 1.9307138,
-    "neon": 1.9397956
+    "light": 2.4414458,
+    "music": 2.4302335,
+    "neon": 2.4393153
   },
   "investors": {
-    "94b402ce6e6a1d1b": 75.23525717199996
+    "94b402ce6e6a1d1b": 125.18736629199978
   },
   "building": null,
   "last_visit": {
@@ -50,8 +50,8 @@
   },
   "things": [],
   "looks": {
-    "theme:light": 57.8,
-    "theme:music": 6.2,
+    "theme:light": 92.4,
+    "theme:music": 6.7999997,
     "theme:neon": 0.4
   },
   "touches": {},
@@ -92,5 +92,5 @@
     }
   ],
   "space_visited": 0,
-  "space_seen_at": 1792023882996
+  "space_seen_at": 1792024089901
 }
