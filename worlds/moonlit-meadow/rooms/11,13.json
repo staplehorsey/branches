@@ -530,22 +530,30 @@
       "who": "the architect",
       "text": "I went under the deck. The only part of Act One that anyone finished is the trap beneath your mark. It works. Nobody will pull it. Stand there anyway.",
       "at": 1792015599876
+    },
+    {
+      "id": "65743514b638",
+      "kind": "visit",
+      "who": "drift-57",
+      "player": "94b402ce6e6a1d1b",
+      "text": "stopped by",
+      "at": 1792023858413
     }
   ],
   "claim": null,
-  "attention": 326.36343201499994,
+  "attention": 328.103163973,
   "weights": {
     "art": 2.895423,
     "cozy": 4.3967943,
-    "light": 2.626792,
+    "light": 2.6441891,
     "music": 3.8392484
   },
   "investors": {
-    "94b402ce6e6a1d1b": 687.1634320149989
+    "94b402ce6e6a1d1b": 688.9031639729989
   },
   "building": null,
   "last_visit": {
-    "94b402ce6e6a1d1b": 1792014871024
+    "94b402ce6e6a1d1b": 1792023858413
   },
   "things": [
     {
