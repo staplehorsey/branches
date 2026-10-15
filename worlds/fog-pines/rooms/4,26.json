@@ -47,10 +47,10 @@
   "replunged": false,
   "idea": {
     "name": "RM-0441",
-    "premise": "In the far future, restitution law requires anyone who took something to have it rebuilt to tolerance as a dollhouse model. An apprentice modeller places the parts of a dead muse's kitchen through a microscope screen, guided by her old composer's statement, one clinical paragraph at a time. The sealed last clause, and the kettle's whistle once the model is powered, reveal that his most famous symphony was her humming.",
+    "premise": "In the far future, restitution law makes anyone who took something rebuild it to tolerance as a dollhouse model. After a composer's guilty model of his dead muse's kitchen is finished, he uses the law's grief clause to add one more room, the landing where he failed to knock, and the apprentice builds it clause by clause until the knock is finally made and her name is spoken.",
     "look": null,
     "muses": [],
-    "refined": 1,
+    "refined": 2,
     "at": 1792025755218
   },
   "spaces": [
@@ -83,11 +83,38 @@
     },
     {
       "n": 2,
+      "status": "ready",
+      "name": "The Landing Annex",
+      "summary": "Lantern House, 2791. You deliver Mara Szell's model flat to the 144-year-old composer Hesper Vahl, who uses Restitution Statute §31 to dictate a Grief Annex in five clinical clauses: the landing outside her door where he stood one night and didn't knock. Through a micromanipulator and his wall screen you build it to tolerance (creaking stair, timer light, pencil stub, vending-machine chrysanthemums), then perform his last clause of omission for him by knocking on a door seven centimetres tall.",
+      "minutes": 8.0,
+      "started": 1792025755220,
+      "secs": 381,
+      "error": null,
+      "dwell": 0.0,
+      "visits": 0,
+      "tries": 1,
+      "genome": {
+        "era": "far future",
+        "feeling": "grief",
+        "medium": "a screen within the world",
+        "register": "clinical",
+        "scale": "a dollhouse",
+        "source": "one of the dreamer's muses",
+        "structure": "a confession in clauses",
+        "verb": "build"
+      },
+      "thread": "The model of Mara Szell's flat was delivered to Hesper Vahl in Room 9 of Lantern House, with a Grief Annex attached: the third-floor landing where he stood on 11 November 2690, heard her humming the five notes and left flowers without knocking. The apprentice knocked for him. The kettle whistled, the hinged door swung open, and Vahl said 'Mara' on the public record for the first time. The annex was sealed with the door open and the credit plate on the landing wall. Unresolved: the record now names her, and the world will hear of it; Vahl has signed his receipt, and nobody knows what he'll do with the time he has left. Carried: the credit plate (sealed in the annex), the kettle's five notes (A C E D A), and delivery receipt RD-9, signed in a shaky 'H. V.'",
+      "delight": "The form says hopes aren't verifiable but accepts them as context, and I love that a clinical protocol can be that kind by accident. I built everything toward one small act: a clause of omission verified by performing it, so a stranger's needle does the knocking he couldn't, and the door turns out to be hinged because you built it to tolerance in the last room.",
+      "stage": "",
+      "stage_at": 1792025860011
+    },
+    {
+      "n": 3,
       "status": "building",
       "name": "",
       "summary": "",
       "minutes": 0.0,
-      "started": 1792025755220,
+      "started": 1792026136442,
       "secs": 0,
       "error": null,
       "dwell": 0.0,
@@ -96,7 +123,7 @@
       "thread": "",
       "delight": "",
       "stage": "designing",
-      "stage_at": 1792025755220
+      "stage_at": 1792026136442
     }
   ],
   "space_visited": 1,
