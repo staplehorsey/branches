@@ -10,7 +10,10 @@
   try {
     carried = JSON.parse(new URLSearchParams(location.search).get('carried') || '[]');
   } catch {}
+  const q = new URLSearchParams(location.search);
   window.branches = {
+    // The colour of the mist they came through: open in it, then resolve.
+    arrival: { color: /^#[0-9a-f]{6}$/i.test(q.get('arrival') || '') ? q.get('arrival') : '#fff6e8' },
     carried: Array.isArray(carried) ? carried.map(String).slice(0, 20) : [],
     carry(items) {
       post({ t: 'carry', items: (Array.isArray(items) ? items : [items]).map(String).slice(0, 20) });
@@ -46,5 +49,7 @@
   );
   // When pointer lock ends (Esc), tell the game so it can show its bar.
   document.addEventListener('pointerlockchange', () => post({ t: 'lock', locked: !!document.pointerLockElement }));
+  // Tell the game the first frames are drawn, so it can lift the veil.
+  addEventListener('load', () => requestAnimationFrame(() => requestAnimationFrame(() => post({ t: 'ready' }))));
   addEventListener('error', (e) => post({ t: 'error', message: String(e.message || e.error || 'error') }));
 })();

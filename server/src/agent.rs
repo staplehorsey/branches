@@ -99,13 +99,26 @@ pub fn command(cmd: &str) -> Command {
 
 /// Run `cmd` with `input` on stdin. Its stdout, or why not.
 pub fn run(cmd: &str, input: &str, dir: Option<&Path>, max: Duration) -> Result<String, String> {
+    run_with(cmd, input, dir, max, |_| {}, || false)
+}
+
+/// The same, in its own process group (so it can be stopped whole, and a
+/// restart of the app doesn't leave it running): `started` gets its process
+/// id, and when `stop` says so it is ended early.
+pub fn run_with(cmd: &str, input: &str, dir: Option<&Path>, max: Duration, started_with: impl FnOnce(u32), stop: impl Fn() -> bool) -> Result<String, String> {
     use std::io::{Read, Write};
     use std::process::Stdio;
     let mut c = command(cmd);
     if let Some(d) = dir {
         c.current_dir(d);
     }
+    #[cfg(unix)]
+    {
+        use std::os::unix::process::CommandExt;
+        c.process_group(0);
+    }
     let mut child = c.stdin(Stdio::piped()).stdout(Stdio::piped()).stderr(Stdio::piped()).spawn().map_err(|e| format!("could not start `{cmd}`: {e}"))?;
+    started_with(child.id());
     let mut stdin = child.stdin.take().ok_or("no stdin")?;
     let input = input.to_string();
     std::thread::spawn(move || {
@@ -132,14 +145,21 @@ pub fn run(cmd: &str, input: &str, dir: Option<&Path>, max: Duration) -> Result<
                 let why: String = why.trim().chars().take(400).collect();
                 return Err(if status.code() == Some(127) { format!("`{}` is not installed (or not on the PATH)", cmd.split_whitespace().next().unwrap_or(cmd)) } else if why.is_empty() { format!("exited with {status}") } else { why });
             }
-            None if started.elapsed() > max => {
+            None if started.elapsed() > max || stop() => {
+                kill_group(child.id());
                 let _ = child.kill();
                 let _ = child.wait();
-                return Err(format!("no answer within {}s", max.as_secs()));
+                return Err(if stop() { "set aside".into() } else { format!("no answer within {}s", max.as_secs()) });
             }
             None => std::thread::sleep(Duration::from_millis(150)),
         }
     }
+}
+
+/// End a process and everything it started.
+pub fn kill_group(pid: u32) {
+    #[cfg(unix)]
+    let _ = Command::new("kill").args(["-TERM", &format!("-{pid}")]).status();
 }
 
 /// A quiet folder for the architect to run in, so a coding agent doesn't

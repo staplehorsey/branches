@@ -57,7 +57,26 @@ pub struct Space {
     /// What its builder found beautiful, and enjoyed, while making it.
     #[serde(default)]
     pub delight: String,
+    /// While building: "designing" or "building", since when, and the
+    /// process making it (so it can be set aside or stopped on restart).
+    #[serde(default)]
+    pub stage: String,
+    #[serde(default)]
+    pub stage_at: u64,
+    #[serde(default, skip_serializing)]
+    pub pid: u32,
 }
+
+/// Builds asked to stop, by "world/x,z/n".
+static STOP: std::sync::Mutex<Vec<String>> = std::sync::Mutex::new(Vec::new());
+fn job(world: &str, x: i32, z: i32, n: u32) -> String {
+    format!("{world}/{x},{z}/{n}")
+}
+/// Only houses visited within this long of the latest visit are built for:
+/// the dream follows you.
+const FOCUS_MS: u64 = 90_000;
+/// The designer's time; past it, the builder designs as well.
+const DESIGN_TIMEOUT: Duration = Duration::from_secs(4 * 60);
 
 /// Spaces being made at once, and how far ahead of the furthest one
 /// entered: two ahead, so a slow build has two spaces' time to finish.
@@ -123,9 +142,22 @@ pub fn ensure_all(app: &Arc<App>) {
         let mut uni = app.uni.lock().unwrap();
         let mut building: usize = uni.worlds.values().flat_map(|w| w.rooms.values()).flat_map(|r| r.spaces.iter()).filter(|s| s.status == "building").count();
         let mut wanted: Vec<(u64, String, String)> = Vec::new();
+        let latest = uni.worlds.values().flat_map(|w| w.rooms.values()).map(|r| r.space_seen_at).max().unwrap_or(0);
         for (wid, w) in &uni.worlds {
             for (key, r) in &w.rooms {
-                if now.saturating_sub(r.space_seen_at) > RECENT_MS || r.spaces.iter().any(|s| s.status == "building") {
+                let out_of_focus = r.space_seen_at + FOCUS_MS < latest;
+                if out_of_focus {
+                    // Set aside what's being made for houses you've left.
+                    let mut stop = STOP.lock().unwrap();
+                    for sp in r.spaces.iter().filter(|s| s.status == "building") {
+                        let j = job(wid, r.x, r.z, sp.n);
+                        if !stop.contains(&j) {
+                            tracing::info!("setting aside {j}: you've moved on");
+                            stop.push(j);
+                        }
+                    }
+                }
+                if out_of_focus || now.saturating_sub(r.space_seen_at) > RECENT_MS || r.spaces.iter().any(|s| s.status == "building") {
                     continue;
                 }
                 // One ahead from the entry hall (you may not stay), then two.
@@ -145,19 +177,24 @@ pub fn ensure_all(app: &Arc<App>) {
             }
             let Some(r) = uni.worlds.get_mut(&wid).and_then(|w| w.rooms.get_mut(&key)) else { continue };
             let n = match r.spaces.last() {
-                Some(s) if s.status == "failed" => s.n,
+                Some(s) if s.status == "failed" || s.status == "paused" => s.n,
                 Some(s) => s.n + 1,
                 None => 1,
             };
-            let tries = r.spaces.last().filter(|s| s.status == "failed").map(|s| s.tries).unwrap_or(0) + 1;
+            let tries = match r.spaces.last() {
+                Some(s) if s.status == "failed" => s.tries + 1,
+                Some(s) if s.status == "paused" => s.tries.max(1),
+                _ => 1,
+            };
             r.spaces.retain(|s| s.n != n);
-            r.spaces.push(Space { n, status: "building".into(), started: now, tries, ..Default::default() });
+            r.spaces.push(Space { n, status: "building".into(), started: now, tries, stage: "designing".into(), stage_at: now, ..Default::default() });
+            STOP.lock().unwrap().retain(|j| *j != job(&wid, r.x, r.z, n));
             building += 1;
             start.push((wid, r.x, r.z, n));
         }
     }
     for (wid, x, z, n) in start {
-        app.broadcast(&wid, &json!({ "t": "space", "x": x, "z": z, "n": n, "status": "building" }));
+        app.broadcast(&wid, &json!({ "t": "space", "x": x, "z": z, "n": n, "status": "building", "stage": "designing", "stage_at": now_ms() }));
         let app = app.clone();
         std::thread::spawn(move || build(&app, &wid, x, z, n));
     }
@@ -169,8 +206,12 @@ pub fn recover(app: &App) {
     for w in uni.worlds.values_mut() {
         for r in w.rooms.values_mut() {
             for s in r.spaces.iter_mut().filter(|s| s.status == "building") {
-                s.status = "failed".into();
-                s.error = Some("interrupted".into());
+                // Whatever was making it is stopped, and it starts over.
+                if s.pid > 0 {
+                    crate::agent::kill_group(s.pid);
+                }
+                s.status = "paused".into();
+                s.error = Some("interrupted by a restart".into());
             }
         }
     }
@@ -202,11 +243,22 @@ fn build(app: &Arc<App>, world: &str, x: i32, z: i32, n: u32) {
         };
         // Two hands: the design model imagines the space and writes it down;
         // the build model makes it real.
-        crate::agent::run(&design, &format!("{prompt}\n{DESIGN_ROLE}"), Some(&d), BUILD_TIMEOUT)?;
-        if !d.join("DESIGN.md").is_file() {
-            return Err("the designer didn't write DESIGN.md".into());
+        let me = job(world, x, z, n);
+        let stopped = || STOP.lock().unwrap().contains(&me);
+        let designed = crate::agent::run_with(&design, &format!("{prompt}\n{DESIGN_ROLE}"), Some(&d), DESIGN_TIMEOUT, |pid| set_stage(app, world, x, z, n, "designing", pid), stopped);
+        match designed {
+            Err(e) if e == "set aside" => return Err(e),
+            Ok(_) if d.join("DESIGN.md").is_file() => {
+                set_stage(app, world, x, z, n, "building", 0);
+                crate::agent::run_with(&build, &format!("{prompt}\n{BUILD_ROLE}"), Some(&d), BUILD_TIMEOUT, |pid| set_stage(app, world, x, z, n, "building", pid), stopped)?;
+            }
+            other => {
+                // The designer was too slow or failed: the builder does both.
+                tracing::warn!("designing {me} didn't finish ({:?}); the builder will design it too", other.err());
+                set_stage(app, world, x, z, n, "building", 0);
+                crate::agent::run_with(&build, &prompt, Some(&d), BUILD_TIMEOUT, |pid| set_stage(app, world, x, z, n, "building", pid), stopped)?;
+            }
         }
-        crate::agent::run(&build, &format!("{prompt}\n{BUILD_ROLE}"), Some(&d), BUILD_TIMEOUT)?;
         if !d.join("index.html").is_file() {
             return Err("it didn't write index.html".into());
         }
@@ -223,6 +275,7 @@ fn build(app: &Arc<App>, world: &str, x: i32, z: i32, n: u32) {
         s.secs = secs;
         match &result {
             Ok(meta) => {
+                s.stage = String::new();
                 s.status = "ready".into();
                 s.error = None;
                 s.name = meta["name"].as_str().unwrap_or("").chars().take(80).collect();
@@ -239,6 +292,10 @@ fn build(app: &Arc<App>, world: &str, x: i32, z: i32, n: u32) {
                 if let (Some(name), Some(premise)) = (meta["idea"]["name"].as_str(), meta["idea"]["premise"].as_str()) {
                     idea_from_space = Some((name.chars().take(80).collect::<String>(), premise.chars().take(1200).collect::<String>()));
                 }
+            }
+            Err(e) if e == "set aside" => {
+                s.status = "paused".into();
+                s.error = None;
             }
             Err(e) => {
                 tracing::warn!("space {world} {x},{z} #{n} failed: {e}");
@@ -266,11 +323,32 @@ fn build(app: &Arc<App>, world: &str, x: i32, z: i32, n: u32) {
         app.note_commit(format!("{wname} {x},{z}: space {n}, {name} [claude, {secs}s]"));
     }
     app.touch();
-    app.broadcast(world, &json!({ "t": "space", "x": x, "z": z, "n": n, "status": status, "name": name }));
+    let error = app.uni.lock().unwrap().room(world, x, z).and_then(|r| r.spaces.iter().find(|s| s.n == n).and_then(|s| s.error.clone()));
+    app.broadcast(world, &json!({ "t": "space", "x": x, "z": z, "n": n, "status": status, "name": name, "error": error }));
     ensure_all(app);
 }
 
-const DESIGN_ROLE: &str = "YOUR ROLE: the designer. Don't write any code. Think hard and imagine this space completely, then write DESIGN.md in this folder, detailed enough that a skilled programmer can build it without asking anything: the concrete idea at these coordinates and the beauty you found in it; the medium and why; the layout (with sizes) and what you see on arrival; every object, person and mechanism, and exactly what each interaction does and how state changes; the arc, beginning to end, with the text people will read (write the actual words, every line of dialogue and every document); the way onward and how it's earned; colours, light, sound; and the first thing to try. Also write space.json now (everything but the code: name, summary, minutes, motifs, thread, delight, idea, new_values), in your own voice.";
+fn set_stage(app: &App, world: &str, x: i32, z: i32, n: u32, stage: &str, pid: u32) {
+    let now = now_ms();
+    let changed = {
+        let mut uni = app.uni.lock().unwrap();
+        let Some(s) = uni.worlds.get_mut(world).and_then(|w| w.rooms.get_mut(&addr(x, z))).and_then(|r| r.spaces.iter_mut().find(|s| s.n == n)) else { return };
+        if pid > 0 {
+            s.pid = pid;
+        }
+        let changed = s.stage != stage;
+        if changed {
+            s.stage = stage.into();
+            s.stage_at = now;
+        }
+        changed
+    };
+    if changed {
+        app.broadcast(world, &json!({ "t": "space", "x": x, "z": z, "n": n, "status": "building", "stage": stage, "stage_at": now }));
+    }
+}
+
+const DESIGN_ROLE: &str = "YOUR ROLE: the designer. Don't write any code, and work quickly (a few minutes at most). Imagine this space completely, then write DESIGN.md (concise: under about 900 words, plus the actual text people will read) in this folder, detailed enough that a skilled programmer can build it without asking anything: the concrete idea at these coordinates and the beauty you found in it; the medium and why; the layout (with sizes) and what you see on arrival; every object, person and mechanism, and exactly what each interaction does and how state changes; the arc, beginning to end, with the text people will read (write the actual words, every line of dialogue and every document); the way onward and how it's earned; colours, light, sound; and the first thing to try. Also write space.json now (everything but the code: name, summary, minutes, motifs, thread, delight, idea, new_values), in your own voice.";
 
 const BUILD_ROLE: &str = "YOUR ROLE: the builder. A designer has already written DESIGN.md and space.json in this folder: read them first. Build exactly that design, faithfully and completely, as index.html (plus any files you need), following the contract above. Use the designer's words verbatim. Where the design is silent, choose what serves it best. Don't rewrite space.json except to correct \"minutes\" if the build turned out longer or shorter. Read your code over carefully before you finish: it must run without errors and never show a blank screen.";
 
@@ -317,6 +395,7 @@ WHAT MAKES A GOOD SPACE
 - Work briskly: aim to finish writing within about ten minutes. One well-made, working space beats an ambitious broken one.
 - Concrete, grounded and surprising. Avoid: empty contemplative voids, mist and liminal nothingness, whimsical named caretakers delivering quips, poems as the main content, doors and thresholds as the subject. Humour and specificity beat mood.
 - Solid, readable worlds: enclosed spaces need opaque walls that are visible from inside (a single-sided plane is invisible from its back: use boxes, or side: THREE.DoubleSide / BackSide). Good lighting, readable text, a clear hint of what to try first.
+- Arrival: the player crosses into your space through a veil of light the colour of branches.arrival.color (the mist at the back of the house, or the space before). Open in that colour and light so the crossing feels like one continuous place, then let your world resolve out of it over the first few seconds. Never start on black or a blank page.
 - Continuity: it is the next scene of the same house (carry the thread below forward, transformed), and items from the previous space arrive in branches.carried.
 
 THE CONTRACT (the only rules)

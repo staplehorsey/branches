@@ -407,21 +407,37 @@ export function buildInterior({ room, origin, biome, frontier = true }) {
   const last = chambers[chambers.length - 1];
   let frontierMist = null;
   let frontierAt = null;
+  let setFrontier = () => {};
   if (frontier) {
     const fx = last.backX, fz = last.z0;
     frontierAt = new THREE.Vector3(origin.x + fx, origin.y, origin.z + fz);
     const mistMat = new THREE.ShaderMaterial({
       transparent: true,
       depthWrite: false,
-      uniforms: { uTime: { value: 0 }, uColor: { value: new THREE.Color(th.glow) }, uBuilding: { value: room.building ? 1 : 0 } },
+      uniforms: { uTime: { value: 0 }, uColor: { value: new THREE.Color(th.glow) }, uBuilding: { value: room.building ? 1 : 0 }, uReady: { value: 0 }, uProgress: { value: -1 }, uDim: { value: 0 } },
       vertexShader: 'varying vec2 vUv; void main(){ vUv=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }',
-      fragmentShader: `uniform float uTime; uniform vec3 uColor; uniform float uBuilding; varying vec2 vUv;
+      // States: dim (nothing yet), building (a line of light rises as the
+      // space is made: uProgress 0..1), ready (bright, breathing outward).
+      fragmentShader: `uniform float uTime; uniform vec3 uColor; uniform float uBuilding; uniform float uReady; uniform float uProgress; uniform float uDim; varying vec2 vUv;
         void main(){
           float n = sin(vUv.y*14.0 - uTime*1.3 + sin(vUv.x*9.0+uTime)*1.5)*0.5+0.5;
           float edge = smoothstep(0.0,0.25,vUv.x)*smoothstep(1.0,0.75,vUv.x)*smoothstep(1.0,0.7,vUv.y);
           float a = (0.55 + n*0.35) * edge;
           vec3 c = mix(uColor, vec3(1.0), 0.35 + n*0.3);
           if (uBuilding > 0.5) c = mix(c, vec3(1.0,0.85,0.5), 0.4 + 0.3*sin(uTime*4.0));
+          if (uProgress >= 0.0) {
+            float line = smoothstep(0.035, 0.0, abs(vUv.y - uProgress));
+            float filled = step(vUv.y, uProgress);
+            c = mix(c, vec3(1.0), filled*0.25 + line*0.7);
+            a = a*(0.45 + filled*0.35) + line*edge*0.9;
+          }
+          if (uReady > 0.0) {
+            float r = length(vUv - vec2(0.5, 0.45));
+            float wave = sin(r*18.0 - uTime*2.6)*0.5+0.5;
+            c = mix(c, vec3(1.0, 0.97, 0.9), uReady*(0.35 + wave*0.35));
+            a = mix(a, edge*(0.85 + wave*0.15), uReady);
+          }
+          a *= 1.0 - uDim*0.55;
           gl_FragColor = vec4(c, a);
         }`,
     });
@@ -432,9 +448,30 @@ export function buildInterior({ room, origin, biome, frontier = true }) {
     anims.push((t) => (mistMat.uniforms.uTime.value = t));
     addCollider(fx - ARCH_W / 2, fz - 0.3, fx + ARCH_W / 2, fz + 0.05);
     const text = room.spaces_on ? 'walk on, into the dream' : room.building ? 'under construction…' : 'the architect is listening';
-    const fl = label(text, { size: 0.22 });
+    let fl = label(text, { size: 0.22 });
     fl.position.set(fx, ARCH_H + 0.5, fz + 0.2);
     group.add(fl);
+    const glowLight = { pos: new THREE.Vector3(origin.x + fx, origin.y + 1.4, origin.z + fz + 0.6), color: new THREE.Color(th.glow), intensity: 0 };
+    lights.push(glowLight);
+    let lastText = text;
+    // What the mist says and shows: { state: 'none'|'building'|'ready'|'failed', text, progress }.
+    setFrontier = ({ state, text: t, progress = -1 }) => {
+      const u = mistMat.uniforms;
+      u.uBuilding.value = 0;
+      u.uReady.value = state === 'ready' ? 1 : 0;
+      u.uProgress.value = state === 'building' ? Math.max(0.02, Math.min(0.98, progress)) : -1;
+      u.uDim.value = state === 'none' || state === 'failed' ? 1 : 0;
+      glowLight.intensity = state === 'ready' ? 1.6 : 0;
+      if (t && t !== lastText) {
+        lastText = t;
+        group.remove(fl);
+        fl.material.map?.dispose();
+        fl.material.dispose();
+        fl = label(t, { size: 0.22 });
+        fl.position.set(fx, ARCH_H + 0.5, fz + 0.2);
+        group.add(fl);
+      }
+    };
     if (room.building) {
       for (let k = 0; k < 4; k++) {
         solid.put(G.box, '#c8a050', fx - ARCH_W / 2 + 0.2 + k * 0.6, ARCH_H / 2 + 0.2, fz + 0.4, { sx: 0.06, sy: ARCH_H + 0.4, sz: 0.06 });
@@ -461,6 +498,8 @@ export function buildInterior({ room, origin, biome, frontier = true }) {
     chambers: chambers.map((c, i) => ({ ...c, name: room.chambers[i]?.name || '' })),
     guestbook: new THREE.Vector3(origin.x + gb.x, origin.y + 1, origin.z + gb.z),
     frontier: frontierAt,
+    setFrontier: (s) => setFrontier(s),
+    veil: '#' + new THREE.Color(th.glow).lerp(new THREE.Color('#ffffff'), 0.45).getHexString(),
     chamberAt(x, z) {
       const lx = x - origin.x, lz = z - origin.z;
       for (let i = chambers.length - 1; i >= 0; i--) {

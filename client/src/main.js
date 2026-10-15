@@ -1029,7 +1029,8 @@ function updateHud() {
     const door = it.branch.find((d) => d.info.pos.distanceTo(player.eye) < 3);
     const old = room.version ? ` \u00b7 as it was at ${room.version.split('/').pop()}` : '';
     $('room-line').textContent += old;
-    ui.hint(use ? `E \u00b7 ${use.hint}` : door ? (door.sealed ? 'this door does not open from this side' : door.partner ? `through here: ${door.info.portal.label}` : 'the far side is still arriving\u2026') : room.building ? 'the architect is building\u2026' : 'F \u00b7 more of this');
+    const mist = S.mistHint && performance.now() - S.mistHint.at < 400 ? S.mistHint.text : null;
+    ui.hint(mist ? mist : use ? `E \u00b7 ${use.hint}` : door ? (door.sealed ? 'this door does not open from this side' : door.partner ? `through here: ${door.info.portal.label}` : 'the far side is still arriving\u2026') : room.building ? 'the architect is building\u2026' : 'F \u00b7 more of this');
   } else {
     $('room-line').textContent = '';
     $('growth').classList.remove('on');
@@ -1102,11 +1103,18 @@ function step(dt) {
   if (S.inside) {
     // The mist at the back of a house leads into its spaces.
     const fr = S.inside.built.frontier;
-    if (fr && S.inside.room.spaces_on && !spaces.isOpen() && S.inside.realm === S.primary && Math.hypot(player.pos.x - fr.x, player.pos.z - fr.z) < 1.25 && Math.abs(player.pos.y - fr.y) < 2) {
+    if (fr && S.inside.room.spaces_on && S.inside.realm === S.primary) {
       const it = S.inside;
-      document.exitPointerLock?.();
-      player.place(fr.x, fr.y, fr.z + 2.2, player.yaw);
-      spaces.enter(S.primary.manifest.id, it.x, it.z, 1, it.room.idea?.name);
+      const st = frontierState(S.primary.manifest.id, it.x, it.z);
+      it.built.setFrontier?.(st);
+      const near = Math.hypot(player.pos.x - fr.x, player.pos.z - fr.z) < 1.25 && Math.abs(player.pos.y - fr.y) < 2;
+      if (near && !spaces.isOpen()) {
+        if (st.state === 'ready') {
+          document.exitPointerLock?.();
+          player.place(fr.x, fr.y, fr.z + 2.2, player.yaw);
+          spaces.enter(S.primary.manifest.id, it.x, it.z, 1, it.room.idea?.name, { veil: it.built.veil });
+        } else S.mistHint = { text: st.text, at: performance.now() };
+      }
     }
     const ch = S.inside.built.chamberAt(player.pos.x, player.pos.z);
     if (ch !== S.chamber) {
@@ -1295,6 +1303,24 @@ async function boot() {
       enter();
     }
   } catch {}
+}
+
+// What the mist at the back of a house should say about its first space.
+function frontierState(world, x, z) {
+  const sp = spaces.known(world, x, z).find((s) => s.n === 1);
+  const clock = (ms) => {
+    const t = Math.max(0, Math.round(ms / 1000));
+    return `${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`;
+  };
+  if (!sp) return { state: 'none', text: 'the dream beyond is waiting to begin' };
+  if (sp.status === 'ready') return { state: 'ready', text: `${sp.name || 'space 1'} · walk in` };
+  if (sp.status === 'failed') return { state: 'failed', text: `it didn't take shape: ${(sp.error || 'unknown').slice(0, 70)} · trying again` };
+  if (sp.status === 'paused') return { state: 'none', text: 'set aside while you were elsewhere · resuming' };
+  const since = Date.now() - (sp.stage_at || sp.started || Date.now());
+  const all = Date.now() - (sp.started || Date.now());
+  const typical = spaces.typical() * 1000;
+  const stage = sp.stage === 'building' ? 'building (Sonnet)' : 'designing (Opus)';
+  return { state: 'building', progress: Math.min(0.95, all / Math.max(60000, typical)), text: `taking shape · ${stage} ${clock(since)}` };
 }
 
 // Where you are, in words, for Claude in the workshop.
