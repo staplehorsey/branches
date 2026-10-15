@@ -1,0 +1,60 @@
+{
+  "x": 12,
+  "z": 14,
+  "seed": 3985393941,
+  "theme": "poolrooms",
+  "chambers": [
+    {
+      "name": "Entry Hall",
+      "tag": "water",
+      "seed": 3985393941,
+      "by": "generator",
+      "at": 0
+    }
+  ],
+  "features": [],
+  "portals": [
+    {
+      "id": "pair-moonlit-meadow",
+      "slot": 0,
+      "target": "/w/moonlit-meadow/12,14",
+      "label": "Moonlit Meadow",
+      "by": "generator",
+      "at": 0,
+      "sealed": false
+    }
+  ],
+  "log": [
+    {
+      "id": "85498f35c4da",
+      "kind": "visit",
+      "who": "drift-57",
+      "player": "94b402ce6e6a1d1b",
+      "text": "stopped by",
+      "at": 1792023889236
+    }
+  ],
+  "claim": null,
+  "attention": 3.94205933,
+  "weights": {
+    "light": 1.0532482,
+    "stone": 1.1848264,
+    "water": 1.0958947
+  },
+  "investors": {
+    "94b402ce6e6a1d1b": 3.94205933
+  },
+  "building": null,
+  "last_visit": {
+    "94b402ce6e6a1d1b": 1792023889236
+  },
+  "things": [],
+  "looks": {
+    "theme:light": 2.3
+  },
+  "touches": {},
+  "replunged": false,
+  "idea": null,
+  "space_visited": 0,
+  "space_seen_at": 0
+}

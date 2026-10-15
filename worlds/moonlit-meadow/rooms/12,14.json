@@ -1,0 +1,96 @@
+{
+  "x": 12,
+  "z": 14,
+  "seed": 2389103196,
+  "theme": "arcade-after-hours",
+  "chambers": [
+    {
+      "name": "Entry Hall",
+      "tag": "neon",
+      "seed": 2389103196,
+      "by": "generator",
+      "at": 0
+    }
+  ],
+  "features": [],
+  "portals": [
+    {
+      "id": "pair-fog-pines",
+      "slot": 0,
+      "target": "/w/fog-pines/12,14",
+      "label": "Fog Pines",
+      "by": "generator",
+      "at": 0,
+      "sealed": false
+    }
+  ],
+  "log": [
+    {
+      "id": "6e7415aeb05d",
+      "kind": "visit",
+      "who": "drift-57",
+      "player": "94b402ce6e6a1d1b",
+      "text": "stopped by",
+      "at": 1792023883043
+    }
+  ],
+  "claim": null,
+  "attention": 75.23525717199996,
+  "weights": {
+    "light": 1.9419259,
+    "music": 1.9307138,
+    "neon": 1.9397956
+  },
+  "investors": {
+    "94b402ce6e6a1d1b": 75.23525717199996
+  },
+  "building": null,
+  "last_visit": {
+    "94b402ce6e6a1d1b": 1792023883043
+  },
+  "things": [],
+  "looks": {
+    "theme:light": 57.8,
+    "theme:music": 6.2,
+    "theme:neon": 0.4
+  },
+  "touches": {},
+  "replunged": false,
+  "idea": {
+    "name": "Inside Johnny",
+    "premise": "A 1950s tabletop game where a sick child's body is a factory run by a night shift of foremen. The Fever is hiding in one department and hops when you offer the wrong thing; each foreman will only talk for the small comforts a mother would bring. Finding it is half; the other half is letting it leave on its own terms, so the fever breaks.",
+    "look": null,
+    "muses": [],
+    "refined": 1,
+    "at": 1792024008760
+  },
+  "spaces": [
+    {
+      "n": 1,
+      "status": "ready",
+      "name": "Inside Johnny",
+      "summary": "A 1954 tin-and-cardboard board game in which a feverish boy's body is a night-shift factory. You count to ten, then bargain with five department foremen using the small comforts a mother brings, find where the Fever is hiding, and negotiate it out through the sweat vent.",
+      "minutes": 6.0,
+      "started": 1792023882996,
+      "secs": 125,
+      "error": null,
+      "dwell": 0.0,
+      "visits": 0,
+      "tries": 1,
+      "genome": {
+        "era": "1950s",
+        "feeling": "relief",
+        "medium": "a table game",
+        "register": "industrial grit",
+        "scale": "the inside of a body",
+        "source": "a childhood ritual",
+        "structure": "a negotiation",
+        "verb": "hide and seek"
+      },
+      "thread": "Johnny's fever broke at 37.0. The Fever left through the vent and the night shift sat down. You carry a thermometer, shaken down. Unresolved: what the foremen do now that there is nothing to guard against.",
+      "delight": "Each foreman asks for exactly what a mother would have brought (half an aspirin, flat ginger ale), and the thermometer being shaken down twice lands as the exhale."
+    }
+  ],
+  "space_visited": 0,
+  "space_seen_at": 1792023882996
+}

@@ -60,13 +60,13 @@
     "visits": 0
   },
   "11,13": {
-    "inside": 688.90283,
-    "outside": 19.21245,
+    "inside": 689.6524,
+    "outside": 25.791197,
     "visits": 3
   },
   "11,14": {
     "inside": 0.0,
-    "outside": 10.816358,
+    "outside": 12.099488,
     "visits": 0
   },
   "11,3": {
@@ -83,6 +83,16 @@
     "inside": 0.0,
     "outside": 6.1012664,
     "visits": 0
+  },
+  "12,13": {
+    "inside": 0.0,
+    "outside": 5.2839375,
+    "visits": 0
+  },
+  "12,14": {
+    "inside": 75.23522,
+    "outside": 7.915757,
+    "visits": 2
   },
   "12,3": {
     "inside": 0.0,

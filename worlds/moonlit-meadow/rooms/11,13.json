@@ -541,15 +541,15 @@
     }
   ],
   "claim": null,
-  "attention": 328.103163973,
+  "attention": 328.852813973,
   "weights": {
     "art": 2.895423,
     "cozy": 4.3967943,
-    "light": 2.6441891,
+    "light": 2.6516855,
     "music": 3.8392484
   },
   "investors": {
-    "94b402ce6e6a1d1b": 688.9031639729989
+    "94b402ce6e6a1d1b": 689.652813972999
   },
   "building": null,
   "last_visit": {

@@ -1,0 +1,181 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Inside Johnny</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;height:100vh;background:#2b1e14 repeating-linear-gradient(92deg,#33241a 0 38px,#2a1c13 38px 40px);font-family:'Courier New',monospace;color:#2a2118;overflow:hidden;user-select:none}
+#wrap{display:flex;gap:18px;height:100vh;padding:16px;align-items:stretch}
+#board{flex:1;background:#d9c79a;border:6px solid #8b2f1e;border-radius:6px;padding:12px 16px;display:flex;flex-direction:column;box-shadow:0 8px 30px #000a;min-width:0}
+h1{margin:0;font:900 26px Impact,'Arial Black',sans-serif;letter-spacing:3px;color:#8b2f1e}
+.sub{font-size:12px;margin:2px 0 8px;letter-spacing:1px}
+#rooms{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;flex:1}
+.room{position:relative;background:linear-gradient(#b8b5aa,#8f8c82);border:3px solid #55534c;border-radius:4px;padding:8px 10px;cursor:pointer;display:flex;flex-direction:column;justify-content:space-between;box-shadow:inset 0 0 0 4px #bdbaaf,inset 0 0 12px #0006}
+.room:hover{filter:brightness(1.12)}
+.room.cur{outline:4px solid #e8a317}
+.room b{font:900 15px Impact,sans-serif;letter-spacing:1.5px;color:#222}
+.room i{font-size:12px;font-style:normal}
+.room .st{font-size:12px;font-weight:bold;min-height:16px}
+.room:before,.room:after{content:'';position:absolute;top:5px;width:7px;height:7px;border-radius:50%;background:#46443e;box-shadow:inset 1px 1px 0 #ccc}
+.room:before{left:5px}.room:after{right:5px}
+.room.clear{background:linear-gradient(#a9bba3,#82937d)}
+.room.fev{background:linear-gradient(#d86a4c,#a83a22);animation:th 1s infinite}
+.room.vent{grid-column:1/4;flex-direction:row;align-items:center;gap:14px}
+@keyframes th{50%{filter:brightness(1.25)}}
+#side{width:min(380px,36vw);display:flex;flex-direction:column;gap:12px}
+#memo{flex:1;background:#f1ead8;border:2px dashed #7a6a4a;padding:14px;font-size:15px;line-height:1.5;overflow:auto;box-shadow:0 6px 20px #0008;transform:rotate(.4deg)}
+#memo .who{font:900 13px Impact,sans-serif;letter-spacing:2px;color:#8b2f1e;margin-bottom:6px}
+#memo .sys{opacity:.65;font-size:13px;margin-top:10px}
+#hand{display:flex;flex-wrap:wrap;gap:8px}
+.chit{background:#efe2b8;border:2px solid #6b5a33;border-radius:50% / 40%;padding:8px 12px;font-size:13px;font-weight:bold;cursor:pointer;box-shadow:0 3px 0 #4d3f22;text-align:center}
+.chit:hover{background:#fff3c9}
+.chit.dim{opacity:.6}
+#thermo{display:flex;align-items:center;gap:10px;background:#d9c79a;padding:8px 12px;border:3px solid #8b2f1e;border-radius:4px}
+#tube{flex:1;height:14px;background:#fff;border:2px solid #333;border-radius:8px;overflow:hidden}
+#hg{height:100%;background:#d11;width:80%;transition:width 2.5s ease-in-out}
+#deg{font:900 18px Impact,sans-serif;width:70px}
+#title{position:fixed;inset:0;background:#1d130c;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#efe2b8;z-index:5;text-align:center;padding:30px}
+#title h2{font:900 44px Impact,sans-serif;letter-spacing:4px;color:#e8a317;margin:0 0 10px}
+#title p{max-width:520px;line-height:1.5}
+button{font:900 18px Impact,sans-serif;letter-spacing:2px;background:#8b2f1e;color:#fff;border:0;padding:12px 26px;cursor:pointer;border-radius:3px;margin-top:14px}
+#count{font:900 70px Impact,sans-serif;color:#e8a317;height:90px}
+</style>
+<div id="title">
+  <h2>INSIDE JOHNNY</h2>
+  <p>A game of Hide &amp; Seek for one. Johnny is in bed with a fever of 39.4. Somewhere in his works the Fever is hiding, and the foremen of the night shift have seen it, but they are not giving it away for nothing.</p>
+  <p>Click a department to talk. Click a chit from your hand to offer it. They like what Johnny's mother would have brought.</p>
+  <div id="count"></div>
+  <button id="go">COUNT TO TEN</button>
+</div>
+<div id="wrap">
+  <div id="board">
+    <h1>INSIDE JOHNNY</h1>
+    <div class="sub">NIGHT SHIFT · TIN &amp; CARDBOARD · PATENT PENDING · COPYRIGHT 1954</div>
+    <div id="rooms"></div>
+  </div>
+  <div id="side">
+    <div id="thermo"><span style="font-weight:bold">TEMP</span><div id="tube"><div id="hg"></div></div><div id="deg">39.4°</div></div>
+    <div id="memo"></div>
+    <div id="hand"></div>
+  </div>
+</div>
+<script>
+const ROOMS=[
+ {id:'boiler',name:'BOILER HOUSE',org:'the lungs',who:'Foreman Pruitt',want:'Window cracked open',
+  ask:"Burning the same stale air since Tuesday, son. Rattling like a kettle in here. I'd talk plainer if somebody let a little night in.",
+  ok:"Pruitt leans out into the draught and breathes like a man let out of church. 'Left side, third gauge. Go on, look.'",
+  empty:"Nothing behind the third gauge but a moth, and a pencil Pruitt lost in 1951."},
+ {id:'pump',name:'PUMP ROOM',org:'the heart',who:'Ines, pump tender',want:'Bedtime story',
+  ask:"One-two. One-two. Nobody's said a word to the pump all night, and it runs fast when it's lonely. Read me something with a bear in it.",
+  ok:"Ines listens with her eyes shut. The pump slows by a tick, then another. 'Alright. Behind the piston, then.'",
+  empty:"Behind the piston: a thermos, a crossword, and a long-ago pressed flower. Not hiding anything but her lunch."},
+ {id:'filter',name:'FILTER WORKS',org:'the liver',who:'Dov, sump man',want:'Aspirin, half',
+  ask:"They keep sending down whole ones. A whole one floods my sump. Half. A half I can strain, and then we talk.",
+  ok:"Dov holds the half up to the lamp, nods, and drops it in the grate. 'Sump hatch. Mind the sludge.'",
+  empty:"The sump hatch lifts on dark, warm water and a lost button. No fever. Dov wipes his hands on his apron anyway."},
+ {id:'vat',name:'VAT HALL',org:'the stomach',who:'Wren, vat keeper',want:'Ginger ale, flat',
+  ask:"Everything that comes down tonight comes down fizzing and I'm still stirring Sunday's dinner. Flat. Let it go flat first, like the old lady used to.",
+  ok:"Wren sips it off the ladle, sighs, and the whole vat settles. 'Under the lid. I felt something go by an hour ago.'",
+  empty:"Under the lid: gravy-coloured stillness and one pea, circling. The Fever is not in the vat."},
+ {id:'switch',name:'SWITCHBOARD',org:'the head',who:'Mabel, operator',want:'Cool flannel',
+  ask:"Every line's lit and nobody's on the other end. The jacks are cooking. Something wet and cold on the forehead panel, please, and I'll tell you who rang.",
+  ok:"Mabel presses it flat across the board. A hundred lights go amber, then one by one go out. 'Jack nine. Pull the plug.'",
+  empty:"Jack nine, pulled: nothing on the line but a distant hum, like a refrigerator in another house."}
+];
+const VENT={id:'vent',name:'SWEAT VENT',org:'the skin',who:'Gatekeeper Hobbs',want:'Extra blanket',
+  ask:"Pores are shut tight as a drum. Nobody leaves this plant by the front, and nobody leaves through me without a good cover over the whole works. Pile it on, and I'll sweat it out of the hull.",
+  early:"Come back when you've got something to show me. I don't open the vent for a draught."};
+const CHITS=['Window cracked open','Bedtime story','Aspirin, half','Ginger ale, flat','Cool flannel','Extra blanket','Orange squash'];
+const DESC={'Orange squash':'Sweet. Johnny likes it. Nobody here asked for it.'};
+const st={temp:39.4,cleared:{},fever:null,found:false,cur:null,over:false};
+const $=s=>document.querySelector(s),roomsEl=$('#rooms'),memo=$('#memo'),hand=$('#hand');
+const live=()=>ROOMS.filter(r=>!st.cleared[r.id]).map(r=>r.id);
+st.fever=live()[Math.floor(Math.random()*5)];
+let ac=null,pulse=null;
+function tick(f,g){if(!ac)return;try{const o=ac.createOscillator(),v=ac.createGain();o.frequency.value=f;o.type='sine';v.gain.setValueAtTime(g,ac.currentTime);v.gain.exponentialRampToValueAtTime(.0001,ac.currentTime+.12);o.connect(v);v.connect(ac.destination);o.start();o.stop(ac.currentTime+.14)}catch(e){}}
+function startPulse(){clearInterval(pulse);const gap=Math.max(500,1250-(st.temp-37)*300);pulse=setInterval(()=>{tick(70,.12);setTimeout(()=>tick(55,.08),160)},gap)}
+function say(who,txt,sys){memo.innerHTML='<div class="who">'+who+'</div><div>'+txt+'</div>'+(sys?'<div class="sys">'+sys+'</div>':'')}
+function drawThermo(){$('#deg').textContent=st.temp.toFixed(1)+'°';$('#hg').style.width=Math.max(8,Math.min(100,(st.temp-36.5)/4.5*100))+'%'}
+function render(){
+  roomsEl.innerHTML='';
+  for(const r of ROOMS.concat([VENT])){
+    const d=document.createElement('div');
+    const fev=st.found&&st.fever===r.id&&!st.over;
+    d.className='room'+(r.id==='vent'?' vent':'')+(st.cur===r.id?' cur':'')+(st.cleared[r.id]?' clear':'')+(fev?' fev':'');
+    const stat=st.cleared[r.id]?'✔ CHECKED, EMPTY':(fev?'● THE FEVER':'');
+    d.innerHTML='<div><b>'+r.name+'</b><br><i>'+r.who+' · '+r.org+'</i></div><div class="st">'+stat+'</div>';
+    d.onclick=()=>enter(r.id);roomsEl.appendChild(d);
+  }
+  hand.innerHTML='';
+  for(const c of CHITS){const e=document.createElement('div');e.className='chit'+(st.cur?'':' dim');e.textContent=c;e.title=DESC[c]||'';e.onclick=()=>offer(c);hand.appendChild(e)}
+}
+function enter(id){
+  if(st.over)return;
+  st.cur=id;
+  if(id==='vent'){
+    if(st.found)say(VENT.who,VENT.ask,'Offer a chit.');else say(VENT.who,VENT.early);
+  }else{
+    const r=ROOMS.find(x=>x.id===id);
+    if(st.cleared[id])say(r.who,"Already had a look, didn't you? Go and bother someone with a chit.");
+    else if(st.found&&st.fever===id)say(r.who,"He's in here, you've seen him. Take it up with the vent.");
+    else say(r.who,r.ask,'Offer a chit.');
+  }
+  render();
+}
+function offer(c){
+  if(st.over)return;
+  if(!st.cur){say('MEMO','Pick a department first.');return}
+  tick(120,.1);
+  const id=st.cur;
+  if(id==='vent'){
+    if(!st.found){say(VENT.who,VENT.early);return}
+    if(c!==VENT.want){wrong(VENT,c);return}
+    return finale();
+  }
+  const r=ROOMS.find(x=>x.id===id);
+  if(st.cleared[id]||(st.found&&st.fever===id)){say(r.who,"Not for me, thanks. I'm done here.");return}
+  if(c!==r.want){wrong(r,c);return}
+  if(st.fever===id){
+    st.found=true;
+    say(r.who,r.ok);
+    memo.innerHTML+='<div style="margin-top:12px"><div class="who">THE FEVER</div>A small red bead of a thing, sitting in the corner with its knees pulled up. It has the face of every boy who ever said he wasn\'t tired.<br><br>"Alright, you found me. I\'m not going out by the door, I came in by a sneeze and I\'ll go the way I choose. The vent. Ask Hobbs. Tell him to pile it on."</div>';
+  }else{
+    st.cleared[id]=true;
+    say(r.who,r.ok,r.empty);
+    st.temp=Math.round((st.temp-.1)*10)/10;
+  }
+  st.cur=null;drawThermo();render();startPulse();
+}
+function wrong(r,c){
+  st.temp=Math.round((st.temp+.3)*10)/10;
+  const note=c==='Orange squash'?"Johnny likes it, certainly. It's nobody's idea of a bribe.":'"Thanks, but no."';
+  say(r.who,'Turns the '+c.toLowerCase()+' over, hands it back. '+note+' "That isn\'t what I asked for, is it?"',
+    st.found?'Johnny\'s temperature creeps up.':'Johnny\'s temperature creeps up. Somewhere in the works, something shifts.');
+  if(!st.found){
+    const opts=live().filter(x=>x!==st.fever);
+    if(opts.length)st.fever=opts[Math.floor(Math.random()*opts.length)];
+  }
+  drawThermo();render();startPulse();
+}
+function finale(){
+  st.over=true;st.cur=null;render();
+  say('THE VENT','Hobbs hauls on the iron wheel. Somewhere very far away, on the surface of a boy, ten thousand small doors come open. The Fever pulls its knees to its chest, looks back once at Mabel, Ines, Dov, Wren and Pruitt, and goes out of Johnny the way a held breath goes out of a person: all at once, and so ordinary you could cry.');
+  st.temp=37.0;drawThermo();
+  clearInterval(pulse);
+  setTimeout(()=>{
+    memo.innerHTML+='<div class="sys" style="font-size:15px;opacity:1;margin-top:16px">Upstairs, a hand lays itself on a damp forehead and stays. Then the small bright click of a thermometer being shaken down, twice, the way she always does, as though the number could be argued with.<br><br><i>37.0. The night shift sits down.</i></div><div style="text-align:center"><button id="on">GO ON</button></div>';
+    if(window.branches){branches.carry(['a thermometer, shaken down']);branches.say('37.0. The night shift sits down.')}
+    $('#on').onclick=()=>window.branches&&branches.onward();
+    tick(900,.05);setTimeout(()=>tick(1100,.05),250);
+  },3500);
+}
+$('#go').onclick=()=>{
+  try{ac=new (window.AudioContext||window.webkitAudioContext)()}catch(e){}
+  $('#go').style.display='none';
+  let n=0;const c=$('#count');
+  const t=setInterval(()=>{n++;c.textContent=n;tick(60+n*8,.15);
+    if(n===10){clearInterval(t);setTimeout(()=>{c.textContent='READY OR NOT'},500);setTimeout(()=>{$('#title').style.display='none';startPulse()},1700)}
+  },450);
+};
+say('MEMO','The night shift is awake and none of them will say where the Fever went. Start anywhere: click a department, listen, then offer something from your hand.');
+drawThermo();render();
+</script>
