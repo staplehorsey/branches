@@ -2,3 +2,13 @@
 == started 2026-10-14 20:35:22 on msainzmbp, Darwin arm64
 == in /Users/msainz/Projects/branches at bde8364
 
+muses: []
+20:29 moonlit-meadow 12,14 space None score 0 | Inside Johnny | this world isn't generating a new room even thoguh i've hugn out for the right amount of time is there a bug
+20:30 moonlit-meadow 12,14 space None score 0 | Inside Johnny | i see what happened, a game was generated but was unclear that it existed, there should always be a visual tie n that jumps to hte world of the game if the game is very different than the world
+fog-pines/spaces/12_14/1/space.json: The Middle Watch | thermal video stills, corkboard taxonomy, monitor as a window into a second world, the empty column, a clock reaching 2:20, the tow cable into black water
+moonlit-meadow/spaces/12_14/1/space.json: Inside Johnny | board game, body as factory, fever, hide and seek, bribery, thermometer
+moonlit-meadow/spaces/12_14/2/space.json: The Convalescent Line | body as cannery line, board-game token on a rail, saltine and broth, mother's ticket, thermometer as kitchen tool, foremen cooking
+the-lush/spaces/2_0/1/space.json: The Garden Under Glass | 
+the-lush/spaces/5_0/1/space.json: The Lady's Street | iconoclasm, stations down a street, windlass assembled from household parts, ledger of costs, ask pay or take, wooden saint hollow inside
+
+== exit 0 after 2s
