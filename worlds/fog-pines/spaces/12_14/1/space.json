@@ -1,1 +1,16 @@
-{"name":"The Counting Desk","summary":"A Venetian counting house crowded with ship's agents shouting for letters before the tide bell. You match five letters to five ships and discover the Chiara letter carries a number you wrote down wrong; you check the ledger, strike, correct and reseal it before delivering.","minutes":3,"motifs":["desk of papers","ledger","quill and wax","crowd of ship agents","wrong figure","apprentice"],"thread":"Tomà, apprentice to Ser Andrea Dandolo in Rialto, corrected his mistaken forty sacks of pepper to fourteen and delivered all five letters to the quay. He carries the factor's receipt for fourteen sacks; the guilt is eased but the master's trust is still a debt.","delight":"The cold turn of finding your own handwriting in the ledger, and the one clean stroke through 'forty'. Two nearly identical Chiaras made the crowd's noise matter.","idea":{"name":"The Counting Desk","premise":"Venice, 1340s: an apprentice at a merchant's desk must deliver letters to ships' agents shouting at the counter, and finds one letter carries a number he mis-wrote. The guilt is repaired by a pen-stroke before the tide bell, not by speeches."}}
+{
+  "name": "The Middle Watch",
+  "summary": "The North Atlantic, the small hours of 1 September 1985: you're on the logbook in the Argo control van aboard R/V Knorr, sorting what a camera sled sees on the seafloor two and a half miles down. Freeze, print, pin, log: rock, life, junk, and an empty column marked '?'. Then a boiler with three furnace doors turns up on the screen, and at 2:20 a.m. everyone goes out on the fantail and stands quietly over the cable.",
+  "minutes": 4,
+  "motifs": ["thermal video stills", "corkboard taxonomy", "monitor as a window into a second world", "the empty column", "a clock reaching 2:20", "the tow cable into black water"],
+  "thread": "On the middle watch aboard R/V Knorr, 1 September 1985, the player sorted the seafloor still by still until a riveted boiler came up on the Argo monitor. They matched it to a 1911 plate, crossed out the '?' on the board and wrote TITANIC, and phoned the galley to wake the chief. The van cheered, then fell silent when the clock reached 2:20, the hour she sank, and the watch stood on the fantail over the tow cable. The player followed the cable down. Carried: a warm thermal print of the boiler, round-faced with three shut furnace doors, stamped 01:05. Still open: what you owe a thing you wanted so badly to find, once you've found it.",
+  "delight": "I loved that an epic search for the most famous wreck in the world comes down to a tired person holding a curl of warm printer paper and asking 'is this a rock?' a hundred times. The board labelled in marker, Gerald the rattail fish, and a dropstone an iceberg let go of all felt true, and the strike through the '?' felt like the hinge of the whole thing. Then the clock says 02:14 and the cheering just stops.",
+  "new_values": {
+    "verb": ["keep a vigil"],
+    "medium": ["a screen within the world"]
+  },
+  "idea": {
+    "name": "The Middle Watch",
+    "premise": "North Atlantic, the night the Titanic was found in 1985. In the dark Argo control van aboard R/V Knorr, the watch freezes, prints, pins and logs every contact a towed camera sled finds on the seabed, sorting the deep into ROCK, LIFE, JUNK and an empty '?'. Weeks of wanting come down to a boiler with three furnace doors, a cheer, and a minute's silence at 2:20 a.m. over the cable that runs down to her."
+  }
+}

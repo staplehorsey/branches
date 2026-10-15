@@ -54,5 +54,26 @@
     "speed": 5.336,
     "straight": 0.728,
     "turn": 0.106
+  },
+  {
+    "heading": 2.224,
+    "revisit": 0.658,
+    "speed": 4.274,
+    "straight": 0.594,
+    "turn": 0.165
+  },
+  {
+    "heading": 2.779,
+    "revisit": 0.767,
+    "speed": 3.381,
+    "straight": 0.566,
+    "turn": 0.254
+  },
+  {
+    "heading": -2.992,
+    "revisit": 0.925,
+    "speed": 2.613,
+    "straight": 0.175,
+    "turn": 0.625
   }
 ]
