@@ -1,0 +1,13 @@
+{
+  "name": "RM-0441",
+  "summary": "In 2791 you're an apprentice at the Restitution Modelling Office. Working through a micromanipulator and a monitor, you rebuild, to 0.2 mm tolerance, the dollhouse kitchen of Mara Szell, the muse of a famous composer, from his guilty statement. You shim the short table leg with the sealed paper he supplied, heat the tiny kettle, and hear where his Fourth Symphony really came from.",
+  "minutes": 8,
+  "motifs": ["dollhouse under a bell jar", "microscope monitor feed", "work cards from a master", "confession by clause", "whistling kettle", "brass credit plate"],
+  "thread": "A composer's restitution model is finished and sealed: Mara Szell's one-room flat at 1:12, with the lamp lit, the table level on her own folded notation, and the kettle on the back ring that whistled the opening of Hesper Vahl's Fourth Symphony. The apprentice engraved the credit plate in their own words. Still unresolved: Vahl, aged 144, has not yet said her name in public, and the model still has to be delivered. Carried: the credit plate's wording and the kettle's five notes (A C E D A).",
+  "delight": "I loved that guilt here has to meet a tolerance: he can't be vague about where the stove was, because the model won't pass. The best moment is the shim. You fix her wobbly table with the very paper he stole from under it, and the little lamp, the only warm thing in the lab, gets brighter with each true sentence.",
+  "new_values": {"structure": ["a confession in clauses"], "medium": ["a live feed from a micromanipulator"]},
+  "idea": {
+    "name": "RM-0441",
+    "premise": "In the far future, restitution law requires anyone who took something to have it rebuilt to tolerance as a dollhouse model. An apprentice modeller places the parts of a dead muse's kitchen through a microscope screen, guided by her old composer's statement, one clinical paragraph at a time. The sealed last clause, and the kettle's whistle once the model is powered, reveal that his most famous symphony was her humming."
+  }
+}

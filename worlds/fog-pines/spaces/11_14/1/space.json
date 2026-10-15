@@ -1,0 +1,16 @@
+{
+  "name": "The Witness's Night",
+  "summary": "A tabletop diorama of Rome inside the Esquiline gate, about 30 BC, which you orbit through the four watches of one night. You are the aediles' witness, and the freedman baker Eurysaces must make one batch in front of you, grain to loaf, before his bread contract is renewed. With your own hand you mill, sift, knead, keep vigil over the rising dough and the oven, stamp and weigh twelve loaves, and stay awake until dawn carries the bread to eleven doorways across the city.",
+  "minutes": 9,
+  "motifs": ["orbited city diorama with museum specimen tags", "four night watches on a water clock", "brass moon on a wire arc", "stamped loaves weighed on a steelyard", "kept-back leaven", "a tomb frieze of the work"],
+  "thread": "One night in Rome, about 30 BC: you witnessed Marcus Vergilius Eurysaces, a freedman baker, make one contract batch from grain to loaf, and you sealed a report saying his bread is as stated. Before the dough was covered he had you keep back a fist of it as leaven for tomorrow, which is why the twelfth loaf weighed an ounce and a half short. He would not let it go out under his name, so you are carrying it. At dawn he showed you the wax plan for his tomb at the fork of the roads outside the gate: a frieze of the whole night, with you in it as the unshaven official at the scales, his wife Atistia's ashes in a stone breadbasket, and the word APPARET, 'it is evident'. You went out by the gate toward where the tomb will stand. Unresolved: whether he keeps the contract (a man from Ostia bid lower), and what the old leaven will become next. Carried: a light loaf stamped EVRYSACIS, a fist of leaven in a cloth, the witness's report, sealed.",
+  "delight": "What I loved is that the most self-important tomb in Rome is a man carving the weighing scene from his own bakery onto his grave. Pride in a procedure, the steelyard included. I got to give it one quiet bit of cause and effect: the leaven you keep back for tomorrow is exactly what makes tonight's last loaf come up short. 'I turned that stone myself, before there was a donkey. Then I bought the donkey. Then I bought myself. In that order. The donkey was cheaper.'",
+  "new_values": {
+    "verb": ["witness and certify"],
+    "source": ["weights and measures"]
+  },
+  "idea": {
+    "name": "The Witness's Night",
+    "premise": "Rome, about 30 BC. Before his bread contract is renewed, the freedman baker Eurysaces must make one batch in a single night in front of a witness from the aediles' office, and the contract says the witness's hand goes on every step and the witness may not sleep. You keep the four watches beside a proud, exact man, in a diorama of the city's night ovens, until the bread is weighed and he shows you the tomb he will build out of this very procedure."
+  }
+}

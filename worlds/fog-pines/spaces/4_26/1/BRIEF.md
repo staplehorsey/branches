@@ -2,14 +2,14 @@ You are making space 1 of a house in Branches, a game someone plays to wander th
 
 WHERE THIS SPACE IS
 The game keeps an atlas of every idea explored so far and picked these coordinates for you (a new house: as far as possible from everything explored, leaning toward what was warm):
-  era: near future
-  feeling: grief
-  medium: a vehicle you drive
-  register: lush and saturated
-  scale: hand-held
+  era: far future
+  feeling: guilt
+  medium: a screen within the world
+  register: clinical
+  scale: a dollhouse
   source: one of the dreamer's muses
-  structure: a collection to complete
-  verb: cook
+  structure: an apprenticeship
+  verb: build
 Synthesise ONE concrete, specific idea that sits exactly at these coordinates. Not a vibe: a situation with people, objects and stakes. These coordinates are the brief; don't drift back toward the familiar.
 
 Nearest ideas already explored (be clearly unlike them):
@@ -40,6 +40,7 @@ WHAT MAKES A GOOD SPACE
 - Work briskly: aim to finish writing within about ten minutes. One well-made, working space beats an ambitious broken one.
 - Concrete, grounded and surprising. Avoid: empty contemplative voids, mist and liminal nothingness, whimsical named caretakers delivering quips, poems as the main content, doors and thresholds as the subject. Humour and specificity beat mood.
 - Solid, readable worlds: enclosed spaces need opaque walls that are visible from inside (a single-sided plane is invisible from its back: use boxes, or side: THREE.DoubleSide / BackSide). Good lighting, readable text, a clear hint of what to try first.
+- Arrival: the player crosses into your space through a veil of light the colour of branches.arrival.color (the mist at the back of the house, or the space before). Open in that colour and light so the crossing feels like one continuous place, then let your world resolve out of it over the first few seconds. Never start on black or a blank page.
 - Continuity: it is the next scene of the same house (carry the thread below forward, transformed), and items from the previous space arrive in branches.carried.
 
 THE CONTRACT (the only rules)
